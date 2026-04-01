@@ -1,0 +1,49 @@
+flowchart TD
+    A["🛒 العميل يستلم الطلب"] --> B{"هل العميل أكد الاستلام؟"}
+    
+    B -->|"نعم ✅"| C["تم تحرير المبلغ للتاجر<br/>لا يمكن فتح نزاع"]
+    B -->|"لا ❌"| D{"هل يوجد مشكلة؟"}
+    
+    D -->|"لا"| E["انتظار التحرير التلقائي<br/>حسب trust_level"]
+    D -->|"نعم"| F["📝 فتح نزاع<br/>POST /disputes"]
+    
+    F --> G["تحديد نوع النزاع"]
+    G --> G1["🔴 منتج تالف"]
+    G --> G2["🔴 لم يصل الطلب"]
+    G --> G3["🔴 منتج خاطئ"]
+    G --> G4["🔴 سبب آخر"]
+    
+    G1 --> H["⏸️ تجميد Escrow<br/>escrow_status = DISPUTED"]
+    G2 --> H
+    G3 --> H
+    G4 --> H
+    
+    H --> I["📧 إشعار التاجر والأدمن"]
+    I --> J["👑 مراجعة الأدمن"]
+    
+    J --> K{"قرار الأدمن"}
+    
+    K -->|"لصالح العميل"| L["💸 استرداد المبلغ للعميل<br/>escrow_status = REFUNDED"]
+    L --> L1["خصم من pending_balance"]
+    L1 --> L2["إعادة المبلغ عبر Thawani"]
+    
+    K -->|"لصالح التاجر"| M["💰 تحرير المبلغ للتاجر<br/>escrow_status = RELEASED"]
+    M --> M1["نقل من pending إلى available"]
+    
+    K -->|"تسوية جزئية"| N["💱 تقسيم المبلغ<br/>جزء للعميل + جزء للتاجر"]
+    
+    L2 --> O["📋 إغلاق النزاع<br/>status = CLOSED"]
+    M1 --> O
+    N --> O
+
+    classDef start fill:#4A90D9,stroke:#2C5F8A,color:#fff
+    classDef decision fill:#F5A623,stroke:#C47D1A,color:#fff
+    classDef action fill:#50C878,stroke:#3A9659,color:#fff
+    classDef danger fill:#FF6B6B,stroke:#CC5555,color:#fff
+    classDef end_node fill:#95A5A6,stroke:#7F8C8D,color:#fff
+
+    class A start
+    class B,D,K decision
+    class C,E,M,M1 action
+    class F,G1,G2,G3,G4,H danger
+    class O end_node

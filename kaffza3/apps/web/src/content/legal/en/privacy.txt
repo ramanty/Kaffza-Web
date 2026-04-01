@@ -1,0 +1,102 @@
+Privacy Policy
+Kaffza Platform | Kaffza
+Jawaharat Al Shahba Modern LLC | Commercial Registration: 1417621
+Last updated: 16 March 2026
+
+1. Introduction
+Jawaharat Al Shahba Modern LLC (“Kaffza”, “the Platform”, “we”, “us”) provides an integrated e-commerce platform that enables merchants to build online stores and enables customers to browse and purchase products securely.
+This Policy explains how we collect, use, and protect personal data. It applies to all users of the Platform, including merchants, customers, and visitors.
+By using Kaffza, you acknowledge that you have read and agreed to this Policy.
+
+2. Data We Collect
+A. Registration Data
+• Full name
+• Email address
+• Phone number (required for OTP verification)
+• Password (encrypted; never stored in plain text)
+• Account type (merchant / customer)
+• Preferred language
+
+B. Merchant Data
+• Store information (name, subdomain, description, logo)
+• Commercial registration and official documents
+• Banking details for payouts (IBAN, account number, bank name)
+• Product, inventory, and pricing data
+
+C. Customer Data
+• Shipping and delivery address
+• Orders and purchase history
+• Cart data (stored temporarily)
+
+D. Automatically Collected Data
+• IP address and device information
+• Browser/app type
+• Login and security event logs (Audit Log)
+• Payment data (processed via Thawani Pay; we do not store card details)
+
+3. How We Use Your Data
+• To activate and verify your account using OTP
+• To process orders and payments through the Escrow system
+• To send notifications about orders, shipping, and wallet activity
+• To protect the Platform from fraud and manage disputes
+• To improve user experience and Platform services
+• To comply with legal and regulatory requirements in Oman
+• To communicate with you about your account or orders
+
+4. Sharing Data with Third Parties
+We do not sell your personal data. We may share data only in the following cases:
+• Thawani Pay: to process payments securely (PCI-DSS aligned)
+• Jeena shipping: to deliver orders and provide shipment tracking
+• Amazon Web Services (AWS): to host data on servers in the Bahrain region
+• Legal/regulatory authorities: only upon a valid official legal request
+• The relevant merchant: order details necessary to fulfill the purchase
+
+5. Escrow & Payment Protection
+Kaffza uses an integrated Escrow system:
+• Payment amounts are held by the Platform upon successful payment
+• Funds are released to the merchant when the customer confirms receipt
+• If not confirmed, funds are released automatically after a period based on merchant trust level
+• Customers may open a dispute during the holding period to request a refund in documented cases
+
+6. Data Security
+• Password hashing using bcrypt
+• JWT tokens with defined expiry and token rotation
+• HttpOnly cookies for web sessions
+• HTTPS encryption for all communications
+• Refresh tokens stored in Redis and revoked immediately on logout
+• Audit log for sensitive operations
+• Rate limiting to reduce brute-force attacks
+
+7. Your Rights
+You may, at any time:
+• Access the personal data we hold about you
+• Correct inaccurate data
+• Request deletion of your account/data (subject to legal obligations)
+• Object to certain processing activities
+• Withdraw consent for marketing communications
+To exercise these rights, contact: mn74684@gmail.com
+
+8. Data Retention
+• Account data: as long as your account remains active
+• Financial transaction records: 5 years (per relevant regulatory requirements)
+• Security event logs: 1 year
+• Cart data: 7 days from last activity
+
+9. Cookies
+Kaffza uses cookies for:
+• HttpOnly refresh token cookie (security essential)
+• User preferences (language and selected store)
+We do not use cookies for advertising tracking.
+
+10. Contact Us
+For privacy-related questions:
+• Company: Jawaharat Al Shahba Modern LLC
+• Commercial Registration: 1417621 | Tax No.: 1805706
+• Address: Al Mabelah Al Janubiyah, Seeb, Muscat, Sultanate of Oman
+• Phone: 77509646
+• Email: mn74684@gmail.com
+
+11. Changes to This Policy
+We may update this Policy at any time. We will notify you of material changes by email or in-app notification. Continued use after publication constitutes acceptance.
+
+Effective date: 16 March 2026

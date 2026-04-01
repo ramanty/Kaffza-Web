@@ -1,0 +1,59 @@
+# ============================================
+# Kaffza (قفزة) — Docker Compose for Local Development
+# جوهرة الشهباء الحديثة ش.م.م
+# ============================================
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: kaffza-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kaffza_db
+      POSTGRES_USER: kaffza_user
+      POSTGRES_PASSWORD: kaffza_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kaffza_user -d kaffza_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: kaffza-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO (S3-compatible storage for local development)
+  minio:
+    image: minio/minio:latest
+    container_name: kaffza-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: kaffza_minio
+      MINIO_ROOT_PASSWORD: kaffza_minio_secret
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
