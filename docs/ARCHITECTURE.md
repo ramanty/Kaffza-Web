@@ -107,7 +107,7 @@ kaffza-oman/
 | **Stores** | إنشاء وإدارة المتاجر، الاشتراكات | `POST /stores`, `GET /stores/:subdomain`, `PATCH /stores/:id` |
 | **Products** | كتالوج المنتجات، المخزون، التصنيفات | `POST /stores/:id/products`, `GET /products`, `PATCH /products/:id` |
 | **Orders** | دورة حياة الطلب، حساب العمولات | `POST /orders`, `GET /orders/:id`, `PATCH /orders/:id/status` |
-| **Payments** | Thawani Pay، Escrow، Webhooks | `POST /payments/create-session`, `POST /payments/webhook` |
+| **Payments** | Thawani Pay، Escrow، Webhooks | `POST /stores/:storeId/payments/create-session`, `POST /payments/webhook` |
 | **Shipping** | جيناكم (Mock)، بوالص الشحن، التتبع | `POST /shipments`, `GET /shipments/:id/track` |
 | **Wallets** | الأرصدة، السحب، سجل المعاملات | `GET /wallets/me`, `POST /wallets/withdraw`, `GET /wallets/transactions` |
 | **Disputes** | فتح وإدارة النزاعات، الرسائل | `POST /disputes`, `PATCH /disputes/:id/resolve` |
@@ -126,8 +126,8 @@ kaffza-oman/
 | الخطة | السعر الشهري | نسبة العمولة | مثال: طلب بقيمة 100 ر.ع |
 | :--- | :--- | :--- | :--- |
 | **البداية** | 5 ر.ع | 2% | عمولة: 2 ر.ع → التاجر: 98 ر.ع |
-| **النمو** | 25 ر.ع | 1% | عمولة: 1 ر.ع → التاجر: 95 ر.ع |
-| **المحترف** | 75 ر.ع | 0.5% | عمولة: 0.5 ر.ع → التاجر: 99.5 ر.ع |
+| **النمو** | 8 ر.ع | 1% | عمولة: 1 ر.ع → التاجر: 95 ر.ع |
+| **المحترف** | 35 ر.ع | 0.5% | عمولة: 0.5 ر.ع → التاجر: 99.5 ر.ع |
 
 لا توجد رسوم تسجيل. المبلغ المتبقي بعد خصم العمولة يُضاف إلى `pending_balance` في محفظة التاجر حتى يتم تحريره من نظام الضمان.
 

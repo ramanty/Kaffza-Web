@@ -8,6 +8,7 @@ const NAV = [
   { href: '/admin/orders', label: 'الطلبات', icon: '🧾' },
   { href: '/admin/disputes', label: 'النزاعات', icon: '⚖️' },
   { href: '/admin/payments', label: 'المدفوعات', icon: '💳' },
+  { href: '/admin/withdrawals', label: 'السحوبات', icon: '🏦' },
   { href: '/admin/settings', label: 'الإعدادات', icon: '⚙️' },
 ];
 
