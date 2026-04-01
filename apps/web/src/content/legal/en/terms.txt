@@ -1,0 +1,121 @@
+Terms & Conditions
+Kaffza Platform | Kaffza
+Jawaharat Al Shahba Modern LLC | Commercial Registration: 1417621
+Last updated: 16 March 2026
+
+1. Acceptance of Terms
+Welcome to Kaffza, Oman's first integrated e-commerce platform. The Platform is operated by Jawaharat Al Shahba Modern LLC, duly licensed in the Sultanate of Oman.
+By using the Platform or creating an account, you agree to these Terms & Conditions in full. If you do not agree to any part of these Terms, please stop using the Platform.
+
+2. Service Description
+Kaffza is a SaaS (Software as a Service) platform that enables:
+• Merchants: create online stores and manage products, orders, and wallets.
+• Customers: browse stores, add products to cart, and checkout securely.
+• An Escrow system that protects both parties and ensures safe transactions.
+• Integration with Thawani Pay for electronic payments in Omani Rial (OMR).
+• Integration with Jeena (shipping) for delivery services inside Oman.
+
+3. Registration & Account
+A. Eligibility
+• You must be 18 years of age or older.
+• The information you provide must be true, accurate, and complete.
+• Creating more than one account per person is prohibited without prior approval.
+
+B. Account Responsibility
+• You are responsible for keeping your password confidential.
+• You are responsible for all activities performed through your account.
+• You must notify us immediately if you suspect unauthorized use.
+
+4. Merchant Terms
+A. Merchant Obligations
+• Provide accurate information about the store and products.
+• Comply with all applicable Omani laws and regulations for e-commerce.
+• Obtain the required commercial licenses before selling.
+• Ship orders within the time announced to customers.
+• Respond to customer inquiries and complaints within a reasonable time.
+
+B. Prohibited Content
+Merchants must not sell or display:
+• Counterfeit goods or items that infringe intellectual property rights.
+• Goods prohibited under Omani law.
+• Products that pose a risk to public health or safety.
+• Any content that violates public morals or Islamic values.
+
+C. Subscriptions & Commissions
+• Starter Plan (OMR 5/month): 2% commission per sale — 1 store.
+• Growth Plan (OMR 8/month): 1% commission per sale — up to 3 stores.
+• Pro Plan (OMR 35/month): 0.5% commission per sale — unlimited stores.
+• Commission is deducted automatically from collected amounts before crediting the merchant wallet.
+
+5. Escrow System
+Kaffza operates an integrated Escrow system:
+• Payment amounts are held by the Platform upon successful payment.
+• Funds are released to the merchant once the customer confirms receipt.
+• If the customer does not confirm, funds are released automatically based on merchant trust level:
+  - New merchants (first 3 orders): 14 days from delivery confirmation.
+  - Standard merchants: 7 days from delivery confirmation.
+  - Trusted merchants (50+ orders and 4.5+ rating): 3 days from delivery confirmation.
+• Minimum withdrawal request: OMR 10.
+
+6. Disputes
+In case of a dispute between customer and merchant:
+• The customer may open an official dispute only during the escrow holding period.
+• When a dispute is opened, funds are frozen until the matter is resolved.
+• Both parties provide evidence and documents to Kaffza.
+• Kaffza issues a binding decision within 7 business days after evidence is complete.
+• Kaffza’s decision is final regarding fund release or refund.
+
+7. Payment & Refunds
+A. Payments
+• Payments are processed via Thawani Pay, licensed by the Central Bank of Oman.
+• The Platform currency is OMR.
+• Kaffza is not responsible for any additional fees charged by banks.
+
+B. Refunds
+• Customers may request a refund before confirming receipt.
+• Refund requests are processed within 5–7 business days.
+• Merchant monthly subscription fees are non-refundable.
+• If a dispute is resolved in favor of the customer, the amount is refunded in full.
+
+8. Restrictions
+All users must not:
+• Violate any laws or regulations in Oman.
+• Abuse the Platform or attempt to hack, manipulate, or disrupt it.
+• Publish false or misleading information.
+• Harass or harm other users.
+• Use the Platform for money laundering or illegal financing.
+• Create fake accounts or impersonate others.
+
+9. Intellectual Property
+All intellectual property rights in the Platform (including “قفزة”, “Kaffza”, logo, source code, and design) are owned by Jawaharat Al Shahba Modern LLC.
+Merchants retain ownership of content they upload, and grant Kaffza a limited license to display it for store operation purposes.
+
+10. Disclaimer
+The Platform is provided “as is” while we continuously improve it. Kaffza is not responsible for:
+• The quality of products sold by merchants.
+• Delivery delays caused by shipping providers.
+• Indirect losses resulting from use of the Platform.
+• Service interruptions due to scheduled maintenance or circumstances beyond our control.
+
+11. Suspension & Termination
+Kaffza reserves the right to:
+• Suspend an account immediately when a violation is suspected.
+• Terminate an account permanently when a violation is confirmed.
+• Hold pending amounts until existing disputes are resolved.
+Users may close their account at any time, provided all outstanding financial obligations are settled.
+
+12. Governing Law
+These Terms are governed by the laws of the Sultanate of Oman. Any dispute shall fall under the jurisdiction of competent Omani courts in Muscat.
+
+13. Contact Us
+For inquiries or complaints:
+• Company: Jawaharat Al Shahba Modern LLC
+• Commercial Registration: 1417621 | Tax No.: 1805706
+• Address: Al Mabelah Al Janubiyah, Seeb, Muscat, Sultanate of Oman
+• Phone: 77509646
+• Email: mn74684@gmail.com
+
+14. Amendments
+Kaffza may amend these Terms at any time. Registered users will be notified of material changes at least 15 days before they take effect. Continued use after the effective date constitutes acceptance.
+
+Effective date: 16 March 2026

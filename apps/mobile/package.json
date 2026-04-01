@@ -1,0 +1,41 @@
+{
+  "name": "@kaffza/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kaffza Mobile App — React Native (iOS + Android)",
+  "main": "index.js",
+  "scripts": {
+    "dev": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "build:android": "eas build --platform android",
+    "build:ios": "eas build --platform ios",
+    "lint": "eslint src/",
+    "clean": "rm -rf .expo dist"
+  },
+  "dependencies": {
+    "expo": "~52.0.0",
+    "expo-router": "~4.0.0",
+    "expo-secure-store": "~14.0.0",
+    "expo-localization": "~16.0.0",
+    "react": "^18.3.0",
+    "react-native": "~0.76.0",
+    "react-native-safe-area-context": "~5.0.0",
+    "react-native-screens": "~4.4.0",
+    "nativewind": "^4.1.0",
+    "axios": "^1.7.0",
+    "zustand": "^5.0.0",
+    "react-hook-form": "^7.54.0",
+    "@hookform/resolvers": "^3.9.0",
+    "zod": "^3.23.0",
+    "i18next": "^24.2.0",
+    "react-i18next": "^15.1.0",
+    "@kaffza/types": "workspace:*",
+    "@kaffza/validators": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "typescript": "^5.6.0",
+    "tailwindcss": "^3.4.0"
+  }
+}

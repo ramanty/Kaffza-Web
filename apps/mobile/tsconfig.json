@@ -1,0 +1,13 @@
+{
+  "extends": "@kaffza/tsconfig/react-native.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@kaffza/types": ["../../packages/types/src"],
+      "@kaffza/validators": ["../../packages/validators/src"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}

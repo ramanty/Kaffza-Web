@@ -1,0 +1,479 @@
+// ============================================
+// Kaffza (قفزة) — Prisma Database Schema
+// جوهرة الشهباء الحديثة ش.م.م
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---- Users ----
+enum UserRole {
+  admin
+  merchant
+  customer
+}
+
+enum Locale {
+  ar
+  en
+}
+
+model User {
+  id            BigInt    @id @default(autoincrement())
+  name          String    @db.VarChar(100)
+  email         String    @unique @db.VarChar(255)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  phone         String    @unique @db.VarChar(20)
+  otp           String?   @db.VarChar(6)
+  otpExpiresAt  DateTime? @map("otp_expires_at")
+  role          UserRole  @default(customer)
+  locale        Locale    @default(ar)
+  isVerified    Boolean   @default(false) @map("is_verified")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  stores        Store[]
+  orders        Order[]        @relation("CustomerOrders")
+  disputes      Dispute[]      @relation("DisputeRaisedBy")
+  assignedDisputes Dispute[]   @relation("DisputeAssignedTo")
+  disputeMessages DisputeMessage[]
+  reviews       Review[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+// ---- Plans ----
+model Plan {
+  id              BigInt   @id @default(autoincrement())
+  name            String   @db.VarChar(50)
+  nameEn          String   @map("name_en") @db.VarChar(50)
+  priceMonthly    Decimal  @map("price_monthly") @db.Decimal(10, 3)
+  commissionRate  Decimal  @map("commission_rate") @db.Decimal(5, 4)
+  features        Json     @default("[]")
+  isActive        Boolean  @default(true) @map("is_active")
+
+  stores          Store[]
+  subscriptions   Subscription[]
+
+  @@map("plans")
+}
+
+// ---- Stores ----
+enum TrustLevel {
+  new_merchant  @map("new")
+  standard
+  trusted
+}
+
+model Store {
+  id              BigInt     @id @default(autoincrement())
+  ownerId         BigInt     @map("owner_id")
+  planId          BigInt     @map("plan_id")
+  nameAr          String     @map("name_ar") @db.VarChar(100)
+  nameEn          String     @map("name_en") @db.VarChar(100)
+  subdomain       String     @unique @db.VarChar(50)
+  customDomain    String?    @unique @map("custom_domain") @db.VarChar(255)
+  descriptionAr   String?    @map("description_ar") @db.Text
+  descriptionEn   String?    @map("description_en") @db.Text
+  logoUrl         String?    @map("logo_url") @db.VarChar(500)
+  bannerUrl       String?    @map("banner_url") @db.VarChar(500)
+  isActive        Boolean    @default(true) @map("is_active")
+  totalOrders     Int        @default(0) @map("total_orders")
+  avgRating       Decimal    @default(0) @map("avg_rating") @db.Decimal(3, 2)
+  trustLevel      TrustLevel @default(new_merchant) @map("trust_level")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  owner           User       @relation(fields: [ownerId], references: [id])
+  plan            Plan       @relation(fields: [planId], references: [id])
+  subscriptions   Subscription[]
+  categories      Category[]
+  products        Product[]
+  orders          Order[]
+  wallet          Wallet?
+  reviews         Review[]
+
+  @@map("stores")
+}
+
+// ---- Subscriptions ----
+enum SubscriptionStatus {
+  active
+  expired
+  cancelled
+}
+
+model Subscription {
+  id        BigInt             @id @default(autoincrement())
+  storeId   BigInt             @map("store_id")
+  planId    BigInt             @map("plan_id")
+  status    SubscriptionStatus @default(active)
+  startsAt  DateTime           @map("starts_at")
+  endsAt    DateTime           @map("ends_at")
+  createdAt DateTime           @default(now()) @map("created_at")
+
+  store     Store              @relation(fields: [storeId], references: [id])
+  plan      Plan               @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
+}
+
+// ---- Categories ----
+model Category {
+  id        BigInt     @id @default(autoincrement())
+  storeId   BigInt     @map("store_id")
+  parentId  BigInt?    @map("parent_id")
+  nameAr    String     @map("name_ar") @db.VarChar(100)
+  nameEn    String     @map("name_en") @db.VarChar(100)
+  slug      String     @unique @db.VarChar(150)
+  sortOrder Int        @default(0) @map("sort_order")
+
+  store     Store      @relation(fields: [storeId], references: [id])
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  products  Product[]
+
+  @@map("categories")
+}
+
+// ---- Products ----
+model Product {
+  id              BigInt           @id @default(autoincrement())
+  storeId         BigInt           @map("store_id")
+  categoryId      BigInt?          @map("category_id")
+  nameAr          String           @map("name_ar") @db.VarChar(200)
+  nameEn          String           @map("name_en") @db.VarChar(200)
+  descriptionAr   String?          @map("description_ar") @db.Text
+  descriptionEn   String?          @map("description_en") @db.Text
+  price           Decimal          @db.Decimal(10, 3)
+  compareAtPrice  Decimal?         @map("compare_at_price") @db.Decimal(10, 3)
+  stock           Int              @default(0)
+  images          Json             @default("[]")
+  sku             String?          @db.VarChar(50)
+  weightKg        Decimal?         @map("weight_kg") @db.Decimal(8, 3)
+  isActive        Boolean          @default(true) @map("is_active")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  store           Store            @relation(fields: [storeId], references: [id])
+  category        Category?        @relation(fields: [categoryId], references: [id])
+  variants        ProductVariant[]
+  orderItems      OrderItem[]
+  reviews         Review[]
+
+  @@index([storeId])
+  @@index([storeId, isActive])
+  @@map("products")
+}
+
+model ProductVariant {
+  id        BigInt  @id @default(autoincrement())
+  productId BigInt  @map("product_id")
+  nameAr    String  @map("name_ar") @db.VarChar(100)
+  nameEn    String  @map("name_en") @db.VarChar(100)
+  price     Decimal @db.Decimal(10, 3)
+  stock     Int     @default(0)
+  sku       String? @db.VarChar(50)
+
+  product   Product     @relation(fields: [productId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("product_variants")
+}
+
+// ---- Orders ----
+enum OrderStatus {
+  pending
+  confirmed
+  processing
+  shipped
+  delivered
+  cancelled
+  refunded
+}
+
+model Order {
+  id                BigInt      @id @default(autoincrement())
+  orderNumber       String      @unique @map("order_number") @db.VarChar(30)
+  storeId           BigInt      @map("store_id")
+  customerId        BigInt      @map("customer_id")
+  status            OrderStatus @default(pending)
+  subtotal          Decimal     @db.Decimal(10, 3)
+  shippingCost      Decimal     @default(0) @map("shipping_cost") @db.Decimal(10, 3)
+  totalAmount       Decimal     @map("total_amount") @db.Decimal(10, 3)
+  commissionAmount  Decimal     @map("commission_amount") @db.Decimal(10, 3)
+  merchantAmount    Decimal     @map("merchant_amount") @db.Decimal(10, 3)
+  shippingAddress   Json        @map("shipping_address")
+  billingAddress    Json?       @map("billing_address")
+  customerNotes     String?     @map("customer_notes") @db.Text
+  customerConfirmed Boolean     @default(false) @map("customer_confirmed")
+  confirmedAt       DateTime?   @map("confirmed_at")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+
+  store             Store       @relation(fields: [storeId], references: [id])
+  customer          User        @relation("CustomerOrders", fields: [customerId], references: [id])
+  items             OrderItem[]
+  payment           Payment?
+  shipment          Shipment?
+  dispute           Dispute?
+  review            Review?
+
+  @@index([storeId])
+  @@index([customerId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          BigInt   @id @default(autoincrement())
+  orderId     BigInt   @map("order_id")
+  productId   BigInt   @map("product_id")
+  variantId   BigInt?  @map("variant_id")
+  productName String   @map("product_name") @db.VarChar(200)
+  quantity    Int
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(10, 3)
+  totalPrice  Decimal  @map("total_price") @db.Decimal(10, 3)
+
+  order       Order          @relation(fields: [orderId], references: [id])
+  product     Product        @relation(fields: [productId], references: [id])
+  variant     ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@map("order_items")
+}
+
+// ---- Payments ----
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum EscrowStatus {
+  held
+  released
+  refunded
+  disputed
+}
+
+model Payment {
+  id                BigInt        @id @default(autoincrement())
+  orderId           BigInt        @unique @map("order_id")
+  amount            Decimal       @db.Decimal(10, 3)
+  currency          String        @default("OMR") @db.VarChar(3)
+  status            PaymentStatus @default(pending)
+  gateway           String        @default("thawani") @db.VarChar(20)
+  gatewaySessionId  String?       @map("gateway_session_id") @db.VarChar(255)
+  gatewayPaymentId  String?       @map("gateway_payment_id") @db.VarChar(255)
+  escrowStatus      EscrowStatus  @default(held) @map("escrow_status")
+  releaseAt         DateTime?     @map("release_at")
+  releasedAt        DateTime?     @map("released_at")
+  createdAt         DateTime      @default(now()) @map("created_at")
+
+  order             Order         @relation(fields: [orderId], references: [id])
+
+  @@index([escrowStatus, releaseAt])
+  @@map("payments")
+}
+
+// ---- Shipments ----
+enum ShipmentStatus {
+  pending
+  picked_up
+  in_transit
+  out_for_delivery
+  delivered
+  returned
+  failed
+}
+
+model Shipment {
+  id              BigInt         @id @default(autoincrement())
+  orderId         BigInt         @unique @map("order_id")
+  provider        String         @default("jeena") @db.VarChar(50)
+  trackingNumber  String?        @map("tracking_number") @db.VarChar(100)
+  awbNumber       String?        @map("awb_number") @db.VarChar(100)
+  status          ShipmentStatus @default(pending)
+  fromAddress     Json           @map("from_address")
+  toAddress       Json           @map("to_address")
+  weightKg        Decimal        @map("weight_kg") @db.Decimal(8, 3)
+  shippedAt       DateTime?      @map("shipped_at")
+  deliveredAt     DateTime?      @map("delivered_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  order           Order          @relation(fields: [orderId], references: [id])
+
+  @@map("shipments")
+}
+
+// ---- Wallets ----
+model Wallet {
+  id               BigInt              @id @default(autoincrement())
+  storeId          BigInt              @unique @map("store_id")
+  availableBalance Decimal             @default(0) @map("available_balance") @db.Decimal(12, 3)
+  pendingBalance   Decimal             @default(0) @map("pending_balance") @db.Decimal(12, 3)
+  totalEarned      Decimal             @default(0) @map("total_earned") @db.Decimal(12, 3)
+  totalWithdrawn   Decimal             @default(0) @map("total_withdrawn") @db.Decimal(12, 3)
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  store            Store               @relation(fields: [storeId], references: [id])
+  transactions     WalletTransaction[]
+  withdrawals      Withdrawal[]
+
+  @@map("wallets")
+}
+
+enum TransactionType {
+  escrow_hold
+  escrow_release
+  withdrawal
+  commission
+  refund
+}
+
+model WalletTransaction {
+  id            BigInt          @id @default(autoincrement())
+  walletId      BigInt          @map("wallet_id")
+  amount        Decimal         @db.Decimal(10, 3)
+  type          TransactionType
+  description   String          @db.VarChar(500)
+  referenceId   BigInt?         @map("reference_id")
+  referenceType String?         @map("reference_type") @db.VarChar(50)
+  balanceAfter  Decimal         @map("balance_after") @db.Decimal(12, 3)
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  wallet        Wallet          @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@map("wallet_transactions")
+}
+
+enum WithdrawalStatus {
+  pending
+  approved
+  rejected
+  completed
+}
+
+model Withdrawal {
+  id            BigInt           @id @default(autoincrement())
+  walletId      BigInt           @map("wallet_id")
+  amount        Decimal          @db.Decimal(10, 3)
+  bankName      String           @map("bank_name") @db.VarChar(100)
+  accountNumber String           @map("account_number") @db.VarChar(30)
+  iban          String           @db.VarChar(30)
+  status        WithdrawalStatus @default(pending)
+  adminNotes    String?          @map("admin_notes") @db.Text
+  processedAt   DateTime?        @map("processed_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  wallet        Wallet           @relation(fields: [walletId], references: [id])
+
+  @@map("withdrawals")
+}
+
+// ---- Disputes ----
+enum DisputeType {
+  product_issue
+  not_received
+  wrong_item
+  other
+}
+
+enum DisputeStatus {
+  open
+  under_review
+  resolved_merchant
+  resolved_customer
+  closed
+}
+
+model Dispute {
+  id          BigInt        @id @default(autoincrement())
+  orderId     BigInt        @unique @map("order_id")
+  raisedById  BigInt        @map("raised_by")
+  assignedToId BigInt?      @map("assigned_to")
+  type        DisputeType
+  reason      String        @db.Text
+  resolution  String?       @db.Text
+  status      DisputeStatus @default(open)
+  evidence    Json?         @default("[]")
+  resolvedAt  DateTime?     @map("resolved_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  order       Order         @relation(fields: [orderId], references: [id])
+  raisedBy    User          @relation("DisputeRaisedBy", fields: [raisedById], references: [id])
+  assignedTo  User?         @relation("DisputeAssignedTo", fields: [assignedToId], references: [id])
+  messages    DisputeMessage[]
+
+  @@map("disputes")
+}
+
+model DisputeMessage {
+  id          BigInt   @id @default(autoincrement())
+  disputeId   BigInt   @map("dispute_id")
+  senderId    BigInt   @map("sender_id")
+  message     String   @db.Text
+  attachments Json?    @default("[]")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  dispute     Dispute  @relation(fields: [disputeId], references: [id])
+  sender      User     @relation(fields: [senderId], references: [id])
+
+  @@map("dispute_messages")
+}
+
+// ---- Reviews ----
+model Review {
+  id         BigInt   @id @default(autoincrement())
+  orderId    BigInt   @unique @map("order_id")
+  storeId    BigInt   @map("store_id")
+  customerId BigInt   @map("customer_id")
+  productId  BigInt   @map("product_id")
+  rating     Int      @db.SmallInt
+  comment    String?  @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  order      Order    @relation(fields: [orderId], references: [id])
+  store      Store    @relation(fields: [storeId], references: [id])
+  customer   User     @relation(fields: [customerId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+
+  @@index([storeId])
+  @@index([productId])
+  @@map("reviews")
+}
+
+// ---- Notifications ----
+enum NotificationType {
+  order
+  payment
+  dispute
+  system
+}
+
+model Notification {
+  id        BigInt           @id @default(autoincrement())
+  userId    BigInt           @map("user_id")
+  titleAr   String           @map("title_ar") @db.VarChar(200)
+  titleEn   String           @map("title_en") @db.VarChar(200)
+  bodyAr    String           @map("body_ar") @db.Text
+  bodyEn    String           @map("body_en") @db.Text
+  type      NotificationType
+  isRead    Boolean          @default(false) @map("is_read")
+  data      Json?
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user      User             @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}

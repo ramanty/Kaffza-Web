@@ -1,0 +1,272 @@
+erDiagram
+    users {
+        bigint id PK "Auto-increment"
+        varchar name "الاسم الكامل"
+        varchar email UK "البريد الإلكتروني"
+        varchar password_hash "كلمة المرور المشفرة"
+        varchar phone UK "رقم الهاتف العُماني"
+        varchar otp "رمز التحقق المؤقت"
+        timestamp otp_expires_at "انتهاء صلاحية OTP"
+        enum role "admin / merchant / customer"
+        varchar locale "ar / en"
+        boolean is_verified "تم التحقق"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    plans {
+        bigint id PK
+        varchar name "البداية / النمو / المحترف"
+        varchar name_en "Starter / Growth / Pro"
+        decimal price_monthly "السعر الشهري بالريال"
+        decimal commission_rate "نسبة العمولة"
+        text features "المميزات JSON"
+        boolean is_active
+    }
+
+    stores {
+        bigint id PK
+        bigint owner_id FK "مالك المتجر"
+        bigint plan_id FK "خطة الاشتراك"
+        varchar name_ar "اسم المتجر بالعربية"
+        varchar name_en "اسم المتجر بالإنجليزية"
+        varchar subdomain UK "النطاق الفرعي"
+        varchar custom_domain UK "نطاق مخصص"
+        text description_ar
+        text description_en
+        varchar logo_url
+        varchar banner_url
+        boolean is_active
+        integer total_orders "إجمالي الطلبات المكتملة"
+        decimal avg_rating "متوسط التقييم"
+        enum trust_level "new / standard / trusted"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    subscriptions {
+        bigint id PK
+        bigint store_id FK
+        bigint plan_id FK
+        enum status "active / expired / cancelled"
+        timestamp starts_at
+        timestamp ends_at
+        timestamp created_at
+    }
+
+    categories {
+        bigint id PK
+        bigint store_id FK
+        bigint parent_id FK "تصنيف أب"
+        varchar name_ar
+        varchar name_en
+        varchar slug UK
+        integer sort_order
+    }
+
+    products {
+        bigint id PK
+        bigint store_id FK
+        bigint category_id FK
+        varchar name_ar
+        varchar name_en
+        text description_ar
+        text description_en
+        decimal price "السعر بالريال العُماني"
+        decimal compare_at_price "السعر قبل الخصم"
+        integer stock "المخزون المتاح"
+        json images "مصفوفة روابط الصور"
+        varchar sku "رمز المنتج"
+        decimal weight_kg "الوزن بالكيلوغرام"
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    product_variants {
+        bigint id PK
+        bigint product_id FK
+        varchar name_ar "مثلاً: أحمر - XL"
+        varchar name_en
+        decimal price
+        integer stock
+        varchar sku
+    }
+
+    orders {
+        bigint id PK
+        varchar order_number UK "KFZ-20260315-0001"
+        bigint store_id FK
+        bigint customer_id FK
+        enum status "pending / confirmed / shipped / delivered / cancelled / refunded"
+        decimal subtotal "المجموع الفرعي"
+        decimal shipping_cost "تكلفة الشحن"
+        decimal total_amount "المبلغ الإجمالي"
+        decimal commission_amount "عمولة المنصة"
+        decimal merchant_amount "مبلغ التاجر"
+        json shipping_address "عنوان الشحن"
+        json billing_address "عنوان الفاتورة"
+        text customer_notes "ملاحظات العميل"
+        boolean customer_confirmed "تأكيد الاستلام"
+        timestamp confirmed_at "تاريخ تأكيد الاستلام"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    order_items {
+        bigint id PK
+        bigint order_id FK
+        bigint product_id FK
+        bigint variant_id FK
+        varchar product_name "اسم المنتج وقت الشراء"
+        integer quantity
+        decimal unit_price "سعر الوحدة"
+        decimal total_price "السعر الإجمالي"
+    }
+
+    payments {
+        bigint id PK
+        bigint order_id FK
+        decimal amount "المبلغ المدفوع"
+        varchar currency "OMR"
+        enum status "pending / paid / failed / refunded"
+        varchar gateway "thawani"
+        varchar gateway_session_id "معرف جلسة Thawani"
+        varchar gateway_payment_id "معرف الدفع من Thawani"
+        enum escrow_status "held / released / refunded / disputed"
+        timestamp release_at "تاريخ تحرير المبلغ"
+        timestamp released_at "تاريخ التحرير الفعلي"
+        timestamp created_at
+    }
+
+    shipments {
+        bigint id PK
+        bigint order_id FK
+        varchar provider "jeena"
+        varchar tracking_number "رقم التتبع"
+        varchar awb_number "رقم بوليصة الشحن"
+        enum status "pending / picked_up / in_transit / delivered / returned"
+        json from_address "عنوان التاجر"
+        json to_address "عنوان العميل"
+        decimal weight_kg
+        timestamp shipped_at "تاريخ الشحن"
+        timestamp delivered_at "تاريخ التوصيل"
+        timestamp created_at
+    }
+
+    wallets {
+        bigint id PK
+        bigint store_id FK "UK"
+        decimal available_balance "الرصيد المتاح للسحب"
+        decimal pending_balance "الرصيد المعلق (Escrow)"
+        decimal total_earned "إجمالي الأرباح"
+        decimal total_withdrawn "إجمالي المسحوبات"
+        timestamp updated_at
+    }
+
+    wallet_transactions {
+        bigint id PK
+        bigint wallet_id FK
+        decimal amount
+        enum type "escrow_hold / escrow_release / withdrawal / commission / refund"
+        varchar description "وصف العملية"
+        bigint reference_id "معرف الكيان المرتبط"
+        varchar reference_type "order / payment / withdrawal"
+        decimal balance_after "الرصيد بعد العملية"
+        timestamp created_at
+    }
+
+    withdrawals {
+        bigint id PK
+        bigint wallet_id FK
+        decimal amount "المبلغ المطلوب سحبه"
+        varchar bank_name "اسم البنك"
+        varchar account_number "رقم الحساب"
+        varchar iban "رقم IBAN"
+        enum status "pending / approved / rejected / completed"
+        varchar admin_notes "ملاحظات الأدمن"
+        timestamp processed_at
+        timestamp created_at
+    }
+
+    disputes {
+        bigint id PK
+        bigint order_id FK
+        bigint raised_by FK "العميل أو التاجر"
+        bigint assigned_to FK "أدمن المنصة"
+        enum type "product_issue / not_received / wrong_item / other"
+        text reason "سبب النزاع"
+        text resolution "قرار الحل"
+        enum status "open / under_review / resolved_merchant / resolved_customer / closed"
+        json evidence "مرفقات الإثبات"
+        timestamp resolved_at
+        timestamp created_at
+    }
+
+    dispute_messages {
+        bigint id PK
+        bigint dispute_id FK
+        bigint sender_id FK
+        text message
+        json attachments
+        timestamp created_at
+    }
+
+    reviews {
+        bigint id PK
+        bigint order_id FK
+        bigint store_id FK
+        bigint customer_id FK
+        bigint product_id FK
+        integer rating "1-5"
+        text comment
+        timestamp created_at
+    }
+
+    notifications {
+        bigint id PK
+        bigint user_id FK
+        varchar title_ar
+        varchar title_en
+        text body_ar
+        text body_en
+        enum type "order / payment / dispute / system"
+        boolean is_read
+        json data "بيانات إضافية"
+        timestamp created_at
+    }
+
+    users ||--o{ stores : "owns"
+    users ||--o{ orders : "places as customer"
+    users ||--o{ disputes : "raises"
+    users ||--o{ dispute_messages : "sends"
+    users ||--o{ reviews : "writes"
+    users ||--o{ notifications : "receives"
+
+    plans ||--o{ stores : "subscribed by"
+    plans ||--o{ subscriptions : "used in"
+
+    stores ||--o{ subscriptions : "has"
+    stores ||--o{ categories : "has"
+    stores ||--o{ products : "sells"
+    stores ||--o{ orders : "receives"
+    stores ||--|| wallets : "has one"
+    stores ||--o{ reviews : "receives"
+
+    categories ||--o{ products : "contains"
+    categories ||--o{ categories : "has children"
+
+    products ||--o{ product_variants : "has"
+    products ||--o{ order_items : "ordered in"
+    products ||--o{ reviews : "reviewed in"
+
+    orders ||--o{ order_items : "contains"
+    orders ||--|| payments : "paid via"
+    orders ||--o| shipments : "shipped via"
+    orders ||--o| disputes : "disputed in"
+    orders ||--o| reviews : "reviewed in"
+
+    wallets ||--o{ wallet_transactions : "tracks"
+    wallets ||--o{ withdrawals : "requests"
+
+    disputes ||--o{ dispute_messages : "has"
