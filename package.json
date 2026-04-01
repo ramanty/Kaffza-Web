@@ -9,7 +9,7 @@
     "node": ">=18",
     "pnpm": ">=8"
   },
-  "packageManager": "pnpm@8.x.x",
+  "packageManager": "pnpm@8.15.6",
   "scripts": {
     "dev": "turbo run dev",
     "dev:api": "turbo run dev --filter=@kaffza/api",
