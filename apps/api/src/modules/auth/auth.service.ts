@@ -283,7 +283,7 @@ async changePassword(sub: string, oldPassword: string, newPassword: string) {
 
   private async assertOtp(phone: string, dbOtp: string | null, dbExpiry: Date | null, providedOtp: string) {
     if (!dbOtp || !dbExpiry) await this.recordOtpFailure(phone);
-    if (dbExpiry.getTime() < Date.now()) await this.recordOtpFailure(phone);
+    if ((dbExpiry as Date).getTime() < Date.now()) await this.recordOtpFailure(phone);
     if (dbOtp !== providedOtp) await this.recordOtpFailure(phone);
   }
 

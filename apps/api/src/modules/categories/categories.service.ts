@@ -162,8 +162,8 @@ export class CategoriesService {
     let current: bigint | null = startParentId;
     while (current) {
       if (current === targetId) return true;
-      const node = await this.prisma.category.findFirst({ where: { id: current, storeId }, select: { parentId: true } });
-      current = node?.parentId ?? null;
+      const cat = await this.prisma.category.findFirst({ where: { id: current, storeId }, select: { parentId: true } });
+      current = cat?.parentId ?? null;
     }
     return false;
   }

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { api } from '../../lib/api';
@@ -12,7 +12,7 @@ import { Input } from '../../components/Input';
 
 const OMAN_PHONE_RE = /^\+968[0-9]{8}$/;
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get('next') || '/';
@@ -280,3 +280,5 @@ function Field({ label, children }: any) {
 function Hint({ children }: any) {
   return <span className="text-xs text-kaffza-text/60">{children}</span>;
 }
+
+export default function LoginPage() { return <Suspense><LoginPageInner /></Suspense>; }

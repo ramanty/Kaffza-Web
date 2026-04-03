@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { api } from '../../lib/api';
@@ -17,7 +17,7 @@ type Me = {
   role: string;
 };
 
-export default function AccountPage() {
+function AccountPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get('next') || '/account';
@@ -254,3 +254,5 @@ function Modal({ title, children, onClose }: any) {
     </div>
   );
 }
+
+export default function AccountPage() { return <Suspense><AccountPageInner /></Suspense>; }
