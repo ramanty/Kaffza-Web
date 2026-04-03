@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, User } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -22,13 +23,21 @@ export class UsersService {
   }
 
   async findAll(filters?: { role?: string }) {
-    const where: any = {};
-    if (filters?.role) where.role = filters.role;
+    const where: Prisma.UserWhereInput = {};
+    if (filters?.role) where.role = filters.role as Prisma.EnumUserRoleFilter;
     return this.prisma.user.findMany({ where, orderBy: { createdAt: 'desc' } });
   }
 
   async update(id: bigint, dto: UpdateUserDto) {
     await this.findById(id);
+
+    if (dto.email !== undefined) {
+      const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+      if (existing && existing.id !== id) {
+        throw new BadRequestException('البريد الإلكتروني مستخدم بالفعل');
+      }
+    }
+
     const updated = await this.prisma.user.update({
       where: { id },
       data: {
@@ -46,7 +55,7 @@ export class UsersService {
     return { success: true, message: 'تم حذف المستخدم' };
   }
 
-  toSafeUser(user: any) {
+  toSafeUser(user: User) {
     return {
       id: Number(user.id),
       name: user.name,
