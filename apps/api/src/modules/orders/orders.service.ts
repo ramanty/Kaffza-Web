@@ -102,7 +102,7 @@ export class OrdersService {
 
     if (order.customerConfirmed) throw new BadRequestException('لا يمكن تعديل طلب تم تأكيد استلامه');
 
-    const updated = await this.prisma.order.update({ where: { id: orderId }, data: { status } });
+    const updated = await this.prisma.order.update({ where: { id: orderId }, data: { status: status as any } });
 
     // notify customer
     await this.notifications.notifyUser(order.customerId, {

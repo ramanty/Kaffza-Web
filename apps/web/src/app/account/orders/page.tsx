@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { api } from '../../../lib/api';
@@ -13,7 +14,7 @@ type Order = any;
 
 type Meta = { page: number; limit: number; total: number; hasPrev: boolean; hasNext: boolean };
 
-export default function AccountOrdersPage() {
+function AccountOrdersPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const page = Math.max(1, Number(sp.get('page') || '1') || 1);
@@ -169,3 +170,5 @@ function formatOMR(v: number) {
   const n = Number.isFinite(v) ? v : 0;
   return `${n.toFixed(3)} ر.ع`;
 }
+
+export default function AccountOrdersPage() { return <Suspense><AccountOrdersPageInner /></Suspense>; }

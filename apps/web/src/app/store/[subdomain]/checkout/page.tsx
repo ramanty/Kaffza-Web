@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { api } from '../../../../lib/api';
@@ -41,7 +42,7 @@ type Order = {
   store: { id: string; subdomain: string };
 };
 
-export default function StoreCheckout({ params }: { params: { subdomain: string } }) {
+function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
   const router = useRouter();
   const sp = useSearchParams();
   const subdomain = params.subdomain;
@@ -333,3 +334,5 @@ function formatOMR(v: number) {
   const n = Number.isFinite(v) ? v : 0;
   return `${n.toFixed(3)} ر.ع`;
 }
+
+export default function StoreCheckout() { return <Suspense><StoreCheckoutInner /></Suspense>; }

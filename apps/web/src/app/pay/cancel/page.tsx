@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -6,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 
-export default function PayCancel() {
+function PayCancelInner() {
   const sp = useSearchParams();
 
   const orderId = sp.get('orderId');
@@ -51,3 +52,5 @@ export default function PayCancel() {
     </main>
   );
 }
+
+export default function PayCancel() { return <Suspense><PayCancelInner /></Suspense>; }

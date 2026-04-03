@@ -93,7 +93,7 @@ async listUsers(user: any, role?: string) {
     }
   }
 
-  const result = [];
+  const result: any[] = [];
   for (const u of users as any[]) {
     const banned = await this.redis.get(this.banKey(u.id.toString()));
     const status = banned ? 'suspended' : 'active';
@@ -116,7 +116,7 @@ async listMerchants(user: any, status?: string) {
 
     const merchants = await this.prisma.user.findMany({ where: { role: 'merchant' }, orderBy: { createdAt: 'desc' } });
 
-    const result = [];
+    const result: any[] = [];
     for (const m of merchants) {
       const banned = await this.redis.get(this.banKey(m.id.toString()));
       const state = banned ? 'blocked' : m.isVerified ? 'active' : 'pending';

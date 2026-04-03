@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 
@@ -13,7 +14,7 @@ import { Input } from '../../../components/Input';
 
 const OMAN_PHONE_RE = /^\+968[0-9]{8}$/;
 
-export default function MerchantLoginPage() {
+function MerchantLoginPageInner() {
   const sp = useSearchParams();
   const registered = sp.get('registered') === '1';
   const router = useRouter();
@@ -148,3 +149,5 @@ function Field({ label, children }: any) {
 function Hint({ children }: any) {
   return <span className="text-xs text-kaffza-text/60">{children}</span>;
 }
+
+export default function MerchantLoginPage() { return <Suspense><MerchantLoginPageInner /></Suspense>; }

@@ -43,6 +43,8 @@ async createThawaniSessionByOrderId(user: any, orderId: bigint, isMobile: boolea
     const secretKey = this.config.get<string>('thawani.secretKey') || process.env.THAWANI_SECRET_KEY;
     const successUrl = this.config.get<string>('thawani.successUrl') || process.env.THAWANI_SUCCESS_URL;
     const cancelUrl = this.config.get<string>('thawani.cancelUrl') || process.env.THAWANI_CANCEL_URL;
+    const successUrlMobile = this.config.get<string>('thawani.successUrlMobile') || process.env.THAWANI_SUCCESS_URL_MOBILE;
+    const cancelUrlMobile = this.config.get<string>('thawani.cancelUrlMobile') || process.env.THAWANI_CANCEL_URL_MOBILE;
 
     if (!apiUrl || !secretKey || !publishableKey) throw new BadRequestException('إعدادات Thawani ناقصة');
 
@@ -75,7 +77,7 @@ async createThawaniSessionByOrderId(user: any, orderId: bigint, isMobile: boolea
       body: JSON.stringify(body),
     });
 
-    const data = await resp.json().catch(() => null);
+    const data = (await resp.json().catch(() => null)) as any;
     if (!resp.ok || !data?.success) {
       throw new BadRequestException(data?.description || 'فشل إنشاء جلسة الدفع');
     }
@@ -189,7 +191,7 @@ async retrieveThawaniStatus(user: any, storeId: bigint, orderId: bigint) {
       headers: { Accept: 'application/json', 'thawani-api-key': secretKey },
     });
 
-    const data = await resp.json().catch(() => null);
+    const data = (await resp.json().catch(() => null)) as any;
     if (!resp.ok || !data?.success) throw new BadRequestException(data?.description || 'فشل جلب حالة الدفع');
 
     const paymentStatus = data.data.payment_status;

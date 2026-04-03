@@ -144,7 +144,7 @@ async track(trackingNumber: string) {
 
     const updated = await this.prisma.shipment.update({
       where: { id: shipment.id },
-      data: { status, deliveredAt },
+      data: { status: status as any, deliveredAt },
     });
 
     // If delivered, start escrow countdown now (releaseAt)

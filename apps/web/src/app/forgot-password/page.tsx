@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { api } from '../../lib/api';
@@ -11,7 +11,7 @@ import { Input } from '../../components/Input';
 
 const OMAN_PHONE_RE = /^\+968[0-9]{8}$/;
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get('next') || '/';
@@ -191,3 +191,5 @@ function Field({ label, children }: any) {
 function Hint({ children }: any) {
   return <span className="text-xs text-kaffza-text/60">{children}</span>;
 }
+
+export default function ForgotPasswordPage() { return <Suspense><ForgotPasswordPageInner /></Suspense>; }
