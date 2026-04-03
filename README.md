@@ -1,208 +1,118 @@
-# Kaffza (قفزة)
+# قفزة (Kaffza) — أول منصة تجارة إلكترونية عُمانية
 
 <div align="center">
 
-**Kaffza | قفزة**
+**Kaffza** | **قفزة**
 
-_The First Omani SaaS E-Commerce Platform_
-
-_أول منصة تجارة إلكترونية عُمانية SaaS_
+*منصة SaaS متكاملة للتجارة الإلكترونية في سلطنة عُمان*
 
 **جوهرة الشهباء الحديثة ش.م.م**
-
-[![License: UNLICENSED](https://img.shields.io/badge/License-UNLICENSED-red.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-brightgreen)](https://nodejs.org/)
-[![pnpm](https://img.shields.io/badge/pnpm-%3E%3D9.0.0-orange)](https://pnpm.io/)
-[![Turborepo](https://img.shields.io/badge/Turborepo-monorepo-blueviolet)](https://turbo.build/)
 
 </div>
 
 ---
 
-## About the Project
+## حول المشروع
 
-**Kaffza (قفزة)** is a fully integrated SaaS e-commerce platform built for Omani merchants. It empowers businesses to launch and manage their online stores with ease. The platform is bilingual (Arabic & English with full RTL support), operates exclusively in Omani Rial (OMR), and integrates natively with **Thawani Pay** (payment gateway) and **Jina'com** (shipping service).
+قفزة (Kaffza) هي أول منصة تجارة إلكترونية عُمانية متكاملة تعمل بنظام SaaS، مصممة لتمكين التجار من إنشاء وإدارة متاجرهم الإلكترونية بسهولة. المنصة تدعم اللغتين العربية والإنجليزية، وتعمل بعملة الريال العُماني حصرياً، مع تكامل محلي مع بوابة الدفع Thawani Pay وخدمة الشحن جيناكم.
 
----
+## المميزات الرئيسية
 
-## Tech Stack
+| الميزة | الوصف |
+| :--- | :--- |
+| **Multi-tenant SaaS** | كل تاجر يحصل على متجره الخاص بنطاق فرعي مخصص |
+| **ثنائي اللغة (RTL)** | دعم كامل للعربية والإنجليزية مع تبديل تلقائي لاتجاه النص |
+| **Thawani Pay** | بوابة دفع عُمانية محلية |
+| **جيناكم** | خدمة شحن عُمانية محلية |
+| **نظام Escrow** | حماية مالية ذكية تتكيف مع مستوى ثقة التاجر |
+| **نظام نزاعات** | آلية حل النزاعات بين التجار والعملاء |
+| **محفظة التاجر** | إدارة الأرصدة والسحب مع سجل معاملات كامل |
+| **OTP + JWT** | مصادقة آمنة عبر رمز التحقق ورموز JWT |
 
-| Layer            | Technology                                                             |
-| :--------------- | :--------------------------------------------------------------------- |
-| **Backend**      | [NestJS](https://nestjs.com/), Prisma ORM, PostgreSQL, Redis           |
-| **Web Frontend** | [Next.js](https://nextjs.org/) 15, React 19, Tailwind CSS, next-intl   |
-| **Mobile**       | [Expo](https://expo.dev/) (React Native), NativeWind                   |
-| **Monorepo**     | [Turborepo](https://turbo.build/), [pnpm](https://pnpm.io/) workspaces |
-| **Database**     | [PostgreSQL](https://www.postgresql.org/) 16 (via Docker)              |
-| **DevOps**       | Docker Compose, Nginx                                                  |
-| **Code Quality** | ESLint, Prettier, Husky, lint-staged                                   |
+## التقنيات المستخدمة
 
----
+| الطبقة | التقنية |
+| :--- | :--- |
+| Backend | Node.js, NestJS, Prisma, PostgreSQL, Redis |
+| Web | Next.js 15, React 19, Tailwind CSS, next-intl |
+| Mobile | React Native, Expo, NativeWind |
+| Monorepo | Turborepo, pnpm workspaces |
+| DevOps | Docker Compose, Nginx |
 
-## Key Features
-
-| Feature               | Description                                                           |
-| :-------------------- | :-------------------------------------------------------------------- |
-| **Multi-tenant SaaS** | Every merchant gets their own store with a dedicated subdomain        |
-| **Bilingual (RTL)**   | Full Arabic & English support with automatic text-direction switching |
-| **Thawani Pay**       | Native integration with the local Omani payment gateway               |
-| **Jina'com**          | Native integration with the local Omani shipping service              |
-| **Escrow System**     | Smart financial protection that adapts to merchant trust levels       |
-| **Dispute System**    | Merchant-to-customer dispute resolution mechanism                     |
-| **Merchant Wallet**   | Balance management, withdrawals, and a full transaction ledger        |
-| **OTP + JWT Auth**    | Secure authentication via one-time passwords and JWT tokens           |
-
----
-
-## Project Structure
+## هيكل المشروع
 
 ```
-kaffza/
+kaffza-oman/
 ├── apps/
 │   ├── api/          # NestJS Backend API
 │   ├── web/          # Next.js Web Application
-│   └── mobile/       # React Native / Expo Mobile App
+│   └── mobile/       # React Native Mobile App
 ├── packages/
 │   ├── types/        # Shared TypeScript types
 │   ├── validators/   # Shared Zod validation schemas
-│   ├── tsconfig/     # Shared TypeScript configurations
-│   └── config/       # Shared ESLint / Prettier configs
+│   ├── tsconfig/     # Shared TypeScript configs
+│   └── config/       # Shared ESLint/Prettier configs
 ├── docs/             # Architecture docs & diagrams
-├── docker-compose.yml
-├── turbo.json
-└── pnpm-workspace.yaml
+└── docker-compose.yml
 ```
 
----
+## البدء السريع
 
-## Getting Started
+### المتطلبات
 
-### Prerequisites
+يتطلب تشغيل المشروع توفر Node.js بإصدار 20 أو أحدث، pnpm بإصدار 9 أو أحدث، و Docker مع Docker Compose لتشغيل قاعدة البيانات والخدمات المساعدة.
 
-Ensure you have the following installed:
-
-- [Node.js](https://nodejs.org/) `>= 20.0.0`
-- [pnpm](https://pnpm.io/) `>= 9.0.0`
-- [Docker](https://www.docker.com/) & Docker Compose (for the database and services)
-
-### 1. Clone the Repository
+### التثبيت
 
 ```bash
-git clone https://github.com/ramanty/Kaffza-Web.git
-cd Kaffza-Web
-```
+# استنساخ المشروع
+git clone https://github.com/YOUR_USERNAME/Kaffza-Oman.git
+cd Kaffza-Oman
 
-### 2. Install Dependencies
-
-```bash
+# تثبيت الحزم
 pnpm install
-```
 
-### 3. Configure Environment Variables
-
-```bash
-cp .env.example .env
-# Edit .env with your local settings
-```
-
-### 4. Run the Database via Docker
-
-Start PostgreSQL, Redis, and MinIO using Docker Compose:
-
-```bash
+# تشغيل الخدمات (PostgreSQL, Redis, MinIO)
 docker compose up -d
-```
 
-This will spin up the following services:
+# نسخ ملف البيئة
+cp .env.example .env
 
-| Service                       | Port                           |
-| :---------------------------- | :----------------------------- |
-| PostgreSQL                    | `5432`                         |
-| Redis                         | `6379`                         |
-| MinIO (S3-compatible storage) | `9000` (API), `9001` (Console) |
-
-### 5. Run Database Migrations & Seeds
-
-```bash
+# تشغيل migrations
 pnpm db:migrate
+
+# تشغيل seeds
 pnpm db:seed
-```
 
-### 6. Run the Project Locally
-
-```bash
+# تشغيل جميع التطبيقات
 pnpm dev
 ```
 
-This command starts all applications in parallel using Turborepo:
+### المنافذ
 
-| Application        | URL                              |
-| :----------------- | :------------------------------- |
-| Web (Next.js)      | `http://localhost:3000`          |
-| API (NestJS)       | `http://localhost:4000`          |
+| الخدمة | المنفذ |
+| :--- | :--- |
+| Web (Next.js) | `http://localhost:3000` |
+| API (NestJS) | `http://localhost:4000` |
 | API Docs (Swagger) | `http://localhost:4000/api/docs` |
+| PostgreSQL | `localhost:5432` |
+| Redis | `localhost:6379` |
+| MinIO Console | `http://localhost:9001` |
 
-To run individual apps:
+## خطط الاشتراك
 
-```bash
-pnpm dev:api      # API only
-pnpm dev:web      # Web only
-pnpm dev:mobile   # Mobile only
-```
+| الخطة | السعر الشهري | العمولة |
+| :--- | :--- | :--- |
+| البداية (Starter) | 5 ر.ع | 2% |
+| النمو (Growth) | 8 ر.ع | 1% |
+| المحترف (Pro) | 35 ر.ع | 0.5% |
 
----
+لا توجد رسوم تسجيل.
 
-## Available Scripts
+## الوثائق
 
-| Script            | Description                                 |
-| :---------------- | :------------------------------------------ |
-| `pnpm dev`        | Start all apps in development mode          |
-| `pnpm build`      | Build all apps and packages                 |
-| `pnpm lint`       | Run ESLint across all packages              |
-| `pnpm test`       | Run all tests                               |
-| `pnpm db:migrate` | Run Prisma database migrations              |
-| `pnpm db:seed`    | Seed the database with initial data         |
-| `pnpm clean`      | Remove all build artifacts and node_modules |
+للاطلاع على التصميم المعماري الكامل، مخططات قاعدة البيانات، وتدفقات العمل، يرجى مراجعة [وثيقة التصميم المعماري](./docs/ARCHITECTURE.md).
 
----
+## الترخيص
 
-## Code Quality
-
-This project uses **Husky** and **lint-staged** to enforce code quality on every commit.
-
-The pre-commit hook automatically runs:
-
-- **Prettier** — formats staged files
-- **ESLint** — lints and auto-fixes staged TypeScript/JavaScript files
-
-These hooks are installed automatically when you run `pnpm install` (via the `prepare` script).
-
----
-
-## Subscription Plans
-
-| Plan              | Monthly Price | Commission |
-| :---------------- | :------------ | :--------- |
-| Starter (البداية) | 5 OMR         | 2%         |
-| Growth (النمو)    | 8 OMR         | 1%         |
-| Pro (المحترف)     | 35 OMR        | 0.5%       |
-
-_No registration fees._
-
----
-
-## Documentation
-
-For the complete architecture design, database diagrams, and workflow documentation, see the [Architecture Document](./docs/ARCHITECTURE.md).
-
----
-
-## Contributing
-
-Please read our [Contributing Guidelines](./.github/pull_request_template.md) before submitting a pull request. Use the provided issue templates to report bugs or request features.
-
----
-
-## License
-
-This project is proprietary software owned by **جوهرة الشهباء الحديثة ش.م.م**. All rights reserved.
+هذا المشروع ملكية خاصة لشركة **جوهرة الشهباء الحديثة ش.م.م**. جميع الحقوق محفوظة.
