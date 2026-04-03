@@ -9,6 +9,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 // Feature Modules
 import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 import { StoresModule } from './modules/stores/stores.module';
 import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
@@ -42,6 +43,7 @@ import { ConfigModule } from './config/config.module';
 
     NotificationsModule,
     AuthModule,
+    UsersModule,
 
     StoresModule,
     CategoriesModule,
