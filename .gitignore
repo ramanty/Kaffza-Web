@@ -21,5 +21,12 @@ built/
 # Turborepo
 .turbo/
 
+# Next.js build output
+.next/
+out/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
 # dotenv environment variable file
 .env

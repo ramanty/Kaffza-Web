@@ -48,6 +48,7 @@
     "@types/express": "^5.0.0",
     "@types/passport-jwt": "^4.0.1",
     "@types/node": "^22.0.0",
+    "@kaffza/tsconfig": "workspace:*",
     "prisma": "^5.22.0",
     "typescript": "^5.6.0",
     "jest": "^29.7.0",
