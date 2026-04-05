@@ -4,6 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
+const ESCROW_HOLD_DAYS = 15;
+
 @Injectable()
 export class PaymentsService {
   constructor(
@@ -115,10 +117,12 @@ private async processPaid(orderId: bigint, gatewayPaymentId: string | null) {
 
   const merchantAmount = Number(order.merchantAmount);
 
+  const releaseAt = new Date(Date.now() + ESCROW_HOLD_DAYS * 24 * 60 * 60 * 1000);
+
   await this.prisma.$transaction(async (tx) => {
     await tx.payment.update({
       where: { orderId },
-      data: { status: 'paid', escrowStatus: 'held', gatewayPaymentId: gatewayPaymentId ?? undefined },
+      data: { status: 'paid', escrowStatus: 'held', releaseAt, gatewayPaymentId: gatewayPaymentId ?? undefined },
     });
     await tx.order.update({ where: { id: orderId }, data: { status: 'confirmed' } });
     const updatedWallet = await tx.wallet.update({
