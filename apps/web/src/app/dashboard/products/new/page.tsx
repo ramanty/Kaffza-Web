@@ -29,11 +29,12 @@ export default function NewProductPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [isActiveChecked, setIsActiveChecked] = useState(true);
 
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(newProductFormSchema),
@@ -45,6 +46,8 @@ export default function NewProductPage() {
       isActive: true,
     },
   });
+
+  const isActiveValue = watch('isActive') ?? true;
 
   // Fetch categories for the dropdown
   useEffect(() => {
@@ -79,7 +82,7 @@ export default function NewProductPage() {
         nameEn: data.nameEn.trim(),
         price: Number(data.price),
         stock: Number(data.stock),
-        isActive: isActiveChecked,
+        isActive: data.isActive ?? true,
       };
       if (data.descriptionAr?.trim()) payload.descriptionAr = data.descriptionAr.trim();
       if (data.descriptionEn?.trim()) payload.descriptionEn = data.descriptionEn.trim();
@@ -234,18 +237,18 @@ export default function NewProductPage() {
                 {/* Toggle Switch */}
                 <div
                   className="relative inline-block"
-                  onClick={() => setIsActiveChecked((v) => !v)}
+                  onClick={() => setValue('isActive', !isActiveValue)}
                 >
                   <div
                     className={
                       'h-6 w-11 cursor-pointer rounded-full transition-colors ' +
-                      (isActiveChecked ? 'bg-kaffza-primary' : 'bg-slate-200')
+                      (isActiveValue ? 'bg-kaffza-primary' : 'bg-slate-200')
                     }
                   />
                   <div
                     className={
                       'pointer-events-none absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ' +
-                      (isActiveChecked ? 'left-0.5 translate-x-5' : 'left-0.5')
+                      (isActiveValue ? 'left-0.5 translate-x-5' : 'left-0.5')
                     }
                   />
                 </div>
