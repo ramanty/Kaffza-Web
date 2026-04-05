@@ -1,23 +1,35 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from '../../database/prisma.service';
 import { CartService } from '../cart/cart.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CheckoutDto } from './dto/checkout.dto';
 
+const THAWANI_GATEWAY_FEE_RATE = 0.02;
+const BASE_KAFFZA_COMMISSION_RATE = 0.05;
+
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cart: CartService,
-    private readonly notifications: NotificationsService,
+    private readonly notifications: NotificationsService
   ) {}
 
   async checkout(user: any, storeId: bigint, dto: CheckoutDto) {
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
-    if (user.role !== 'customer' && user.role !== 'admin') throw new ForbiddenException('فقط العميل');
+    if (user.role !== 'customer' && user.role !== 'admin')
+      throw new ForbiddenException('فقط العميل');
 
-    const store = await this.prisma.store.findUnique({ where: { id: storeId }, include: { plan: true } });
+    const store = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      include: { plan: true },
+    });
     if (!store || !store.isActive) throw new NotFoundException('المتجر غير موجود');
 
     const cartData = await this.cart.getCart(user, storeId);
@@ -28,9 +40,12 @@ export class OrdersService {
     const shippingCost = Number(cartData.data.shippingCost);
     const totalAmount = round3(subtotal + shippingCost);
 
-    const commissionRate = Number(store.plan.commissionRate);
-    const commissionAmount = round3(totalAmount * commissionRate);
-    const merchantAmount = round3(totalAmount - commissionAmount);
+    // Revenue split: Thawani takes 2% (gateway fee), Kaffza takes 5% minus plan discount
+    const planDiscount = Number(store.plan?.commissionRate ?? 0);
+    const thawaniFee = round3(totalAmount * THAWANI_GATEWAY_FEE_RATE);
+    const kaffzaRate = Math.max(0, BASE_KAFFZA_COMMISSION_RATE - planDiscount);
+    const commissionAmount = round3(totalAmount * kaffzaRate);
+    const merchantAmount = round3(totalAmount - thawaniFee - commissionAmount);
 
     const orderNumber = await this.generateOrderNumber();
 
@@ -91,18 +106,29 @@ export class OrdersService {
       data: { orderId: created.id.toString(), storeId: storeId.toString() },
     });
 
-    return { success: true, message: 'تم إنشاء الطلب. انتقل للدفع', data: { orderId: created.id.toString(), orderNumber } };
+    return {
+      success: true,
+      message: 'تم إنشاء الطلب. انتقل للدفع',
+      data: { orderId: created.id.toString(), orderNumber },
+    };
   }
 
   async updateStatus(user: any, storeId: bigint, orderId: bigint, status: string) {
     await this.assertStoreOwner(user, storeId);
 
-    const order = await this.prisma.order.findFirst({ where: { id: orderId, storeId }, include: { payment: true } });
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, storeId },
+      include: { payment: true },
+    });
     if (!order) throw new NotFoundException('الطلب غير موجود');
 
-    if (order.customerConfirmed) throw new BadRequestException('لا يمكن تعديل طلب تم تأكيد استلامه');
+    if (order.customerConfirmed)
+      throw new BadRequestException('لا يمكن تعديل طلب تم تأكيد استلامه');
 
-    const updated = await this.prisma.order.update({ where: { id: orderId }, data: { status: status as any } });
+    const updated = await this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: status as any },
+    });
 
     // notify customer
     await this.notifications.notifyUser(order.customerId, {
@@ -114,20 +140,29 @@ export class OrdersService {
       data: { orderId: orderId.toString() },
     });
 
-    return { success: true, message: 'تم تحديث حالة الطلب', data: { id: updated.id.toString(), status: updated.status } };
+    return {
+      success: true,
+      message: 'تم تحديث حالة الطلب',
+      data: { id: updated.id.toString(), status: updated.status },
+    };
   }
 
   async confirmReceipt(user: any, orderId: bigint) {
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
 
-    const order = await this.prisma.order.findUnique({ where: { id: orderId }, include: { store: { include: { wallet: true } }, payment: true } });
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { store: { include: { wallet: true } }, payment: true },
+    });
     if (!order) throw new NotFoundException('الطلب غير موجود');
 
-    if (user.role !== 'admin' && order.customerId !== BigInt(user.sub)) throw new ForbiddenException('ليس لديك صلاحية');
+    if (user.role !== 'admin' && order.customerId !== BigInt(user.sub))
+      throw new ForbiddenException('ليس لديك صلاحية');
 
     if (!order.payment) throw new BadRequestException('لا يوجد سجل دفع');
     if (order.payment.status !== 'paid') throw new BadRequestException('لا يمكن التأكيد قبل الدفع');
-    if (order.payment.escrowStatus !== 'held') throw new BadRequestException('حالة الضمان غير صحيحة');
+    if (order.payment.escrowStatus !== 'held')
+      throw new BadRequestException('حالة الضمان غير صحيحة');
 
     const wallet = order.store.wallet;
     if (!wallet) throw new BadRequestException('محفظة المتجر غير موجودة');
@@ -135,8 +170,14 @@ export class OrdersService {
     const amount = Number(order.merchantAmount);
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.order.update({ where: { id: orderId }, data: { customerConfirmed: true, confirmedAt: new Date(), status: 'delivered' } });
-      await tx.payment.update({ where: { orderId }, data: { escrowStatus: 'released', releasedAt: new Date() } });
+      await tx.order.update({
+        where: { id: orderId },
+        data: { customerConfirmed: true, confirmedAt: new Date(), status: 'delivered' },
+      });
+      await tx.payment.update({
+        where: { orderId },
+        data: { escrowStatus: 'released', releasedAt: new Date() },
+      });
 
       const updatedWallet = await tx.wallet.update({
         where: { id: wallet.id },
@@ -157,13 +198,19 @@ export class OrdersService {
 
       // update store trust counts
       const newTotal = order.store.totalOrders + 1;
-      const avg = await tx.review.aggregate({ where: { storeId: order.storeId }, _avg: { rating: true } });
+      const avg = await tx.review.aggregate({
+        where: { storeId: order.storeId },
+        _avg: { rating: true },
+      });
       const avgRating = Number(avg._avg.rating || 0);
       let trustLevel: any = 'standard';
       if (newTotal <= 3) trustLevel = 'new_merchant';
       else if (newTotal >= 50 && avgRating >= 4.5) trustLevel = 'trusted';
       else trustLevel = 'standard';
-      await tx.store.update({ where: { id: order.storeId }, data: { totalOrders: newTotal, avgRating, trustLevel } });
+      await tx.store.update({
+        where: { id: order.storeId },
+        data: { totalOrders: newTotal, avgRating, trustLevel },
+      });
     });
 
     await this.notifications.notifyUser(order.store.ownerId, {
@@ -183,57 +230,77 @@ export class OrdersService {
 
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: { items: { include: { product: { select: { images: true } }, variant: { select: { nameAr: true, nameEn: true } } } }, payment: true, store: { select: { id: true, subdomain: true, ownerId: true, nameAr: true, nameEn: true } } },
+      include: {
+        items: {
+          include: {
+            product: { select: { images: true } },
+            variant: { select: { nameAr: true, nameEn: true } },
+          },
+        },
+        payment: true,
+        store: { select: { id: true, subdomain: true, ownerId: true, nameAr: true, nameEn: true } },
+      },
     });
     if (!order) throw new NotFoundException('الطلب غير موجود');
 
     const isCustomer = order.customerId === BigInt(user.sub);
     const isMerchantOwner = order.store.ownerId === BigInt(user.sub);
 
-    if (user.role !== 'admin' && !isCustomer && !isMerchantOwner) throw new ForbiddenException('ليس لديك صلاحية');
+    if (user.role !== 'admin' && !isCustomer && !isMerchantOwner)
+      throw new ForbiddenException('ليس لديك صلاحية');
 
     return { success: true, data: order };
   }
 
   async listMyOrders(user: any) {
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
-    const orders = await this.prisma.order.findMany({ where: { customerId: BigInt(user.sub) }, orderBy: { createdAt: 'desc' }, include: { payment: true, store: { select: { id: true, subdomain: true } } } });
+    const orders = await this.prisma.order.findMany({
+      where: { customerId: BigInt(user.sub) },
+      orderBy: { createdAt: 'desc' },
+      include: { payment: true, store: { select: { id: true, subdomain: true } } },
+    });
     return { success: true, data: orders };
   }
 
-async listMyOrdersPaginated(user: any, page: number = 1, limit: number = 10) {
-  if (!user?.sub) throw new ForbiddenException('غير مصرح');
-  const take = Math.max(1, Math.min(50, limit));
-  const skip = Math.max(0, (Math.max(1, page) - 1) * take);
+  async listMyOrdersPaginated(user: any, page: number = 1, limit: number = 10) {
+    if (!user?.sub) throw new ForbiddenException('غير مصرح');
+    const take = Math.max(1, Math.min(50, limit));
+    const skip = Math.max(0, (Math.max(1, page) - 1) * take);
 
-  const [total, orders] = await this.prisma.$transaction([
-    this.prisma.order.count({ where: { customerId: BigInt(user.sub) } }),
-    this.prisma.order.findMany({
-      where: { customerId: BigInt(user.sub) },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take,
-      include: { payment: true, store: { select: { id: true, subdomain: true, nameAr: true, nameEn: true } } },
-    }),
-  ]);
+    const [total, orders] = await this.prisma.$transaction([
+      this.prisma.order.count({ where: { customerId: BigInt(user.sub) } }),
+      this.prisma.order.findMany({
+        where: { customerId: BigInt(user.sub) },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: {
+          payment: true,
+          store: { select: { id: true, subdomain: true, nameAr: true, nameEn: true } },
+        },
+      }),
+    ]);
 
-  return {
-    success: true,
-    data: orders,
-    meta: {
-      page: Math.max(1, page),
-      limit: take,
-      total,
-      hasPrev: skip > 0,
-      hasNext: skip + orders.length < total,
-    },
-  };
-}
-
+    return {
+      success: true,
+      data: orders,
+      meta: {
+        page: Math.max(1, page),
+        limit: take,
+        total,
+        hasPrev: skip > 0,
+        hasNext: skip + orders.length < total,
+      },
+    };
+  }
 
   async listStoreOrders(user: any, storeId: bigint) {
     await this.assertStoreOwner(user, storeId);
-    const orders = await this.prisma.order.findMany({ where: { storeId }, orderBy: { createdAt: 'desc' }, include: { payment: true } });
+    const orders = await this.prisma.order.findMany({
+      where: { storeId },
+      orderBy: { createdAt: 'desc' },
+      include: { payment: true },
+    });
     return { success: true, data: orders };
   }
 
@@ -242,7 +309,10 @@ async listMyOrdersPaginated(user: any, page: number = 1, limit: number = 10) {
     if (user.role === 'admin') return;
     if (user.role !== 'merchant') throw new ForbiddenException('فقط التاجر');
 
-    const store = await this.prisma.store.findUnique({ where: { id: storeId }, select: { ownerId: true } });
+    const store = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: { ownerId: true },
+    });
     if (!store) throw new NotFoundException('المتجر غير موجود');
     if (store.ownerId !== BigInt(user.sub)) throw new ForbiddenException('ليس لديك صلاحية');
   }

@@ -156,6 +156,7 @@ export const checkoutSchema = z.object({
   customerNotes: z.string().max(500).optional(),
 });
 
+// ---- Update Order Status ----
 export const updateOrderStatusSchema = z.object({
   status: z.enum(
     ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
