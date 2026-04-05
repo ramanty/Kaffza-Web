@@ -135,6 +135,30 @@ export const createDisputeSchema = z.object({
   evidence: z.array(z.string().url()).max(5).optional(),
 });
 
+// ---- Add to Cart ----
+export const addToCartSchema = z.object({
+  productId: z.string().min(1, 'معرّف المنتج مطلوب'),
+  variantId: z.string().optional(),
+  quantity: z.number().int().positive('الكمية يجب أن تكون 1 على الأقل'),
+});
+
+// ---- Update Cart Quantity ----
+export const updateCartSchema = z.object({
+  productId: z.string().min(1, 'معرّف المنتج مطلوب'),
+  variantId: z.string().optional(),
+  quantity: z.number().int().positive('الكمية يجب أن تكون 1 على الأقل'),
+});
+
+// ---- Update Order Status ----
+export const updateOrderStatusSchema = z.object({
+  status: z.enum(
+    ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
+    {
+      errorMap: () => ({ message: 'حالة الطلب غير صالحة' }),
+    }
+  ),
+});
+
 // ---- Pagination ----
 export const paginationSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
@@ -153,6 +177,9 @@ export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+export type AddToCartInput = z.infer<typeof addToCartSchema>;
+export type UpdateCartInput = z.infer<typeof updateCartSchema>;
+export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
 export type CreateWithdrawalInput = z.infer<typeof createWithdrawalSchema>;
 export type CreateDisputeInput = z.infer<typeof createDisputeSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
@@ -164,3 +191,7 @@ export type CreateProductDTO = CreateProductInput;
 export type UpdateProductDTO = UpdateProductInput;
 export type CreateCategoryDTO = CreateCategoryInput;
 export type UpdateCategoryDTO = UpdateCategoryInput;
+export type CreateOrderDTO = CreateOrderInput;
+export type AddToCartDTO = AddToCartInput;
+export type UpdateCartDTO = UpdateCartInput;
+export type UpdateOrderStatusDTO = UpdateOrderStatusInput;
