@@ -46,7 +46,10 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  const activeLabel = useMemo(() => NAV.find((n) => isActive(pathname, n.href))?.label || 'لوحة التحكم', [pathname]);
+  const activeLabel = useMemo(
+    () => NAV.find((n) => isActive(pathname, n.href))?.label || 'لوحة التحكم',
+    [pathname]
+  );
 
   async function logout() {
     // 1) revoke refresh token (best effort). If it fails, continue logout.
@@ -73,7 +76,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-kaffza-bg text-kaffza-text">
+    <div className="bg-kaffza-bg text-kaffza-text min-h-screen">
       {/* Desktop */}
       <div className="hidden md:flex md:flex-row-reverse">
         <DashboardSidebar />
@@ -113,16 +116,22 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
         {mobileOpen ? (
           <div className="fixed inset-0 z-50">
             <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-            <div dir="rtl" className="absolute right-0 top-0 h-full w-[82%] max-w-xs bg-white shadow-xl">
-              <div className="flex items-center justify-between border-b border-black/10 p-4">
-                <div className="text-sm font-extrabold text-kaffza-primary">القائمة</div>
-                <button className="text-sm font-bold text-kaffza-text/70" onClick={() => setMobileOpen(false)}>
+            <div
+              dir="rtl"
+              className="absolute right-0 top-0 h-full w-[82%] max-w-xs bg-[#1A2B4A] shadow-xl"
+            >
+              <div className="flex items-center justify-between border-b border-white/10 p-4">
+                <div className="text-kaffza-premium text-sm font-extrabold">القائمة</div>
+                <button
+                  className="text-sm font-bold text-white/70"
+                  onClick={() => setMobileOpen(false)}
+                >
                   إغلاق
                 </button>
               </div>
 
-              <div className="border-b border-black/10 p-4">
-                <div className="text-xs font-bold text-kaffza-text/70">المتجر</div>
+              <div className="border-b border-white/10 p-4">
+                <div className="text-xs font-bold text-white/70">المتجر</div>
                 <div className="mt-2">
                   <StoreSwitcher
                     stores={stores}
@@ -145,11 +154,13 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
                       className={
                         'mb-1 flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ' +
                         (active
-                          ? 'bg-kaffza-primary text-white'
-                          : 'text-kaffza-text hover:bg-kaffza-primary/10 hover:text-kaffza-primary')
+                          ? 'bg-kaffza-primary font-bold text-white'
+                          : 'text-white/80 hover:bg-white/10 hover:text-white')
                       }
                     >
-                      <span aria-hidden className="text-base">{item.icon}</span>
+                      <span aria-hidden className="text-base">
+                        {item.icon}
+                      </span>
                       <span className="font-semibold">{item.label}</span>
                     </Link>
                   );
@@ -222,7 +233,7 @@ function Header({
           {mobile ? (
             <button
               onClick={onOpenMobile}
-              className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-bold text-kaffza-text"
+              className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-bold"
               aria-label="فتح القائمة"
             >
               ☰
@@ -230,8 +241,10 @@ function Header({
           ) : null}
 
           <div className="min-w-0">
-            <div className="truncate text-sm text-kaffza-text/70">{userName ? `مرحباً، ${userName}` : 'لوحة التاجر'}</div>
-            <div className="truncate text-base font-extrabold text-kaffza-primary">{title}</div>
+            <div className="text-kaffza-text/70 truncate text-sm">
+              {userName ? `مرحباً، ${userName}` : 'لوحة التاجر'}
+            </div>
+            <div className="text-kaffza-primary truncate text-base font-extrabold">{title}</div>
           </div>
 
           <div className="hidden sm:block">
@@ -252,7 +265,7 @@ function Header({
         </div>
       </div>
 
-      <div className="sm:hidden border-t border-black/10 px-4 py-3">
+      <div className="border-t border-black/10 px-4 py-3 sm:hidden">
         <StoreSwitcher
           stores={stores}
           storeId={storeId}
@@ -284,10 +297,10 @@ function StoreSwitcher({
     const s = stores[0];
     const label = s ? s.nameAr || s.nameEn || s.subdomain || s.id : '—';
     return (
-      <div className="flex items-center gap-2 rounded-lg bg-kaffza-bg px-3 py-2 text-xs text-kaffza-text">
+      <div className="bg-kaffza-bg text-kaffza-text flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
         <span className="font-bold">المتجر:</span>
-        <span className="font-extrabold text-kaffza-primary">{loading ? '...' : label}</span>
-        <button className="underline text-kaffza-text/70" onClick={onReload}>
+        <span className="text-kaffza-primary font-extrabold">{loading ? '...' : label}</span>
+        <button className="text-kaffza-text/70 underline" onClick={onReload}>
           تحديث
         </button>
       </div>
@@ -297,7 +310,7 @@ function StoreSwitcher({
   return (
     <div className="flex items-center gap-2">
       <select
-        className="max-w-[220px] rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold text-kaffza-text"
+        className="text-kaffza-text max-w-[220px] rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
         value={storeId || ''}
         onChange={(e) => onChange(e.target.value)}
         disabled={loading}
@@ -311,7 +324,7 @@ function StoreSwitcher({
           );
         })}
       </select>
-      <button className="text-xs font-bold text-kaffza-text/70 underline" onClick={onReload}>
+      <button className="text-kaffza-text/70 text-xs font-bold underline" onClick={onReload}>
         تحديث
       </button>
     </div>
