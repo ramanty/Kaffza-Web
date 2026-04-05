@@ -40,7 +40,7 @@ model User {
 
   stores        Store[]
   orders        Order[]        @relation("CustomerOrders")
-  cart          Cart?
+  carts         Cart[]
   disputes      Dispute[]      @relation("DisputeRaisedBy")
   assignedDisputes Dispute[]   @relation("DisputeAssignedTo")
   disputeMessages DisputeMessage[]
@@ -98,6 +98,7 @@ model Store {
   categories      Category[]
   products        Product[]
   orders          Order[]
+  carts           Cart[]
   wallet          Wallet?
   reviews         Review[]
 
@@ -194,13 +195,17 @@ model ProductVariant {
 // ---- Cart ----
 model Cart {
   id        BigInt     @id @default(autoincrement())
-  userId    BigInt     @unique @map("user_id")
+  userId    BigInt     @map("user_id")
+  storeId   BigInt     @map("store_id")
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
 
   user      User       @relation(fields: [userId], references: [id])
+  store     Store      @relation(fields: [storeId], references: [id])
   items     CartItem[]
 
+  @@unique([userId, storeId])
+  @@index([storeId])
   @@map("carts")
 }
 

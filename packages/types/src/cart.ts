@@ -13,6 +13,7 @@ export interface ICartItem {
 export interface ICart {
   id: number;
   userId: number;
+  storeId: number;
   items: ICartItem[];
   createdAt: Date;
   updatedAt: Date;
