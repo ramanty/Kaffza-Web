@@ -149,7 +149,13 @@ export const updateCartSchema = z.object({
   quantity: z.number().int().positive('الكمية يجب أن تكون 1 على الأقل'),
 });
 
-// ---- Update Order Status ----
+// ---- Checkout ----
+export const checkoutSchema = z.object({
+  shippingAddress: addressSchema,
+  billingAddress: addressSchema.optional(),
+  customerNotes: z.string().max(500).optional(),
+});
+
 export const updateOrderStatusSchema = z.object({
   status: z.enum(
     ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
@@ -183,6 +189,7 @@ export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
 export type CreateWithdrawalInput = z.infer<typeof createWithdrawalSchema>;
 export type CreateDisputeInput = z.infer<typeof createDisputeSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
+export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
 // DTO type aliases (for compatibility with NestJS naming conventions)
 export type RegisterDTO = RegisterInput;
@@ -195,3 +202,4 @@ export type CreateOrderDTO = CreateOrderInput;
 export type AddToCartDTO = AddToCartInput;
 export type UpdateCartDTO = UpdateCartInput;
 export type UpdateOrderStatusDTO = UpdateOrderStatusInput;
+export type CheckoutDTO = CheckoutInput;
