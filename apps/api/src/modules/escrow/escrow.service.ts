@@ -4,6 +4,9 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
+/** Dispute statuses that block automatic escrow release */
+const ACTIVE_DISPUTE_STATUSES = ['open', 'under_review'] as const;
+
 @Injectable()
 export class EscrowService {
   private readonly logger = new Logger(EscrowService.name);
@@ -20,10 +23,17 @@ export class EscrowService {
         escrowStatus: 'held',
         releaseAt: { lte: now },
       },
-      include: { order: { include: { store: { include: { wallet: true } } } } },
+      include: { order: { include: { store: { include: { wallet: true } }, dispute: { select: { status: true } } } } },
     });
 
     for (const p of payments) {
+      // Skip if there is an active dispute on this order
+      const disputeStatus = p.order.dispute?.status;
+      if (disputeStatus && (ACTIVE_DISPUTE_STATUSES as readonly string[]).includes(disputeStatus)) {
+        this.logger.log(`Skipping payment ${p.id.toString()} — active dispute (${disputeStatus})`);
+        continue;
+      }
+
       try {
         await this.releasePayment(p.id);
       } catch (e: any) {

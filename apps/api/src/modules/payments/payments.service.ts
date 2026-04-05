@@ -9,6 +9,8 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
+const ESCROW_HOLD_DAYS = 15;
+
 @Injectable()
 export class PaymentsService {
   constructor(
@@ -140,6 +142,33 @@ export class PaymentsService {
     return `${url}${sep}storeId=${storeId.toString()}&orderId=${orderId.toString()}${subdomain ? `&subdomain=${encodeURIComponent(subdomain)}` : ''}`;
   }
 
+
+private appendRedirectParams(baseUrl: string | undefined, storeId: bigint, orderId: bigint, subdomain?: string) {
+  const url = baseUrl || '';
+  if (!url) return url;
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}storeId=${storeId.toString()}&orderId=${orderId.toString()}${subdomain ? `&subdomain=${encodeURIComponent(subdomain)}` : ''}`;
+}
+
+private async processPaid(orderId: bigint, gatewayPaymentId: string | null) {
+  const order = await this.prisma.order.findUnique({
+    where: { id: orderId },
+    include: { payment: true, store: { include: { wallet: true, plan: true } } },
+  });
+  if (!order || !order.payment) return;
+  if (order.payment.status === 'paid') return;
+
+  const wallet = order.store.wallet;
+  if (!wallet) throw new BadRequestException('محفظة المتجر غير موجودة');
+
+  const merchantAmount = Number(order.merchantAmount);
+
+  const releaseAt = new Date(Date.now() + ESCROW_HOLD_DAYS * 24 * 60 * 60 * 1000);
+
+  await this.prisma.$transaction(async (tx) => {
+    await tx.payment.update({
+      where: { orderId },
+      data: { status: 'paid', escrowStatus: 'held', releaseAt, gatewayPaymentId: gatewayPaymentId ?? undefined },
   private async processPaid(orderId: bigint, gatewayPaymentId: string | null) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
