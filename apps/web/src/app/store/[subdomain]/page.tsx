@@ -49,7 +49,10 @@ function flattenCategories(nodes: Category[]): Category[] {
   return out;
 }
 
-async function tryGet<T = any>(url: string, config?: any): Promise<{ ok: true; data: T } | { ok: false; error: any }> {
+async function tryGet<T = any>(
+  url: string,
+  config?: any
+): Promise<{ ok: true; data: T } | { ok: false; error: any }> {
   try {
     const res = await api.get(url, config);
     return { ok: true, data: res?.data };
@@ -101,7 +104,10 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
 
       // 3) Products: requested endpoint is /stores/:subdomain/products
       // Fallback to /stores/:storeId/products
-      const q = selectedCategory !== 'all' ? `?categoryId=${encodeURIComponent(selectedCategory)}&limit=200&page=1` : '?limit=200&page=1';
+      const q =
+        selectedCategory !== 'all'
+          ? `?categoryId=${encodeURIComponent(selectedCategory)}&limit=200&page=1`
+          : '?limit=200&page=1';
       const prod1 = await tryGet(`/stores/${subdomain}/products${q}`);
       if (prod1.ok) {
         const list = prod1.data?.data || [];
@@ -128,7 +134,6 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subdomain, selectedCategory]);
 
   const addToCart = async (productId: string) => {
@@ -161,24 +166,23 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
         <div className="flex items-center gap-4">
           <div className="h-16 w-16 overflow-hidden rounded-2xl border border-black/10 bg-white">
             {store?.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={store.logoUrl} alt="logo" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs font-bold text-kaffza-text/60">
+              <div className="text-kaffza-text/60 flex h-full w-full items-center justify-center text-xs font-bold">
                 LOGO
               </div>
             )}
           </div>
 
           <div>
-            <div className="text-3xl font-extrabold text-kaffza-primary">
-              {store ? (store.nameAr || store.nameEn || 'المتجر') : 'المتجر'}
+            <div className="text-kaffza-primary text-3xl font-extrabold">
+              {store ? store.nameAr || store.nameEn || 'المتجر' : 'المتجر'}
             </div>
-            <div className="mt-1 text-sm text-kaffza-text">
+            <div className="text-kaffza-text mt-1 text-sm">
               <span className="text-kaffza-text/70">subdomain:</span>{' '}
-              <span className="font-semibold text-kaffza-primary">{subdomain}</span>
+              <span className="text-kaffza-primary font-semibold">{subdomain}</span>
             </div>
-            {msg ? <div className="mt-2 text-sm text-kaffza-text">{msg}</div> : null}
+            {msg ? <div className="text-kaffza-text mt-2 text-sm">{msg}</div> : null}
           </div>
         </div>
 
@@ -193,25 +197,33 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
       </div>
 
       {/* Links */}
-      <div className="mt-4 flex flex-wrap gap-3 text-xs text-kaffza-text">
-        <Link className="underline" href="/legal/terms">الشروط</Link>
-        <Link className="underline" href="/legal/privacy">الخصوصية</Link>
-        <Link className="underline" href="/en/legal/terms">Terms</Link>
-        <Link className="underline" href="/en/legal/privacy">Privacy</Link>
+      <div className="text-kaffza-text mt-4 flex flex-wrap gap-3 text-xs">
+        <Link className="underline" href="/legal/terms">
+          الشروط
+        </Link>
+        <Link className="underline" href="/legal/privacy">
+          الخصوصية
+        </Link>
+        <Link className="underline" href="/en/legal/terms">
+          Terms
+        </Link>
+        <Link className="underline" href="/en/legal/privacy">
+          Privacy
+        </Link>
       </div>
 
       {/* Filters */}
       <Card className="mt-6 p-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="text-sm font-extrabold text-kaffza-primary">فلترة المنتجات</div>
-            <div className="mt-1 text-xs text-kaffza-text/70">اختر تصنيف لعرض منتجاته.</div>
+            <div className="text-kaffza-primary text-sm font-extrabold">فلترة المنتجات</div>
+            <div className="text-kaffza-text/70 mt-1 text-xs">اختر تصنيف لعرض منتجاته.</div>
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-sm font-bold text-kaffza-text">التصنيف</label>
+            <label className="text-kaffza-text text-sm font-bold">التصنيف</label>
             <select
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
+              className="focus:border-kaffza-primary rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               disabled={loading}
@@ -231,35 +243,50 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
       <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {loading && products.length === 0 ? (
           <Card className="p-6 sm:col-span-2 lg:col-span-3">
-            <div className="text-sm text-kaffza-text/70">جاري التحميل...</div>
+            <div className="text-kaffza-text/70 text-sm">جاري التحميل...</div>
           </Card>
         ) : products.length === 0 ? (
           <Card className="p-6 sm:col-span-2 lg:col-span-3">
-            <div className="text-sm text-kaffza-text/70">لا يوجد منتجات حالياً.</div>
+            <div className="text-kaffza-text/70 text-sm">لا يوجد منتجات حالياً.</div>
           </Card>
         ) : (
           products.map((p) => (
             <Card key={p.id} className="overflow-hidden p-0">
-              <div className="relative h-44 w-full bg-kaffza-bg">
-                {p.images?.[0] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.images[0]} alt={p.nameAr || p.nameEn || 'product'} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-kaffza-text/60">
-                    No Image
-                  </div>
-                )}
-              </div>
+              <Link href={`/store/${subdomain}/product/${p.id}`} className="block">
+                <div className="bg-kaffza-bg relative h-44 w-full">
+                  {p.images?.[0] ? (
+                    <img
+                      src={p.images[0]}
+                      alt={p.nameAr || p.nameEn || 'product'}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-kaffza-text/60 flex h-full w-full items-center justify-center text-xs font-bold">
+                      No Image
+                    </div>
+                  )}
+                </div>
+              </Link>
 
               <div className="p-5">
-                <div className="text-lg font-extrabold text-kaffza-info">{p.nameAr || p.nameEn}</div>
+                <Link href={`/store/${subdomain}/product/${p.id}`}>
+                  <div className="text-kaffza-info hover:text-kaffza-primary text-lg font-extrabold transition-colors">
+                    {p.nameAr || p.nameEn}
+                  </div>
+                </Link>
                 <div className="mt-2 flex items-center justify-between">
-                  <div className="text-sm font-bold text-kaffza-primary">{Number(p.price).toFixed(3)} ر.ع</div>
-                  <div className="text-xs text-kaffza-text/70">المخزون: {p.stock}</div>
+                  <div className="text-kaffza-primary text-sm font-bold">
+                    {Number(p.price).toFixed(3)} ر.ع
+                  </div>
+                  <div className="text-kaffza-text/70 text-xs">المخزون: {p.stock}</div>
                 </div>
 
                 <div className="mt-4">
-                  <Button className="w-full" onClick={() => addToCart(p.id)} disabled={loading || !p.isActive || p.stock <= 0}>
+                  <Button
+                    className="w-full"
+                    onClick={() => addToCart(p.id)}
+                    disabled={loading || !p.isActive || p.stock <= 0}
+                  >
                     {p.stock <= 0 ? 'غير متوفر' : p.isActive ? 'أضف للسلة' : 'غير متاح'}
                   </Button>
                 </div>
