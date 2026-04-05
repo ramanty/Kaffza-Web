@@ -60,3 +60,14 @@ export interface ICreateProduct {
 export interface IUpdateProduct extends Partial<ICreateProduct> {
   isActive?: boolean;
 }
+
+export interface ICreateCategory {
+  nameAr: string;
+  nameEn: string;
+  parentId?: string;
+  sortOrder?: number;
+}
+
+export interface IUpdateCategory extends Partial<ICreateCategory> {
+  parentId?: string | null;
+}

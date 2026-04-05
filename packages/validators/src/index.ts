@@ -11,9 +11,7 @@ export const omanPhoneSchema = z
   .regex(/^\+968[0-9]{8}$/, 'رقم الهاتف يجب أن يكون بصيغة عُمانية صحيحة (+968XXXXXXXX)');
 
 // ---- Email Validation ----
-export const emailSchema = z
-  .string()
-  .email('البريد الإلكتروني غير صالح');
+export const emailSchema = z.string().email('البريد الإلكتروني غير صالح');
 
 // ---- Password Validation ----
 export const passwordSchema = z
@@ -74,6 +72,24 @@ export const createProductSchema = z.object({
   weightKg: z.number().positive().optional(),
 });
 
+// ---- Product Update ----
+export const updateProductSchema = createProductSchema.partial().extend({
+  isActive: z.boolean().optional(),
+});
+
+// ---- Category Creation ----
+export const createCategorySchema = z.object({
+  nameAr: z.string().min(2, 'اسم التصنيف بالعربية يجب أن يكون حرفين على الأقل').max(100),
+  nameEn: z.string().min(2, 'Category name in English must be at least 2 characters').max(100),
+  parentId: z.string().optional(),
+  sortOrder: z.number().int().min(0).default(0),
+});
+
+// ---- Category Update ----
+export const updateCategorySchema = createCategorySchema.partial().extend({
+  parentId: z.string().nullable().optional(),
+});
+
 // ---- Order Address ----
 export const addressSchema = z.object({
   fullName: z.string().min(2).max(100),
@@ -108,9 +124,7 @@ export const createWithdrawalSchema = z.object({
   amount: z.number().min(10, 'الحد الأدنى للسحب هو 10 ر.ع'),
   bankName: z.string().min(2).max(100),
   accountNumber: z.string().min(5).max(30),
-  iban: z
-    .string()
-    .regex(/^OM[0-9]{2}[A-Z0-9]{23}$/, 'رقم IBAN يجب أن يكون بصيغة عُمانية صحيحة'),
+  iban: z.string().regex(/^OM[0-9]{2}[A-Z0-9]{23}$/, 'رقم IBAN يجب أن يكون بصيغة عُمانية صحيحة'),
 });
 
 // ---- Dispute Creation ----
@@ -135,6 +149,9 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type CreateStoreInput = z.infer<typeof createStoreSchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
+export type UpdateProductInput = z.infer<typeof updateProductSchema>;
+export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
+export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type CreateWithdrawalInput = z.infer<typeof createWithdrawalSchema>;
 export type CreateDisputeInput = z.infer<typeof createDisputeSchema>;
@@ -143,3 +160,7 @@ export type PaginationInput = z.infer<typeof paginationSchema>;
 // DTO type aliases (for compatibility with NestJS naming conventions)
 export type RegisterDTO = RegisterInput;
 export type LoginDTO = LoginInput;
+export type CreateProductDTO = CreateProductInput;
+export type UpdateProductDTO = UpdateProductInput;
+export type CreateCategoryDTO = CreateCategoryInput;
+export type UpdateCategoryDTO = UpdateCategoryInput;
