@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { Button } from '../components/Button';
@@ -37,7 +38,7 @@ const FEATURES = [
   { icon: '📱', title: 'تطبيق موبايل قريباً', desc: 'تجربة تسوق وإدارة على الهاتف قريباً.' },
 ];
 
-export default function LandingPage() {
+function LandingPageInner() {
   const sp = useSearchParams();
   const unauthorized = sp.get('unauthorized') === '1';
 
@@ -240,3 +241,5 @@ function HowStep({ n, title, desc }: { n: string; title: string; desc: string })
     </div>
   );
 }
+
+export default function LandingPage() { return <Suspense><LandingPageInner /></Suspense>; }

@@ -139,3 +139,7 @@ export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type CreateWithdrawalInput = z.infer<typeof createWithdrawalSchema>;
 export type CreateDisputeInput = z.infer<typeof createDisputeSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
+
+// DTO type aliases (for compatibility with NestJS naming conventions)
+export type RegisterDTO = RegisterInput;
+export type LoginDTO = LoginInput;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '../../lib/api';
 import { authHeader } from '../../lib/auth';
@@ -13,7 +13,7 @@ type Wallet = {
   totalWithdrawn: number;
 };
 
-export default function DashboardPage() {
+function DashboardPageInner() {
   const sp = useSearchParams();
   const welcome = sp.get('welcome') === '1';
   const { storeId, stores, loading: storesLoading } = useStore();
@@ -139,3 +139,5 @@ function formatOMR(v: number) {
   const n = Number.isFinite(v) ? v : 0;
   return `${n.toFixed(3)} ر.ع`;
 }
+
+export default function DashboardPage() { return <Suspense><DashboardPageInner /></Suspense>; }

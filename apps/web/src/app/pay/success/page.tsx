@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { api } from '../../../lib/api';
@@ -9,7 +10,7 @@ import { authHeader } from '../../../lib/auth';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 
-export default function PaySuccess() {
+function PaySuccessInner() {
   const sp = useSearchParams();
 
   const storeId = sp.get('storeId');
@@ -107,3 +108,5 @@ export default function PaySuccess() {
     </main>
   );
 }
+
+export default function PaySuccess() { return <Suspense><PaySuccessInner /></Suspense>; }
