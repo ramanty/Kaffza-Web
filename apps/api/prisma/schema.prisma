@@ -40,6 +40,7 @@ model User {
 
   stores        Store[]
   orders        Order[]        @relation("CustomerOrders")
+  cart          Cart?
   disputes      Dispute[]      @relation("DisputeRaisedBy")
   assignedDisputes Dispute[]   @relation("DisputeAssignedTo")
   disputeMessages DisputeMessage[]
@@ -165,6 +166,7 @@ model Product {
   store           Store            @relation(fields: [storeId], references: [id])
   category        Category?        @relation(fields: [categoryId], references: [id])
   variants        ProductVariant[]
+  cartItems       CartItem[]
   orderItems      OrderItem[]
   reviews         Review[]
 
@@ -184,8 +186,36 @@ model ProductVariant {
 
   product   Product     @relation(fields: [productId], references: [id])
   orderItems OrderItem[]
+  cartItems  CartItem[]
 
   @@map("product_variants")
+}
+
+// ---- Cart ----
+model Cart {
+  id        BigInt     @id @default(autoincrement())
+  userId    BigInt     @unique @map("user_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        BigInt          @id @default(autoincrement())
+  cartId    BigInt          @map("cart_id")
+  productId BigInt          @map("product_id")
+  variantId BigInt?         @map("variant_id")
+  quantity  Int
+
+  cart      Cart            @relation(fields: [cartId], references: [id])
+  product   Product         @relation(fields: [productId], references: [id])
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@map("cart_items")
 }
 
 // ---- Orders ----
