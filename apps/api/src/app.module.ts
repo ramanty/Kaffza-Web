@@ -22,6 +22,8 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { CartModule } from './modules/cart/cart.module';
 import { EscrowModule } from './modules/escrow/escrow.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
+import { HealthModule } from './modules/health/health.module';
 
 // Config & Database
 import { DatabaseModule } from './database/database.module';
@@ -58,6 +60,8 @@ import { ConfigModule } from './config/config.module';
     WalletsModule,
     DisputesModule,
     AdminModule,
+    UploadsModule,
+    HealthModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

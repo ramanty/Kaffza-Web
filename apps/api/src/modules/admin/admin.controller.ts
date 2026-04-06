@@ -15,33 +15,44 @@ import { AdminService } from './admin.service';
 export class AdminController {
   constructor(private readonly admin: AdminService) {}
 
-  
+  @Get('users')
+  users(
+    @CurrentUser() user: any,
+    @Query('role') role?: string,
+    @Query('page') page = '1',
+    @Query('limit') limit = '20'
+  ) {
+    return this.admin.listUsers(user, role, Number(page) || 1, Math.min(100, Number(limit) || 20));
+  }
 
-@Get('users')
-users(@CurrentUser() user: any, @Query('role') role?: string) {
-  return this.admin.listUsers(user, role);
-}
+  @Patch('users/:id')
+  updateUser(@CurrentUser() user: any, @Param('id') id: string, @Body() body: any) {
+    return this.admin.setUserSuspended(user, BigInt(id), !!body?.suspended, body?.reason);
+  }
 
-@Patch('users/:id')
-updateUser(@CurrentUser() user: any, @Param('id') id: string, @Body() body: any) {
-  return this.admin.setUserSuspended(user, BigInt(id), !!body?.suspended, body?.reason);
-}
+  @Get('settings')
+  settings(@CurrentUser() user: any) {
+    return this.admin.getSettings(user);
+  }
 
+  @Patch('settings')
+  updateSettings(@CurrentUser() user: any, @Body() body: any) {
+    return this.admin.updateSettings(user, body);
+  }
 
-
-@Get('settings')
-settings(@CurrentUser() user: any) {
-  return this.admin.getSettings(user);
-}
-
-@Patch('settings')
-updateSettings(@CurrentUser() user: any, @Body() body: any) {
-  return this.admin.updateSettings(user, body);
-}
-
-@Get('merchants')
-  listMerchants(@CurrentUser() user: any, @Query('status') status?: string) {
-    return this.admin.listMerchants(user, status);
+  @Get('merchants')
+  listMerchants(
+    @CurrentUser() user: any,
+    @Query('status') status?: string,
+    @Query('page') page = '1',
+    @Query('limit') limit = '20'
+  ) {
+    return this.admin.listMerchants(
+      user,
+      status,
+      Number(page) || 1,
+      Math.min(100, Number(limit) || 20)
+    );
   }
 
   @Patch('merchants/:id/approve')
@@ -65,18 +76,18 @@ updateSettings(@CurrentUser() user: any, @Body() body: any) {
   }
 
   @Get('orders')
-  orders(@CurrentUser() user: any) {
-    return this.admin.listOrders(user);
+  orders(@CurrentUser() user: any, @Query('page') page = '1', @Query('limit') limit = '20') {
+    return this.admin.listOrders(user, Number(page) || 1, Math.min(100, Number(limit) || 20));
   }
 
   @Get('payments')
-  payments(@CurrentUser() user: any) {
-    return this.admin.listPayments(user);
+  payments(@CurrentUser() user: any, @Query('page') page = '1', @Query('limit') limit = '20') {
+    return this.admin.listPayments(user, Number(page) || 1, Math.min(100, Number(limit) || 20));
   }
 
   @Get('withdrawals')
-  withdrawals(@CurrentUser() user: any) {
-    return this.admin.listWithdrawals(user);
+  withdrawals(@CurrentUser() user: any, @Query('page') page = '1', @Query('limit') limit = '20') {
+    return this.admin.listWithdrawals(user, Number(page) || 1, Math.min(100, Number(limit) || 20));
   }
 
   @Patch('withdrawals/:id/approve')
@@ -95,7 +106,7 @@ updateSettings(@CurrentUser() user: any, @Body() body: any) {
   }
 
   @Get('audit')
-  audit(@CurrentUser() user: any) {
-    return this.admin.auditLog(user);
+  audit(@CurrentUser() user: any, @Query('page') page = '1', @Query('limit') limit = '20') {
+    return this.admin.auditLog(user, Number(page) || 1, Math.min(100, Number(limit) || 20));
   }
 }

@@ -30,7 +30,7 @@ model User {
   email         String    @unique @db.VarChar(255)
   passwordHash  String    @map("password_hash") @db.VarChar(255)
   phone         String    @unique @db.VarChar(20)
-  otp           String?   @db.VarChar(6)
+  otpHash       String?   @map("otp_hash") @db.VarChar(255)
   otpExpiresAt  DateTime? @map("otp_expires_at")
   role          UserRole  @default(customer)
   locale        Locale    @default(ar)

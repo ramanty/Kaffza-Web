@@ -9,8 +9,6 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
-const ESCROW_HOLD_DAYS = 15;
-
 @Injectable()
 export class PaymentsService {
   constructor(
@@ -19,8 +17,7 @@ export class PaymentsService {
     private readonly notifications: NotificationsService
   ) {}
 
-  // Create Thawani session using only orderId (API alias convenience)
-  async createThawaniSessionByOrderId(user: any, orderId: bigint, isMobile: boolean = false) {
+  async createThawaniSessionByOrderId(user: any, orderId: bigint, isMobile = false) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       select: { storeId: true },
@@ -29,28 +26,20 @@ export class PaymentsService {
     return this.createThawaniSession(user, BigInt(order.storeId as any), orderId, isMobile);
   }
 
-  /**
-   * Create Thawani checkout session.
-   * Docs: POST /checkout/session with thawani-api-key header.
-   */
-  async createThawaniSession(
-    user: any,
-    storeId: bigint,
-    orderId: bigint,
-    isMobile: boolean = false
-  ) {
+  async createThawaniSession(user: any, storeId: bigint, orderId: bigint, isMobile = false) {
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
-    if (user.role !== 'customer' && user.role !== 'admin')
+    if (user.role !== 'customer' && user.role !== 'admin') {
       throw new ForbiddenException('فقط العميل');
+    }
 
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, storeId },
       include: { items: true, payment: true, store: { select: { subdomain: true } } },
     });
     if (!order) throw new NotFoundException('الطلب غير موجود');
-    if (user.role !== 'admin' && order.customerId !== BigInt(user.sub))
+    if (user.role !== 'admin' && order.customerId !== BigInt(user.sub)) {
       throw new ForbiddenException('ليس لديك صلاحية');
-
+    }
     if (!order.payment) throw new BadRequestException('لا يوجد سجل دفع');
     if (order.payment.status === 'paid') throw new BadRequestException('تم الدفع مسبقاً');
 
@@ -72,10 +61,10 @@ export class PaymentsService {
     const cancelUrlMobile =
       this.config.get<string>('thawani.cancelUrlMobile') || process.env.THAWANI_CANCEL_URL_MOBILE;
 
-    if (!apiUrl || !secretKey || !publishableKey)
+    if (!apiUrl || !secretKey || !publishableKey) {
       throw new BadRequestException('إعدادات Thawani ناقصة');
+    }
 
-    // Build products in baisa (1 OMR = 1000 baisa)
     const products = order.items.map((i) => ({
       name: (i.productName || '').slice(0, 40) || 'Order Item',
       quantity: i.quantity,
@@ -123,7 +112,7 @@ export class PaymentsService {
     const paymentUrl = `${apiUrl.includes('uat') ? 'https://uatcheckout.thawani.om' : 'https://checkout.thawani.om'}/pay/${sessionId}?key=${publishableKey}`;
 
     await this.prisma.payment.update({
-      where: { orderId: orderId },
+      where: { orderId },
       data: { gateway: 'thawani', gatewaySessionId: sessionId },
     });
 
@@ -142,33 +131,18 @@ export class PaymentsService {
     return `${url}${sep}storeId=${storeId.toString()}&orderId=${orderId.toString()}${subdomain ? `&subdomain=${encodeURIComponent(subdomain)}` : ''}`;
   }
 
+  /**
+   * Escrow release policy by merchant trust level:
+   * - new_merchant: 14 days
+   * - standard: 7 days
+   * - trusted: 3 days
+   */
+  private escrowHoldDaysByTrustLevel(trustLevel: string | null | undefined) {
+    if (trustLevel === 'trusted') return 3;
+    if (trustLevel === 'new_merchant') return 14;
+    return 7;
+  }
 
-private appendRedirectParams(baseUrl: string | undefined, storeId: bigint, orderId: bigint, subdomain?: string) {
-  const url = baseUrl || '';
-  if (!url) return url;
-  const sep = url.includes('?') ? '&' : '?';
-  return `${url}${sep}storeId=${storeId.toString()}&orderId=${orderId.toString()}${subdomain ? `&subdomain=${encodeURIComponent(subdomain)}` : ''}`;
-}
-
-private async processPaid(orderId: bigint, gatewayPaymentId: string | null) {
-  const order = await this.prisma.order.findUnique({
-    where: { id: orderId },
-    include: { payment: true, store: { include: { wallet: true, plan: true } } },
-  });
-  if (!order || !order.payment) return;
-  if (order.payment.status === 'paid') return;
-
-  const wallet = order.store.wallet;
-  if (!wallet) throw new BadRequestException('محفظة المتجر غير موجودة');
-
-  const merchantAmount = Number(order.merchantAmount);
-
-  const releaseAt = new Date(Date.now() + ESCROW_HOLD_DAYS * 24 * 60 * 60 * 1000);
-
-  await this.prisma.$transaction(async (tx) => {
-    await tx.payment.update({
-      where: { orderId },
-      data: { status: 'paid', escrowStatus: 'held', releaseAt, gatewayPaymentId: gatewayPaymentId ?? undefined },
   private async processPaid(orderId: bigint, gatewayPaymentId: string | null) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
@@ -186,12 +160,16 @@ private async processPaid(orderId: bigint, gatewayPaymentId: string | null) {
     const commissionPct =
       totalAmount > 0 ? ((commissionAmount / totalAmount) * 100).toFixed(2) : '0.00';
 
+    const holdDays = this.escrowHoldDaysByTrustLevel(String(order.store.trustLevel));
+    const releaseAt = new Date(Date.now() + holdDays * 24 * 60 * 60 * 1000);
+
     await this.prisma.$transaction(async (tx) => {
       await tx.payment.update({
         where: { orderId },
         data: {
           status: 'paid',
           escrowStatus: 'held',
+          releaseAt,
           gatewayPaymentId: gatewayPaymentId ?? undefined,
         },
       });
@@ -237,10 +215,6 @@ private async processPaid(orderId: bigint, gatewayPaymentId: string | null) {
     });
   }
 
-  /**
-   * Webhook: mark payment as paid and place funds in escrow held.
-   * We rely on metadata.orderId from webhook body.
-   */
   async handleThawaniWebhook(payload: any) {
     const orderIdStr =
       payload?.data?.metadata?.orderId ||
@@ -254,7 +228,6 @@ private async processPaid(orderId: bigint, gatewayPaymentId: string | null) {
     return { success: true };
   }
 
-  // Get payment status by thawani session id (gatewaySessionId)
   async retrieveThawaniStatusBySession(user: any, sessionId: string) {
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
 
@@ -264,13 +237,13 @@ private async processPaid(orderId: bigint, gatewayPaymentId: string | null) {
     });
     if (!payment) throw new NotFoundException('الجلسة غير موجودة');
 
-    // Reuse existing permission checks + status logic
     return this.retrieveThawaniStatus(
       user,
       BigInt(payment.order.storeId as any),
       BigInt(payment.orderId as any)
     );
   }
+
   async retrieveThawaniStatus(user: any, storeId: bigint, orderId: bigint) {
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
 
@@ -279,8 +252,9 @@ private async processPaid(orderId: bigint, gatewayPaymentId: string | null) {
       include: { payment: true },
     });
     if (!order) throw new NotFoundException('الطلب غير موجود');
-    if (user.role !== 'admin' && order.customerId !== BigInt(user.sub))
+    if (user.role !== 'admin' && order.customerId !== BigInt(user.sub)) {
       throw new ForbiddenException('ليس لديك صلاحية');
+    }
 
     const apiUrl = this.config.get<string>('thawani.apiUrl') || process.env.THAWANI_API_URL;
     const secretKey =
@@ -295,8 +269,9 @@ private async processPaid(orderId: bigint, gatewayPaymentId: string | null) {
     });
 
     const data = (await resp.json().catch(() => null)) as any;
-    if (!resp.ok || !data?.success)
+    if (!resp.ok || !data?.success) {
       throw new BadRequestException(data?.description || 'فشل جلب حالة الدفع');
+    }
 
     const paymentStatus = data.data.payment_status;
     const invoice = data.data.invoice || null;

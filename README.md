@@ -184,8 +184,8 @@ These hooks are installed automatically when you run `pnpm install` (via the `pr
 | Plan              | Monthly Price | Commission |
 | :---------------- | :------------ | :--------- |
 | Starter (البداية) | 5 OMR         | 2%         |
-| Growth (النمو)    | 8 OMR         | 1%         |
-| Pro (المحترف)     | 35 OMR        | 0.5%       |
+| Growth (النمو)    | 8 ر.ع         | 1%         |
+| Pro (المحترف)     | 35 ر.ع        | 0.5%       |
 
 _No registration fees._
 
@@ -194,6 +194,13 @@ _No registration fees._
 ## Documentation
 
 For the complete architecture design, database diagrams, and workflow documentation, see the [Architecture Document](./docs/ARCHITECTURE.md).
+
+## SSL / Domain Routing
+
+The default deployment uses **single-domain routing (Option A)** on `kaffza.me` (no wildcard DNS cert required).  
+Storefronts are served by path routing: `/store/[subdomain]`.
+
+Wildcard certificates (`*.kaffza.me`) are **not** handled by `ssl_one_shot.sh` because it uses HTTP-01 challenge.
 
 ---
 

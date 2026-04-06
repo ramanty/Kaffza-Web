@@ -7,7 +7,7 @@ import { randomInt, randomUUID } from 'crypto';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from './services/redis.service';
 import { SmsService } from './services/sms.service';
-import { RegisterDto } from './dto/register.dto';
+import { MerchantRegisterDto } from './dto/merchant-register.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -22,75 +22,82 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
     private readonly redis: RedisService,
-    private readonly sms: SmsService,
+    private readonly sms: SmsService
   ) {}
 
+  async register(dto: MerchantRegisterDto) {
+    // Support phone-only customer registration for web.
+    const role = dto.role || 'customer';
+    const locale = dto.locale || 'ar';
+    const email = dto.email || this.syntheticEmail(dto.phone);
+    const plainPassword = dto.password || this.syntheticPassword();
 
-async register(dto: RegisterDto) {
-  // Support phone-only customer registration for web.
-  const role = (dto as any).role || 'customer';
-  const locale = (dto as any).locale || 'ar';
-  const email = (dto as any).email || this.syntheticEmail(dto.phone);
-  const plainPassword = (dto as any).password || this.syntheticPassword();
+    const or: any[] = [{ phone: dto.phone }];
+    if (email) or.push({ email });
 
-  const or: any[] = [{ phone: dto.phone }];
-  if (email) or.push({ email });
+    const existing = await this.prisma.user.findFirst({ where: { OR: or } });
 
-  const existing = await this.prisma.user.findFirst({ where: { OR: or } });
+    const passwordHash = await bcrypt.hash(plainPassword, 10);
+    const { otp, otpHash, otpExpiresAt } = await this.newOtp();
 
-  const passwordHash = await bcrypt.hash(plainPassword, 10);
-  const { otp, otpExpiresAt } = this.newOtp();
-
-  const user = existing
-    ? await this.updateOrRejectExisting(existing.id, existing.isVerified, {
-        name: dto.name,
-        email,
-        phone: dto.phone,
-        passwordHash,
-        role,
-        locale,
-        otp,
-        otpExpiresAt,
-      })
-    : await this.prisma.user.create({
-        data: {
+    const user = existing
+      ? await this.updateOrRejectExisting(existing.id, existing.isVerified, {
           name: dto.name,
           email,
           phone: dto.phone,
           passwordHash,
           role,
           locale,
-          isVerified: false,
-          otp,
+          otpHash,
           otpExpiresAt,
-        },
-      });
+        })
+      : await this.prisma.user.create({
+          data: {
+            name: dto.name,
+            email,
+            phone: dto.phone,
+            passwordHash,
+            role,
+            locale,
+            isVerified: false,
+            otpHash,
+            otpExpiresAt,
+          },
+        });
 
-  await this.sms.sendOtp(user.phone, otp);
-  return { success: true, message: 'تم إرسال رمز التحقق (OTP) إلى رقم الهاتف', data: { phone: user.phone, otpExpiresAt } };
-}
+    await this.sms.sendOtp(user.phone, otp);
+    return {
+      success: true,
+      message: 'تم إرسال رمز التحقق (OTP) إلى رقم الهاتف',
+      data: { phone: user.phone, otpExpiresAt },
+    };
+  }
 
-// OTP login: send OTP for existing users (verified or not)
-async requestOtp(phone: string) {
-  const user = await this.prisma.user.findUnique({ where: { phone } });
-  if (!user) throw new BadRequestException('المستخدم غير موجود');
+  // OTP login: send OTP for existing users (verified or not)
+  async requestOtp(phone: string) {
+    const user = await this.prisma.user.findUnique({ where: { phone } });
+    if (!user) throw new BadRequestException('المستخدم غير موجود');
 
-  const { otp, otpExpiresAt } = this.newOtp();
-  await this.prisma.user.update({ where: { id: user.id }, data: { otp, otpExpiresAt } });
-  await this.sms.sendOtp(phone, otp);
+    const { otp, otpHash, otpExpiresAt } = await this.newOtp();
+    await this.prisma.user.update({ where: { id: user.id }, data: { otpHash, otpExpiresAt } });
+    await this.sms.sendOtp(phone, otp);
 
-  return { success: true, message: 'تم إرسال رمز التحقق (OTP)', data: { phone, otpExpiresAt } };
-}
+    return { success: true, message: 'تم إرسال رمز التحقق (OTP)', data: { phone, otpExpiresAt } };
+  }
   async resendOtp(phone: string) {
     const user = await this.prisma.user.findUnique({ where: { phone } });
     if (!user) throw new BadRequestException('المستخدم غير موجود');
     if (user.isVerified) throw new BadRequestException('الحساب مُفعّل بالفعل');
 
-    const { otp, otpExpiresAt } = this.newOtp();
-    await this.prisma.user.update({ where: { id: user.id }, data: { otp, otpExpiresAt } });
+    const { otp, otpHash, otpExpiresAt } = await this.newOtp();
+    await this.prisma.user.update({ where: { id: user.id }, data: { otpHash, otpExpiresAt } });
     await this.sms.sendOtp(phone, otp);
 
-    return { success: true, message: 'تم إعادة إرسال رمز التحقق (OTP)', data: { phone, otpExpiresAt } };
+    return {
+      success: true,
+      message: 'تم إعادة إرسال رمز التحقق (OTP)',
+      data: { phone, otpExpiresAt },
+    };
   }
 
   async verifyOtp(dto: VerifyOtpDto) {
@@ -99,53 +106,65 @@ async requestOtp(phone: string) {
     const user = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
     if (!user) throw new BadRequestException('المستخدم غير موجود');
 
-    await this.assertOtp(dto.phone, user.otp, user.otpExpiresAt, dto.otp);
+    await this.assertOtp(dto.phone, user.otpHash, user.otpExpiresAt, dto.otp);
 
-    const updated = await this.prisma.user.update({ where: { id: user.id }, data: { isVerified: true, otp: null, otpExpiresAt: null } });
+    const updated = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { isVerified: true, otpHash: null, otpExpiresAt: null },
+    });
     await this.clearOtpFailures(dto.phone);
 
     const tokens = await this.issueTokens(updated);
-    return { success: true, message: 'تم التحقق بنجاح', data: { user: this.toSafeUser(updated), tokens } };
+    return {
+      success: true,
+      message: 'تم التحقق بنجاح',
+      data: { user: this.toSafeUser(updated), tokens },
+    };
   }
 
-// Verify OTP for reset-password flow WITHOUT consuming OTP or issuing tokens.
-async verifyOtpForReset(dto: VerifyOtpDto) {
-  await this.assertNotOtpBlocked(dto.phone);
+  // Verify OTP for reset-password flow WITHOUT consuming OTP or issuing tokens.
+  async verifyOtpForReset(dto: VerifyOtpDto) {
+    await this.assertNotOtpBlocked(dto.phone);
 
-  const user = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
-  if (!user) throw new BadRequestException('المستخدم غير موجود');
+    const user = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
+    if (!user) throw new BadRequestException('المستخدم غير موجود');
 
-  await this.assertOtp(dto.phone, user.otp, user.otpExpiresAt, dto.otp);
-  // Do not clear otp here; it will be consumed by forgotPasswordVerify.
-  await this.clearOtpFailures(dto.phone);
+    await this.assertOtp(dto.phone, user.otpHash, user.otpExpiresAt, dto.otp);
+    // Do not clear otp here; it will be consumed by forgotPasswordVerify.
+    await this.clearOtpFailures(dto.phone);
 
-  return { success: true, message: 'تم التحقق من الرمز', data: { phone: dto.phone, otpExpiresAt: user.otpExpiresAt } };
-}
+    return {
+      success: true,
+      message: 'تم التحقق من الرمز',
+      data: { phone: dto.phone, otpExpiresAt: user.otpExpiresAt },
+    };
+  }
 
+  async login(dto: LoginDto) {
+    // Allow login by email+password OR phone+password
+    const email = (dto as any).email;
+    const phone = (dto as any).phone;
 
+    if (!email && !phone) throw new UnauthorizedException('بيانات الدخول غير صحيحة');
 
-async login(dto: LoginDto) {
-  // Allow login by email+password OR phone+password
-  const email = (dto as any).email;
-  const phone = (dto as any).phone;
+    const user = email
+      ? await this.prisma.user.findUnique({ where: { email } })
+      : await this.prisma.user.findUnique({ where: { phone } });
 
-  if (!email && !phone) throw new UnauthorizedException('بيانات الدخول غير صحيحة');
+    if (!user) throw new UnauthorizedException('بيانات الدخول غير صحيحة');
 
-  const user = email
-    ? await this.prisma.user.findUnique({ where: { email } })
-    : await this.prisma.user.findUnique({ where: { phone } });
+    const ok = await bcrypt.compare(dto.password, user.passwordHash);
+    if (!ok) throw new UnauthorizedException('بيانات الدخول غير صحيحة');
 
-  if (!user) throw new UnauthorizedException('بيانات الدخول غير صحيحة');
+    if (!user.isVerified) throw new UnauthorizedException('الحساب غير مُفعّل. تحقق من OTP أولاً');
 
-  const ok = await bcrypt.compare(dto.password, user.passwordHash);
-  if (!ok) throw new UnauthorizedException('بيانات الدخول غير صحيحة');
-
-  if (!user.isVerified) throw new UnauthorizedException('الحساب غير مُفعّل. تحقق من OTP أولاً');
-
-  const tokens = await this.issueTokens(user);
-  return { success: true, message: 'تم تسجيل الدخول', data: { user: this.toSafeUser(user), tokens } };
-}
-
+    const tokens = await this.issueTokens(user);
+    return {
+      success: true,
+      message: 'تم تسجيل الدخول',
+      data: { user: this.toSafeUser(user), tokens },
+    };
+  }
 
   async refresh(refreshToken: string) {
     const payload = await this.verifyRefresh(refreshToken);
@@ -176,44 +195,47 @@ async login(dto: LoginDto) {
     return { success: true, data: this.toSafeUser(user) };
   }
 
-async updateMe(sub: string, dto: { name?: string; email?: string }) {
-  const user = await this.prisma.user.findUnique({ where: { id: BigInt(sub) } });
-  if (!user) throw new UnauthorizedException('المستخدم غير موجود');
+  async updateMe(sub: string, dto: { name?: string; email?: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id: BigInt(sub) } });
+    if (!user) throw new UnauthorizedException('المستخدم غير موجود');
 
-  const data: any = {};
-  if (dto.name !== undefined) data.name = dto.name;
-  if (dto.email !== undefined) data.email = dto.email;
+    const data: any = {};
+    if (dto.name !== undefined) data.name = dto.name;
+    if (dto.email !== undefined) data.email = dto.email;
 
-  const updated = await this.prisma.user.update({ where: { id: BigInt(sub) }, data });
-  return { success: true, message: 'تم تحديث البيانات', data: this.toSafeUser(updated) };
-}
+    const updated = await this.prisma.user.update({ where: { id: BigInt(sub) }, data });
+    return { success: true, message: 'تم تحديث البيانات', data: this.toSafeUser(updated) };
+  }
 
-async changePassword(sub: string, oldPassword: string, newPassword: string) {
-  const user = await this.prisma.user.findUnique({ where: { id: BigInt(sub) } });
-  if (!user) throw new UnauthorizedException('المستخدم غير موجود');
+  async changePassword(sub: string, oldPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: BigInt(sub) } });
+    if (!user) throw new UnauthorizedException('المستخدم غير موجود');
 
-  const ok = await bcrypt.compare(oldPassword, user.passwordHash);
-  if (!ok) throw new BadRequestException('كلمة المرور القديمة غير صحيحة');
+    const ok = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!ok) throw new BadRequestException('كلمة المرور القديمة غير صحيحة');
 
-  const passwordHash = await bcrypt.hash(newPassword, 10);
-  await this.prisma.user.update({ where: { id: BigInt(sub) }, data: { passwordHash } });
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({ where: { id: BigInt(sub) }, data: { passwordHash } });
 
-  // revoke all sessions
-  await this.redis.delByPattern(`refresh:${user.id.toString()}:*`);
+    // revoke all sessions
+    await this.redis.delByPattern(`refresh:${user.id.toString()}:*`);
 
-  return { success: true, message: 'تم تغيير كلمة المرور بنجاح' };
-}
-
+    return { success: true, message: 'تم تغيير كلمة المرور بنجاح' };
+  }
 
   async forgotPasswordRequest(phone: string) {
     const user = await this.prisma.user.findUnique({ where: { phone } });
     if (!user) throw new BadRequestException('المستخدم غير موجود');
 
-    const { otp, otpExpiresAt } = this.newOtp();
-    await this.prisma.user.update({ where: { id: user.id }, data: { otp, otpExpiresAt } });
+    const { otp, otpHash, otpExpiresAt } = await this.newOtp();
+    await this.prisma.user.update({ where: { id: user.id }, data: { otpHash, otpExpiresAt } });
     await this.sms.sendOtp(phone, otp);
 
-    return { success: true, message: 'تم إرسال رمز إعادة تعيين كلمة المرور', data: { phone, otpExpiresAt } };
+    return {
+      success: true,
+      message: 'تم إرسال رمز إعادة تعيين كلمة المرور',
+      data: { phone, otpExpiresAt },
+    };
   }
 
   async forgotPasswordVerify(phone: string, otp: string, newPassword: string) {
@@ -222,10 +244,13 @@ async changePassword(sub: string, oldPassword: string, newPassword: string) {
     const user = await this.prisma.user.findUnique({ where: { phone } });
     if (!user) throw new BadRequestException('المستخدم غير موجود');
 
-    await this.assertOtp(phone, user.otp, user.otpExpiresAt, otp);
+    await this.assertOtp(phone, user.otpHash, user.otpExpiresAt, otp);
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
-    await this.prisma.user.update({ where: { id: user.id }, data: { passwordHash, otp: null, otpExpiresAt: null } });
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash, otpHash: null, otpExpiresAt: null },
+    });
 
     // revoke all sessions
     await this.redis.delByPattern(`refresh:${user.id.toString()}:*`);
@@ -281,15 +306,26 @@ async changePassword(sub: string, oldPassword: string, newPassword: string) {
     await this.redis.del(this.otpBlockKey(phone));
   }
 
-  private async assertOtp(phone: string, dbOtp: string | null, dbExpiry: Date | null, providedOtp: string) {
-    if (!dbOtp || !dbExpiry) await this.recordOtpFailure(phone);
+  private async assertOtp(
+    phone: string,
+    dbOtpHash: string | null,
+    dbExpiry: Date | null,
+    providedOtp: string
+  ) {
+    if (!dbOtpHash || !dbExpiry) await this.recordOtpFailure(phone);
     if ((dbExpiry as Date).getTime() < Date.now()) await this.recordOtpFailure(phone);
-    if (dbOtp !== providedOtp) await this.recordOtpFailure(phone);
+    const valid = await bcrypt.compare(providedOtp, dbOtpHash as string);
+    if (!valid) await this.recordOtpFailure(phone);
   }
 
   // ---- tokens ----
   private async issueTokens(user: any) {
-    const accessPayload = { sub: user.id.toString(), role: user.role, locale: user.locale, email: user.email };
+    const accessPayload = {
+      sub: user.id.toString(),
+      role: user.role,
+      locale: user.locale,
+      email: user.email,
+    };
 
     const accessToken = await this.jwt.signAsync(accessPayload, {
       secret: this.config.get<string>('jwt.secret'),
@@ -299,18 +335,29 @@ async changePassword(sub: string, oldPassword: string, newPassword: string) {
     const jti = randomUUID();
     const refreshToken = await this.jwt.signAsync(
       { sub: user.id.toString(), jti },
-      { secret: this.config.get<string>('jwt.refreshSecret'), expiresIn: this.config.get<string>('jwt.refreshExpiration') },
+      {
+        secret: this.config.get<string>('jwt.refreshSecret'),
+        expiresIn: this.config.get<string>('jwt.refreshExpiration'),
+      }
     );
 
-    const refreshTtlSeconds = this.parseExpiryToSeconds(this.config.get<string>('jwt.refreshExpiration') || '7d');
+    const refreshTtlSeconds = this.parseExpiryToSeconds(
+      this.config.get<string>('jwt.refreshExpiration') || '7d'
+    );
     await this.redis.set(this.refreshKey(user.id.toString(), jti), '1', refreshTtlSeconds);
 
-    return { accessToken, refreshToken, expiresIn: this.parseExpiryToSeconds(this.config.get<string>('jwt.expiration') || '15m') };
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn: this.parseExpiryToSeconds(this.config.get<string>('jwt.expiration') || '15m'),
+    };
   }
 
   private async verifyRefresh(token: string): Promise<{ sub: string; jti: string }> {
     try {
-      return await this.jwt.verifyAsync(token, { secret: this.config.get<string>('jwt.refreshSecret') });
+      return await this.jwt.verifyAsync(token, {
+        secret: this.config.get<string>('jwt.refreshSecret'),
+      });
     } catch {
       throw new UnauthorizedException('Refresh token غير صالح');
     }
@@ -325,26 +372,36 @@ async changePassword(sub: string, oldPassword: string, newPassword: string) {
     return this.prisma.user.update({ where: { id }, data });
   }
 
+  private syntheticEmail(phone: string) {
+    // deterministic email for phone-only registration
+    const cleaned = (phone || '').replace(/[^0-9]/g, '');
+    return `${cleaned}@kaffza.local`;
+  }
 
-private syntheticEmail(phone: string) {
-  // deterministic email for phone-only registration
-  const cleaned = (phone || '').replace(/[^0-9]/g, '');
-  return `${cleaned}@kaffza.local`;
-}
+  private syntheticPassword() {
+    // random password used when registering via phone-only flow (OTP login)
+    return `Kf${randomInt(100000, 999999)}${randomInt(100000, 999999)}`;
+  }
 
-private syntheticPassword() {
-  // random password used when registering via phone-only flow (OTP login)
-  return `Kf${randomInt(100000, 999999)}${randomInt(100000, 999999)}`;
-}
-
-  private newOtp(): { otp: string; otpExpiresAt: Date } {
+  private async newOtp(): Promise<{ otp: string; otpHash: string; otpExpiresAt: Date }> {
     const otp = String(randomInt(0, 1000000)).padStart(6, '0');
+    const otpHash = await bcrypt.hash(otp, 8);
     const otpExpiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000);
-    return { otp, otpExpiresAt };
+    return { otp, otpHash, otpExpiresAt };
   }
 
   private toSafeUser(user: any) {
-    return { id: Number(user.id), name: user.name, email: user.email, phone: user.phone, role: user.role, locale: user.locale, isVerified: user.isVerified, createdAt: user.createdAt, updatedAt: user.updatedAt };
+    return {
+      id: Number(user.id),
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      locale: user.locale,
+      isVerified: user.isVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   private parseExpiryToSeconds(input: string): number {

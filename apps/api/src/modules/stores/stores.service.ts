@@ -1,14 +1,13 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from '../../database/prisma.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
-
-const PLAN_LIMITS: Record<string, number> = {
-  starter: 1,
-  growth: 3,
-  pro: Number.POSITIVE_INFINITY,
-};
 
 @Injectable()
 export class StoresService {
@@ -105,7 +104,10 @@ export class StoresService {
   async getStoreById(user: { sub: string; role: string }, storeId: bigint) {
     const store = await this.prisma.store.findUnique({
       where: { id: storeId },
-      include: { plan: true, owner: { select: { id: true, name: true, email: true, phone: true, role: true } } },
+      include: {
+        plan: true,
+        owner: { select: { id: true, name: true, email: true, phone: true, role: true } },
+      },
     });
     if (!store) throw new NotFoundException('المتجر غير موجود');
 
@@ -127,62 +129,38 @@ export class StoresService {
     return { success: true, data: store };
   }
 
-async checkSubdomain(subdomain: string) {
-  const s = (subdomain || '').toLowerCase();
-  const exists = await this.prisma.store.findFirst({ where: { subdomain: s } });
-  return { success: true, data: { subdomain: s, available: !exists } };
-}
-
-
-
-
-async getMyStores(user: { sub: string; role: string }) {
-  if (!user?.sub) throw new ForbiddenException('غير مصرح');
-  if (user.role !== 'merchant' && user.role !== 'admin') throw new ForbiddenException('فقط التاجر');
-
-  const ownerId = BigInt(user.sub);
-  const stores = await this.prisma.store.findMany({
-    where: { ownerId },
-    orderBy: { createdAt: 'desc' },
-    include: { plan: true },
-  });
-
-  return { success: true, data: stores };
-}
-
-  private planKey(plan: { name?: string; nameEn?: string }) {
-    const key = (plan.nameEn || plan.name || '').toString().toLowerCase();
-    if (key.includes('starter') || key.includes('البداية')) return 'starter';
-    if (key.includes('growth') || key.includes('النمو')) return 'growth';
-    if (key.includes('pro') || key.includes('المحترف')) return 'pro';
-    return 'starter';
+  async checkSubdomain(subdomain: string) {
+    const s = (subdomain || '').toLowerCase();
+    const exists = await this.prisma.store.findFirst({ where: { subdomain: s } });
+    return { success: true, data: { subdomain: s, available: !exists } };
   }
 
-  private planLimit(plan: { name?: string; nameEn?: string }) {
-    return PLAN_LIMITS[this.planKey(plan)] ?? 1;
+  async getMyStores(user: { sub: string; role: string }) {
+    if (!user?.sub) throw new ForbiddenException('غير مصرح');
+    if (user.role !== 'merchant' && user.role !== 'admin')
+      throw new ForbiddenException('فقط التاجر');
+
+    const ownerId = BigInt(user.sub);
+    const stores = await this.prisma.store.findMany({
+      where: { ownerId },
+      orderBy: { createdAt: 'desc' },
+      include: { plan: true },
+    });
+
+    return { success: true, data: stores };
   }
 
-  private async assertStoreLimit(ownerId: bigint, newPlan: any) {
+  private async assertStoreLimit(ownerId: bigint, plan: any) {
     const count = await this.prisma.store.count({ where: { ownerId } });
-    if (count === 0) return;
-
-    const existing = await this.prisma.store.findMany({ where: { ownerId }, select: { planId: true } });
-    const planIds = Array.from(new Set(existing.map((s) => s.planId)));
-    const plans = await this.prisma.plan.findMany({ where: { id: { in: planIds } }, select: { name: true, nameEn: true } });
-
-    let currentMax = 1;
-    for (const p of plans) {
-      currentMax = Math.max(currentMax, this.planLimit(p));
-      if (!Number.isFinite(currentMax)) break;
+    const features = (plan?.features || {}) as any;
+    if (features?.maxStores === null) return;
+    const maxStores = features?.maxStores === undefined ? 1 : Number(features.maxStores);
+    if (!Number.isFinite(maxStores) || maxStores < 0) {
+      throw new BadRequestException('إعدادات الخطة غير صحيحة');
     }
 
-    const newLimit = this.planLimit(newPlan);
-    const effective = Number.isFinite(currentMax) ? Math.max(currentMax, newLimit) : currentMax;
-
-    if (!Number.isFinite(effective)) return;
-
-    if (count >= effective) {
-      throw new BadRequestException(`تجاوزت الحد المسموح لعدد المتاجر في خطتك. الحد: ${effective} متجر/متاجر`);
+    if (count >= maxStores) {
+      throw new BadRequestException(`خطتك الحالية تسمح بـ ${maxStores} متجر فقط. يرجى الترقية`);
     }
   }
 }

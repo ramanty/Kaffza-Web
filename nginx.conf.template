@@ -1,8 +1,3 @@
-# Kaffza — Nginx Reverse Proxy (Production)
-# Routes:
-# - /api/v1/*  -> API (NestJS)
-# - /*         -> Web (Next.js)
-
 map $http_upgrade $connection_upgrade {
   default upgrade;
   ''      close;
@@ -10,9 +5,8 @@ map $http_upgrade $connection_upgrade {
 
 server {
   listen 80;
-  server_name kaffza.me;
+  server_name ${DOMAIN};
 
-  # ACME challenge (Let's Encrypt)
   location /.well-known/acme-challenge/ {
     root /var/www/certbot;
   }
@@ -24,7 +18,7 @@ server {
 
 server {
   listen 443 ssl http2;
-  server_name kaffza.me;
+  server_name ${DOMAIN};
 
   ssl_certificate     /etc/nginx/ssl/fullchain.pem;
   ssl_certificate_key /etc/nginx/ssl/privkey.pem;
@@ -36,13 +30,11 @@ server {
   proxy_read_timeout 60s;
   proxy_send_timeout 60s;
 
-  # Security headers
   add_header X-Frame-Options "SAMEORIGIN" always;
   add_header X-Content-Type-Options "nosniff" always;
   add_header Referrer-Policy "strict-origin-when-cross-origin" always;
   add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
 
-  # Next.js static caching
   location /_next/static/ {
     proxy_pass http://web:3000;
     proxy_set_header Host $host;

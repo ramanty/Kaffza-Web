@@ -8,7 +8,7 @@ export const appConfig = registerAs('app', () => ({
   name: process.env.APP_NAME || 'Kaffza',
   url: process.env.APP_URL || 'http://localhost:3000',
   apiUrl: process.env.API_URL || 'http://localhost:4000',
-  port: parseInt(process.env.APP_PORT || '4000', 10),
+  port: parseInt(process.env.API_PORT || '4000', 10),
   env: process.env.NODE_ENV || 'development',
   currency: 'OMR',
   currencySymbol: 'ر.ع',
