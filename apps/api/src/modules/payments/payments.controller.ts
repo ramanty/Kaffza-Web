@@ -3,6 +3,7 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  Logger,
   Post,
   Req,
   Param,
@@ -21,6 +22,7 @@ import { CreateSessionDto } from './dto/create-session.dto';
 @Controller()
 export class PaymentsController {
   constructor(private readonly payments: PaymentsService) {}
+  private readonly logger = new Logger(PaymentsController.name);
 
   private isMobile(req: any) {
     const hdr = (req?.headers?.['x-client'] || req?.headers?.['x-platform'] || '')
@@ -94,6 +96,9 @@ export class PaymentsController {
         req.rawBody && Buffer.isBuffer(req.rawBody)
           ? req.rawBody
           : Buffer.from(JSON.stringify(req.body));
+      if (!req.rawBody || !Buffer.isBuffer(req.rawBody)) {
+        this.logger.warn('Thawani webhook rawBody missing; using JSON fallback for signature');
+      }
       const hmac = createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
       const valid =
         hmac.length === String(signature).length &&
