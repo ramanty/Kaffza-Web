@@ -335,4 +335,6 @@ function formatOMR(v: number) {
   return `${n.toFixed(3)} ر.ع`;
 }
 
-export default function StoreCheckout() { return <Suspense><StoreCheckoutInner /></Suspense>; }
+export default function StoreCheckout({ params }: { params: { subdomain: string } }) {
+  return <Suspense><StoreCheckoutInner params={params} /></Suspense>;
+}

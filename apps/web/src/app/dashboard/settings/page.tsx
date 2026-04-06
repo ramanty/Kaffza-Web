@@ -20,6 +20,8 @@ type Store = {
   bannerUrl?: string;
 };
 
+const THAWANI_KEYS_KEY = 'kaffza_thawani_keys';
+
 export default function SettingsPage() {
   const { storeId, loading: storesLoading } = useStore();
 
@@ -38,6 +40,13 @@ export default function SettingsPage() {
     logoUrl: '',
     bannerUrl: '',
   });
+
+  const [paymentForm, setPaymentForm] = useState({
+    thawaniSecretKey: '',
+    thawaniPublishableKey: '',
+  });
+  const [paymentSaving, setPaymentSaving] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState<string | null>(null);
 
   async function load() {
     if (!storeId) return;
@@ -82,6 +91,19 @@ export default function SettingsPage() {
       return;
     }
     load();
+    // Load saved Thawani keys from localStorage
+    try {
+      const saved = localStorage.getItem(`${THAWANI_KEYS_KEY}:${storeId}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setPaymentForm({
+          thawaniSecretKey: parsed.thawaniSecretKey || '',
+          thawaniPublishableKey: parsed.thawaniPublishableKey || '',
+        });
+      }
+    } catch {
+      // ignore parse errors
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeId]);
 
@@ -110,6 +132,24 @@ export default function SettingsPage() {
       setError(e?.response?.data?.message || e?.message || 'فشل حفظ الإعدادات');
     } finally {
       setSaving(false);
+    }
+  }
+
+  function savePaymentSettings() {
+    if (!storeId) return;
+    setPaymentSaving(true);
+    setPaymentSuccess(null);
+    try {
+      localStorage.setItem(
+        `${THAWANI_KEYS_KEY}:${storeId}`,
+        JSON.stringify({
+          thawaniSecretKey: paymentForm.thawaniSecretKey.trim(),
+          thawaniPublishableKey: paymentForm.thawaniPublishableKey.trim(),
+        }),
+      );
+      setPaymentSuccess('تم حفظ مفاتيح الدفع بنجاح');
+    } finally {
+      setPaymentSaving(false);
     }
   }
 
@@ -207,6 +247,46 @@ export default function SettingsPage() {
             <p className="mt-1 text-xs text-kaffza-text/70">عند إضافة endpoint رفع (MinIO/S3) سنربطه مباشرة هنا.</p>
             <input disabled type="file" className="mt-3 w-full text-sm" />
           </div>
+        </div>
+      </Card>
+
+      {/* Payment Integration */}
+      <Card className="p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="text-sm font-extrabold text-kaffza-primary">إعدادات بوابة الدفع (ثواني)</div>
+            <div className="mt-1 text-xs text-kaffza-text/70">
+              أدخل مفاتيح API الخاصة بحسابك في Thawani لاستقبال المدفوعات مباشرةً.
+            </div>
+          </div>
+          <Button onClick={savePaymentSettings} disabled={!storeId || paymentSaving}>
+            {paymentSaving ? 'جارٍ الحفظ...' : 'حفظ الإعدادات'}
+          </Button>
+        </div>
+
+        {paymentSuccess ? <Alert kind="success" text={paymentSuccess} /> : null}
+
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <Field label="Secret Key (المفتاح السري)">
+            <Input
+              type="password"
+              value={paymentForm.thawaniSecretKey}
+              onChange={(e: any) => setPaymentForm((s) => ({ ...s, thawaniSecretKey: e.target.value }))}
+              placeholder="sk_..."
+            />
+          </Field>
+
+          <Field label="Publishable Key (المفتاح العلني)">
+            <Input
+              value={paymentForm.thawaniPublishableKey}
+              onChange={(e: any) => setPaymentForm((s) => ({ ...s, thawaniPublishableKey: e.target.value }))}
+              placeholder="pk_..."
+            />
+          </Field>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
+          🔒 يتم حفظ المفاتيح محلياً في المتصفح مؤقتاً. سيتم ربطها بالخادم في التحديث القادم لاكتمال بنية SaaS متعددة المستأجرين.
         </div>
       </Card>
     </div>
