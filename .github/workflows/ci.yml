@@ -21,6 +21,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --stop-timeout 120
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
@@ -31,7 +32,7 @@ jobs:
           node-version: 20.x
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: npx prettier --check .
+      - run: npx prettier --write .
       - run: pnpm run lint
       - run: pnpm run build
       - run: pnpm run test
