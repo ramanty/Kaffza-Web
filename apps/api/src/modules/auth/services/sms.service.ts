@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 
 @Injectable()
 export class SmsService {
@@ -15,11 +20,14 @@ export class SmsService {
       const apiKey = process.env.SMS_API_KEY;
       const sender = process.env.SMS_SENDER_ID;
       if (!apiKey || !sender) {
-        throw new Error('SMS_PROVIDER configured but SMS_API_KEY/SMS_SENDER_ID missing');
+        this.logger.error(`SMS misconfiguration for provider: ${provider}`);
+        throw new ServiceUnavailableException('خدمة الرسائل غير متاحة حالياً');
       }
-      throw new Error(`SMS provider "${provider}" integration not implemented yet`);
+      this.logger.error(`SMS provider not implemented: ${provider}`);
+      throw new ServiceUnavailableException('خدمة الرسائل غير متاحة حالياً');
     }
 
-    throw new Error('SMS_PROVIDER not configured');
+    this.logger.error('SMS_PROVIDER not configured');
+    throw new InternalServerErrorException('تعذر إرسال رمز التحقق');
   }
 }

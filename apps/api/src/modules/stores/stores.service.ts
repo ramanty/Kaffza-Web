@@ -155,6 +155,9 @@ export class StoresService {
     const features = (plan?.features || {}) as any;
     if (features?.maxStores === null) return;
     const maxStores = features?.maxStores === undefined ? 1 : Number(features.maxStores);
+    if (!Number.isFinite(maxStores) || maxStores < 0) {
+      throw new BadRequestException('إعدادات الخطة غير صحيحة');
+    }
 
     if (count >= maxStores) {
       throw new BadRequestException(`خطتك الحالية تسمح بـ ${maxStores} متجر فقط. يرجى الترقية`);

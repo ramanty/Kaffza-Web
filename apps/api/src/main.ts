@@ -16,7 +16,7 @@ import { AppModule } from './app.module';
 };
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
 
   // Security
   app.use(helmet());
@@ -27,7 +27,11 @@ async function bootstrap() {
   const allowedOrigins = [
     process.env.APP_URL,
     process.env.NEXT_PUBLIC_APP_URL,
-    process.env.CORS_ORIGIN,
+    ...(process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean)
+      : []),
     'http://localhost:3000',
     'http://localhost:3001',
   ].filter(Boolean) as string[];

@@ -43,8 +43,11 @@ export class UploadsService {
       })
     );
 
-    const endpoint = (process.env.S3_ENDPOINT || '').replace(/\/$/, '');
-    const url = endpoint ? `${endpoint}/${this.bucket}/${key}` : `/${this.bucket}/${key}`;
+    const publicBase = (process.env.S3_PUBLIC_URL || process.env.S3_ENDPOINT || '').replace(
+      /\/$/,
+      ''
+    );
+    const url = publicBase ? `${publicBase}/${this.bucket}/${key}` : `/${this.bucket}/${key}`;
 
     return { url };
   }

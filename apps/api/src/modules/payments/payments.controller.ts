@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { SkipThrottle, Throttle } from '@nestjs/throttler';
+import { Throttle } from '@nestjs/throttler';
 import { createHmac, timingSafeEqual } from 'crypto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -81,7 +81,6 @@ export class PaymentsController {
 
   // Webhook endpoint (no auth)
   @Post('payments/webhook/thawani')
-  @SkipThrottle()
   @Throttle({ default: { limit: 100, ttl: 60000 } })
   async thawaniWebhook(@Req() req: any) {
     const signature = req.headers['thawani-signature'] || req.headers['x-thawani-signature'];
@@ -91,9 +90,11 @@ export class PaymentsController {
       if (!signature) {
         throw new ForbiddenException('Invalid webhook signature');
       }
-      const hmac = createHmac('sha256', webhookSecret)
-        .update(JSON.stringify(req.body))
-        .digest('hex');
+      const rawBody =
+        req.rawBody && Buffer.isBuffer(req.rawBody)
+          ? req.rawBody
+          : Buffer.from(JSON.stringify(req.body));
+      const hmac = createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
       const valid =
         hmac.length === String(signature).length &&
         timingSafeEqual(Buffer.from(hmac), Buffer.from(String(signature)));
