@@ -1,1 +1,33 @@
-{\n  "compilerOptions": {\n    "target": "es2022",\n    "module": "esnext",\n    "lib": ["es2022", "dom"],\n    "declaration": true,\n    "declarationMap": true,\n    "sourceMap": true,\n    "outDir": "dist",\n    "strict": true,\n    "noImplicitAny": true,\n    "strictNullChecks": true,\n    "strictFunctionTypes": true,\n    "strictBindCallApply": true,\n    "strictPropertyInitialization": true,\n    "noImplicitThis": true,\n    "alwaysStrict": true,\n    "noUnusedLocals": true,\n    "noUnusedParameters": true,\n    "noImplicitReturns": true,\n    "noFallthroughCasesInSwitch": true,\n    "moduleResolution": "node",\n    "baseUrl": ".",\n    "paths": {\n      "@kaffza/*": ["packages/*/src"]\n    },\n    "esModuleInterop": true,\n    "skipLibCheck": true,\n    "forceConsistentCasingInFileNames": true,\n    "resolveJsonModule": true\n  },\n  "exclude": ["node_modules", "dist"]\n}
+{
+  "compilerOptions": {
+	"target": "es2022",
+	"module": "esnext",
+	"lib": ["es2022", "dom"],
+	"declaration": true,
+	"declarationMap": true,
+	"sourceMap": true,
+	"outDir": "dist",
+	"strict": true,
+	"noImplicitAny": true,
+	"strictNullChecks": true,
+	"strictFunctionTypes": true,
+	"strictBindCallApply": true,
+	"strictPropertyInitialization": true,
+	"noImplicitThis": true,
+	"alwaysStrict": true,
+	"noUnusedLocals": true,
+	"noUnusedParameters": true,
+	"noImplicitReturns": true,
+	"noFallthroughCasesInSwitch": true,
+	"moduleResolution": "node",
+	"baseUrl": ".",
+	"paths": {
+	  "@kaffza/*": ["packages/*/src"]
+	},
+	"esModuleInterop": true,
+	"skipLibCheck": true,
+	"forceConsistentCasingInFileNames": true,
+	"resolveJsonModule": true
+  },
+  "exclude": ["node_modules", "dist"]
+}
