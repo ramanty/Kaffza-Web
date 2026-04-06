@@ -131,6 +131,12 @@ export class PaymentsService {
     return `${url}${sep}storeId=${storeId.toString()}&orderId=${orderId.toString()}${subdomain ? `&subdomain=${encodeURIComponent(subdomain)}` : ''}`;
   }
 
+  /**
+   * Escrow release policy by merchant trust level:
+   * - new_merchant: 14 days
+   * - standard: 7 days
+   * - trusted: 3 days
+   */
   private escrowHoldDaysByTrustLevel(trustLevel: string | null | undefined) {
     if (trustLevel === 'trusted') return 3;
     if (trustLevel === 'new_merchant') return 14;
