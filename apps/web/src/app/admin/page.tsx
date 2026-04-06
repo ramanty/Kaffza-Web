@@ -11,7 +11,7 @@ import { Card } from '../../components/Card';
 const MOCK_STATS = {
   merchantsCount: 24,
   totalCommission: 1847.5,
-  activeOrdersCount: 138,
+  pendingWithdrawalsCount: 8,
 };
 
 const MOCK_RECENT: RecentRow[] = [
@@ -166,7 +166,7 @@ export default function AdminOverview() {
       setStats({
         merchantsCount: s.merchantsCount ?? 0,
         totalCommission: s.totalCommission ?? s.platformEarnings ?? 0,
-        activeOrdersCount: s.activeOrdersCount ?? s.ordersCount ?? 0,
+        pendingWithdrawalsCount: s.pendingWithdrawalsCount ?? s.pendingWithdrawals ?? 0,
       });
 
       const rawOrders: any[] = ordersRes?.data?.data ?? [];
@@ -233,10 +233,10 @@ export default function AdminOverview() {
           accent="#10B981"
         />
         <KpiCard
-          title="الطلبات النشطة (جميع المتاجر)"
-          value={String(stats?.activeOrdersCount ?? 0)}
+          title="طلبات السحب المعلقة"
+          value={String(stats?.pendingWithdrawalsCount ?? 0)}
           loading={loading}
-          icon="🧾"
+          icon="🏦"
           accent="#F59E0B"
         />
       </div>
