@@ -18,12 +18,7 @@ async function main() {
       nameEn: 'Starter',
       priceMonthly: 5.0,
       commissionRate: 0.02,
-      features: [
-        'متجر إلكتروني كامل',
-        'حتى 100 منتج',
-        'دعم فني أساسي',
-        'تقارير أساسية',
-      ],
+      features: { maxStores: 1 },
       isActive: true,
     },
   });
@@ -36,14 +31,7 @@ async function main() {
       nameEn: 'Growth',
       priceMonthly: 8.0,
       commissionRate: 0.01,
-      features: [
-        'متجر إلكتروني كامل',
-        'حتى 1000 منتج',
-        'نطاق مخصص',
-        'دعم فني متقدم',
-        'تقارير متقدمة',
-        'كوبونات وخصومات',
-      ],
+      features: { maxStores: 3 },
       isActive: true,
     },
   });
@@ -56,16 +44,7 @@ async function main() {
       nameEn: 'Pro',
       priceMonthly: 35.0,
       commissionRate: 0.005,
-      features: [
-        'متجر إلكتروني كامل',
-        'منتجات غير محدودة',
-        'نطاق مخصص',
-        'دعم فني VIP',
-        'تقارير احترافية',
-        'كوبونات وخصومات',
-        'API مخصص',
-        'أولوية في الدعم',
-      ],
+      features: { maxStores: null },
       isActive: true,
     },
   });

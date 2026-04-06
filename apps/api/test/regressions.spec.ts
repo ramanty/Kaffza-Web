@@ -2,10 +2,13 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 describe('critical regressions', () => {
-  const repoRoot = join(__dirname, '..', '..');
+  const repoRoot = join(__dirname, '..', '..', '..');
 
   it('uses store-scoped checkout payment endpoint in web checkout', () => {
-    const content = readFileSync(join(repoRoot, 'apps/web/src/app/store/[subdomain]/checkout/page.tsx'), 'utf8');
+    const content = readFileSync(
+      join(repoRoot, 'apps/web/src/app/store/[subdomain]/checkout/page.tsx'),
+      'utf8'
+    );
     expect(content).toContain('/stores/${_storeId}/payments/create-session');
   });
 

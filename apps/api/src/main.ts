@@ -11,6 +11,10 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -20,11 +24,22 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // CORS — Allow web and mobile clients
+  const allowedOrigins = [
+    process.env.APP_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.CORS_ORIGIN,
+    'http://localhost:3000',
+    'http://localhost:3001',
+  ].filter(Boolean) as string[];
+
   app.enableCors({
-    origin: [
-      process.env.APP_URL || 'http://localhost:3000',
-      /\.kaffza\.om$/,
-    ],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin) || /\.kaffza\.(om|me)$/.test(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('CORS blocked'));
+      }
+    },
     credentials: true,
   });
 
@@ -37,7 +52,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-    }),
+    })
   );
 
   // Swagger API Documentation
@@ -64,7 +79,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.APP_PORT || 4000;
+  const port = process.env.API_PORT || 4000;
   await app.listen(port);
 
   console.log(`🚀 Kaffza API is running on: http://localhost:${port}`);

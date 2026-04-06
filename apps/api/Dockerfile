@@ -17,5 +17,5 @@ RUN npm install -g pnpm && pnpm install --frozen-lockfile
 COPY . .
 
 RUN pnpm --filter=@kaffza/api build
-EXPOSE 3001
+EXPOSE 4000
 CMD [ "pnpm", "--filter=@kaffza/api", "start" ]

@@ -7,7 +7,7 @@ set -euo pipefail
 # - Nginx container must be running
 #
 # Usage:
-#   DOMAIN=kaffza.om EMAIL=admin@kaffza.om bash ssl_one_shot.sh
+#   DOMAIN=kaffza.me EMAIL=admin@kaffza.me bash ssl_one_shot.sh
 #
 # Notes:
 # - Wildcards (*.domain) require DNS challenge; this script uses HTTP-01.
@@ -17,7 +17,7 @@ EMAIL=${EMAIL:-""}
 
 if [[ -z "$DOMAIN" || -z "$EMAIL" ]]; then
   echo "❌ Please provide DOMAIN and EMAIL"
-  echo "Example: DOMAIN=kaffza.om EMAIL=admin@kaffza.om bash ssl_one_shot.sh"
+  echo "Example: DOMAIN=kaffza.me EMAIL=admin@kaffza.me bash ssl_one_shot.sh"
   exit 1
 fi
 

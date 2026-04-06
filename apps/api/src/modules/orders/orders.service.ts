@@ -11,7 +11,6 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { CheckoutDto } from './dto/checkout.dto';
 
 const THAWANI_GATEWAY_FEE_RATE = 0.02;
-const BASE_KAFFZA_COMMISSION_RATE = 0.05;
 
 @Injectable()
 export class OrdersService {
@@ -40,16 +39,37 @@ export class OrdersService {
     const shippingCost = Number(cartData.data.shippingCost);
     const totalAmount = round3(subtotal + shippingCost);
 
-    // Revenue split: Thawani takes 2% (gateway fee), Kaffza takes 5% minus plan discount
-    const planDiscount = Number(store.plan?.commissionRate ?? 0);
+    // Revenue split: Thawani takes 2% (gateway fee), plan commission is direct
+    const commissionRate = Number(store.plan?.commissionRate ?? 0.02);
     const thawaniFee = round3(totalAmount * THAWANI_GATEWAY_FEE_RATE);
-    const kaffzaRate = Math.max(0, BASE_KAFFZA_COMMISSION_RATE - planDiscount);
-    const commissionAmount = round3(totalAmount * kaffzaRate);
+    const commissionAmount = round3(totalAmount * commissionRate);
     const merchantAmount = round3(totalAmount - thawaniFee - commissionAmount);
 
     const orderNumber = await this.generateOrderNumber();
 
     const created = await this.prisma.$transaction(async (tx) => {
+      const stockErrors: string[] = [];
+
+      for (const i of items) {
+        const productId = BigInt(i.productId);
+        const updated = await tx.product.updateMany({
+          where: { id: productId, storeId, stock: { gte: i.quantity } },
+          data: { stock: { decrement: i.quantity } },
+        });
+
+        if (updated.count === 0) {
+          const product = await tx.product.findFirst({
+            where: { id: productId, storeId },
+            select: { nameAr: true, nameEn: true },
+          });
+          stockErrors.push(product?.nameAr || product?.nameEn || 'منتج');
+        }
+      }
+
+      if (stockErrors.length > 0) {
+        throw new BadRequestException(`المنتج ${stockErrors[0]} غير متوفر بالكمية المطلوبة`);
+      }
+
       const order = await tx.order.create({
         data: {
           orderNumber,
@@ -250,16 +270,6 @@ export class OrdersService {
       throw new ForbiddenException('ليس لديك صلاحية');
 
     return { success: true, data: order };
-  }
-
-  async listMyOrders(user: any) {
-    if (!user?.sub) throw new ForbiddenException('غير مصرح');
-    const orders = await this.prisma.order.findMany({
-      where: { customerId: BigInt(user.sub) },
-      orderBy: { createdAt: 'desc' },
-      include: { payment: true, store: { select: { id: true, subdomain: true } } },
-    });
-    return { success: true, data: orders };
   }
 
   async listMyOrdersPaginated(user: any, page: number = 1, limit: number = 10) {
