@@ -12,6 +12,8 @@ interface MerchantRow {
   id: string;
   storeName: string;
   ownerName: string;
+  subdomain: string;
+  totalSales: number;
   createdAt: string;
   status: 'active' | 'suspended' | 'blocked' | string;
   thawaniSetup: boolean;
@@ -23,6 +25,8 @@ const MOCK_MERCHANTS: MerchantRow[] = [
     id: '1',
     storeName: 'متجر الأزياء الحديثة',
     ownerName: 'فاطمة الزهراء',
+    subdomain: 'fashion-store',
+    totalSales: 3420.75,
     createdAt: '2025-01-15',
     status: 'active',
     thawaniSetup: true,
@@ -31,6 +35,8 @@ const MOCK_MERCHANTS: MerchantRow[] = [
     id: '2',
     storeName: 'متجر العروض الذهبية',
     ownerName: 'علي الشكيلي',
+    subdomain: 'golden-deals',
+    totalSales: 1850.0,
     createdAt: '2025-02-03',
     status: 'active',
     thawaniSetup: true,
@@ -39,6 +45,8 @@ const MOCK_MERCHANTS: MerchantRow[] = [
     id: '3',
     storeName: 'متجر الإلكترونيات',
     ownerName: 'محمد الوهيبي',
+    subdomain: 'tech-shop',
+    totalSales: 540.5,
     createdAt: '2025-02-20',
     status: 'suspended',
     thawaniSetup: false,
@@ -47,6 +55,8 @@ const MOCK_MERCHANTS: MerchantRow[] = [
     id: '4',
     storeName: 'بوتيك النخبة',
     ownerName: 'خالد المكتومي',
+    subdomain: 'elite-boutique',
+    totalSales: 920.25,
     createdAt: '2025-03-05',
     status: 'active',
     thawaniSetup: false,
@@ -55,6 +65,8 @@ const MOCK_MERCHANTS: MerchantRow[] = [
     id: '5',
     storeName: 'متجر الرياضة',
     ownerName: 'سالم الحارثي',
+    subdomain: 'sports-world',
+    totalSales: 2110.0,
     createdAt: '2025-03-18',
     status: 'active',
     thawaniSetup: true,
@@ -79,6 +91,8 @@ function normaliseRow(raw: any): MerchantRow {
     id: String(raw.id ?? raw._id ?? ''),
     storeName: raw.storeName ?? raw.store?.name ?? raw.name ?? '—',
     ownerName: raw.ownerName ?? raw.owner?.name ?? raw.user?.name ?? '—',
+    subdomain: raw.subdomain ?? raw.store?.subdomain ?? '—',
+    totalSales: Number(raw.totalSales ?? raw.total_sales ?? raw.salesTotal ?? 0),
     createdAt: raw.createdAt ?? raw.created_at ?? '',
     status: raw.status ?? 'active',
     thawaniSetup: Boolean(raw.thawaniSetup ?? raw.hasThawani ?? raw.paymentConfigured),
@@ -208,6 +222,8 @@ export default function AdminMerchants() {
               <tr>
                 <th className="px-5 py-3 text-xs font-bold text-slate-500">اسم المتجر</th>
                 <th className="px-5 py-3 text-xs font-bold text-slate-500">المالك</th>
+                <th className="px-5 py-3 text-xs font-bold text-slate-500">الدومين (Subdomain)</th>
+                <th className="px-5 py-3 text-xs font-bold text-slate-500">إجمالي المبيعات</th>
                 <th className="px-5 py-3 text-xs font-bold text-slate-500">تاريخ الإنشاء</th>
                 <th className="px-5 py-3 text-xs font-bold text-slate-500">الحالة</th>
                 <th className="px-5 py-3 text-xs font-bold text-slate-500">إعداد ثواني</th>
@@ -218,7 +234,7 @@ export default function AdminMerchants() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-t border-slate-50">
-                    {Array.from({ length: 6 }).map((__, j) => (
+                    {Array.from({ length: 8 }).map((__, j) => (
                       <td key={j} className="px-5 py-3">
                         <div className="h-4 w-20 animate-pulse rounded bg-slate-100" />
                       </td>
@@ -227,7 +243,7 @@ export default function AdminMerchants() {
                 ))
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-sm text-slate-400">
+                  <td colSpan={8} className="px-5 py-8 text-center text-sm text-slate-400">
                     لا يوجد تجار مسجلون.
                   </td>
                 </tr>
@@ -241,6 +257,14 @@ export default function AdminMerchants() {
                     >
                       <td className="px-5 py-3 font-semibold text-slate-800">{row.storeName}</td>
                       <td className="px-5 py-3 text-slate-600">{row.ownerName}</td>
+                      <td className="px-5 py-3">
+                        <span className="font-mono text-xs text-indigo-600">
+                          {row.subdomain}.kaffza.me
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 font-semibold text-slate-800">
+                        {Number(row.totalSales).toFixed(3)} ر.ع
+                      </td>
                       <td className="px-5 py-3 text-slate-500">{formatDate(row.createdAt)}</td>
                       <td className="px-5 py-3">
                         <StatusBadge status={row.status} />

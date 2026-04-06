@@ -10,11 +10,11 @@ const ADMIN_SIDEBAR_BG = '#0F172A';
 const NAV = [
   { href: '/admin', label: 'نظرة عامة', icon: '📊' },
   { href: '/admin/merchants', label: 'التجار', icon: '🏪' },
+  { href: '/admin/payouts', label: 'طلبات السحب', icon: '🏦' },
   { href: '/admin/customers', label: 'العملاء', icon: '🧑‍🤝‍🧑' },
   { href: '/admin/orders', label: 'الطلبات', icon: '🧾' },
   { href: '/admin/disputes', label: 'النزاعات', icon: '⚖️' },
   { href: '/admin/payments', label: 'المدفوعات', icon: '💳' },
-  { href: '/admin/withdrawals', label: 'السحوبات', icon: '🏦' },
   { href: '/admin/settings', label: 'الإعدادات', icon: '⚙️' },
 ];
 
