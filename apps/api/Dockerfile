@@ -15,7 +15,7 @@ RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 # Copy all source files (node_modules already built above)
 COPY . .
-
+RUN pnpm --filter=@kaffza/api exec prisma generate
 RUN pnpm --filter=@kaffza/api build
 EXPOSE 4000
 CMD [ "pnpm", "--filter=@kaffza/api", "start" ]
