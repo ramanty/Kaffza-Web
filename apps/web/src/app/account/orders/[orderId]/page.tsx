@@ -49,7 +49,6 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
 
   useEffect(() => {
     load();
-     
   }, [orderId]);
 
   const status = String(order?.status || '').toLowerCase();
@@ -199,7 +198,6 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
                     <div className="flex gap-3">
                       <div className="bg-kaffza-bg h-14 w-14 overflow-hidden rounded-xl border border-black/10">
                         {it.product?.images?.[0] ? (
-                           
                           <img
                             src={it.product?.images?.[0]}
                             alt="img"

@@ -64,7 +64,6 @@ export default function WalletPage() {
       return;
     }
     load();
-     
   }, [storeId]);
 
   const available = useMemo(() => Number(wallet?.availableBalance ?? 0), [wallet]);

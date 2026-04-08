@@ -97,7 +97,7 @@ export class WalletsService {
     if (stores.length === 0) throw new NotFoundException('المتجر غير موجود');
     if (stores.length > 1) {
       throw new BadRequestException(
-        'يرجى استخدام مسار السحب المرتبط بالمتجر: /stores/:storeId/wallet/withdrawals'
+        'لديك أكثر من متجر. اختر المتجر ثم قدّم طلب السحب من صفحة المحفظة.'
       );
     }
 

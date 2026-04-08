@@ -314,9 +314,14 @@ export class PaymentsService {
 
   private defaultRedirectBase(apiUrl?: string) {
     if (!apiUrl) return 'https://checkout.thawani.om/pay/';
-    return apiUrl.includes('uat')
-      ? 'https://uatcheckout.thawani.om/pay/'
-      : 'https://checkout.thawani.om/pay/';
+    try {
+      const host = new URL(apiUrl).hostname.toLowerCase();
+      return host === 'uatcheckout.thawani.om'
+        ? 'https://uatcheckout.thawani.om/pay/'
+        : 'https://checkout.thawani.om/pay/';
+    } catch {
+      return 'https://checkout.thawani.om/pay/';
+    }
   }
 }
 
