@@ -88,14 +88,20 @@ export class WalletsService {
     if (user.role !== 'merchant' && user.role !== 'admin')
       throw new ForbiddenException('فقط التاجر');
 
-    const store = await this.prisma.store.findFirst({
+    const stores = await this.prisma.store.findMany({
       where: { ownerId: BigInt(user.sub) },
       orderBy: { createdAt: 'asc' },
       select: { id: true },
+      take: 2,
     });
-    if (!store) throw new NotFoundException('المتجر غير موجود');
+    if (stores.length === 0) throw new NotFoundException('المتجر غير موجود');
+    if (stores.length > 1) {
+      throw new BadRequestException(
+        'يرجى استخدام مسار السحب المرتبط بالمتجر: /stores/:storeId/wallet/withdrawals'
+      );
+    }
 
-    return this.requestWithdrawal(user, store.id, dto);
+    return this.requestWithdrawal(user, stores[0].id, dto);
   }
 
   async adminApproveWithdrawal(admin: any, withdrawalId: bigint, approve: boolean, notes?: string) {
