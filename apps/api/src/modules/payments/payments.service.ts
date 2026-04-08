@@ -51,7 +51,7 @@ export class PaymentsService {
     const redirectBase =
       this.config.get<string>('thawani.redirectBase') ||
       process.env.THAWANI_REDIRECT_BASE ||
-      this.defaultRedirectBase(apiUrl);
+      'https://checkout.thawani.om/pay';
     const publishableKey =
       this.config.get<string>('thawani.publishableKey') ||
       process.env.THAWANI_PUBLISHABLE_KEY ||
@@ -310,18 +310,6 @@ export class PaymentsService {
     }
 
     return { success: true, data: { orderId: orderId.toString(), paymentStatus, invoice } };
-  }
-
-  private defaultRedirectBase(apiUrl?: string) {
-    if (!apiUrl) return 'https://checkout.thawani.om/pay/';
-    try {
-      const host = new URL(apiUrl).hostname.toLowerCase();
-      return host === 'uatcheckout.thawani.om'
-        ? 'https://uatcheckout.thawani.om/pay/'
-        : 'https://checkout.thawani.om/pay/';
-    } catch {
-      return 'https://checkout.thawani.om/pay/';
-    }
   }
 }
 
