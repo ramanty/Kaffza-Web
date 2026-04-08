@@ -117,8 +117,8 @@ export class PaymentsService {
     }
 
     const sessionId = data.data.session_id || data.data.sessionId;
-    const normalizedRedirectBase = redirectBase.endsWith('/') ? redirectBase : `${redirectBase}/`;
-    const paymentUrl = `${normalizedRedirectBase}${sessionId}?key=${publishableKey}`;
+    const normalizedRedirectBase = redirectBase.replace(/\/+$/, '');
+    const paymentUrl = `${normalizedRedirectBase}/${sessionId}?key=${publishableKey}`;
 
     await this.prisma.payment.update({
       where: { orderId },
