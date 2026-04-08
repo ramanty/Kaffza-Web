@@ -37,8 +37,8 @@ export const thawaniConfig = registerAs('thawani', () => ({
     'https://uatcheckout.thawani.om/api/v1',
   redirectBase: process.env.THAWANI_REDIRECT_BASE || 'https://uatcheckout.thawani.om/pay/',
   apiUrl:
-    process.env.THAWANI_BASE_URL ||
     process.env.THAWANI_API_URL ||
+    process.env.THAWANI_BASE_URL ||
     'https://uatcheckout.thawani.om/api/v1',
   apiKey: process.env.THAWANI_API_KEY || 'test_secret_key',
   publishableKey:
