@@ -86,7 +86,7 @@ export default function WalletPage() {
       if (!payload.bankName || !payload.accountNumber || !payload.iban)
         throw new Error('يرجى تعبئة بيانات السحب كاملة');
 
-      await api.patch('/wallet/me/withdraw', payload, {
+      await api.post(`/stores/${storeId}/wallet/withdrawals`, payload, {
         headers: { ...authHeader(), 'x-client': 'web' },
       });
 
