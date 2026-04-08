@@ -32,7 +32,9 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
     setLoading(true);
     setMsg(null);
     try {
-      const res = await api.get(`/orders/${orderId}`, { headers: { ...authHeader(), 'x-client': 'web' } });
+      const res = await api.get(`/orders/${orderId}`, {
+        headers: { ...authHeader(), 'x-client': 'web' },
+      });
       setOrder(res?.data?.data);
     } catch (e: any) {
       if (e?.response?.status === 401) {
@@ -47,27 +49,29 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   const status = String(order?.status || '').toLowerCase();
   const canDispute = status === 'shipped' || status === 'delivered';
 
-const confirmReceipt = async () => {
-  if (!guard()) return;
-  setConfirming(true);
-  setMsg(null);
-  try {
-    await api.post(`/orders/${orderId}/confirm-receipt`, {}, { headers: { ...authHeader(), 'x-client': 'web' } });
-    setMsg('تم تأكيد الاستلام بنجاح');
-    await load();
-  } catch (e: any) {
-    setMsg(e?.response?.data?.message || 'فشل تأكيد الاستلام');
-  } finally {
-    setConfirming(false);
-  }
-};
-
+  const confirmReceipt = async () => {
+    if (!guard()) return;
+    setConfirming(true);
+    setMsg(null);
+    try {
+      await api.patch(
+        `/orders/${orderId}/confirm-receipt`,
+        {},
+        { headers: { ...authHeader(), 'x-client': 'web' } }
+      );
+      setMsg('تم تأكيد الاستلام بنجاح');
+      await load();
+    } catch (e: any) {
+      setMsg(e?.response?.data?.message || 'فشل تأكيد الاستلام');
+    } finally {
+      setConfirming(false);
+    }
+  };
 
   const timeline = useMemo(() => {
     const steps = [
@@ -76,7 +80,16 @@ const confirmReceipt = async () => {
       { key: 'shipped', label: 'شحن' },
       { key: 'delivered', label: 'تسليم' },
     ];
-    const idx = status === 'pending' ? 0 : status === 'confirmed' ? 1 : status === 'shipped' ? 2 : status === 'delivered' ? 3 : 0;
+    const idx =
+      status === 'pending'
+        ? 0
+        : status === 'confirmed'
+          ? 1
+          : status === 'shipped'
+            ? 2
+            : status === 'delivered'
+              ? 3
+              : 0;
     return { steps, activeIndex: idx };
   }, [status]);
 
@@ -98,7 +111,11 @@ const confirmReceipt = async () => {
       for (const it of items) {
         await api.post(
           `/stores/${storeId}/cart/items`,
-          { productId: String(it.productId), variantId: it.variantId ? String(it.variantId) : undefined, quantity: Number(it.quantity) },
+          {
+            productId: String(it.productId),
+            variantId: it.variantId ? String(it.variantId) : undefined,
+            quantity: Number(it.quantity),
+          },
           { headers: { ...authHeader(), 'x-client': 'web' } }
         );
       }
@@ -112,8 +129,8 @@ const confirmReceipt = async () => {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-kaffza-primary">تفاصيل الطلب</h1>
-          <p className="mt-1 text-sm text-kaffza-text/80">رقم الطلب ومحتوياته وحالة الشحن.</p>
+          <h1 className="text-kaffza-primary text-2xl font-extrabold">تفاصيل الطلب</h1>
+          <p className="text-kaffza-text/80 mt-1 text-sm">رقم الطلب ومحتوياته وحالة الشحن.</p>
         </div>
         <div className="flex gap-2">
           <Link href="/account/orders">
@@ -129,25 +146,31 @@ const confirmReceipt = async () => {
 
       {loading || !order ? (
         <Card className="p-6">
-          <div className="text-sm text-kaffza-text/70">{loading ? 'جاري التحميل...' : 'لا توجد بيانات'}</div>
+          <div className="text-kaffza-text/70 text-sm">
+            {loading ? 'جاري التحميل...' : 'لا توجد بيانات'}
+          </div>
         </Card>
       ) : (
         <>
           <Card className="p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-xs text-kaffza-text/70">رقم الطلب</div>
-                <div className="text-xl font-extrabold text-kaffza-primary">{order.orderNumber}</div>
-                <div className="mt-1 text-xs text-kaffza-text/70">{formatDate(order.createdAt)}</div>
+                <div className="text-kaffza-text/70 text-xs">رقم الطلب</div>
+                <div className="text-kaffza-primary text-xl font-extrabold">
+                  {order.orderNumber}
+                </div>
+                <div className="text-kaffza-text/70 mt-1 text-xs">
+                  {formatDate(order.createdAt)}
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <StatusBadge status={order.status} />
 
-{status === 'shipped' ? (
-  <Button variant="secondary" onClick={confirmReceipt} disabled={confirming}>
-    {confirming ? 'جارٍ التأكيد...' : 'تأكيد الاستلام'}
-  </Button>
-) : null}
+                {status === 'shipped' ? (
+                  <Button variant="secondary" onClick={confirmReceipt} disabled={confirming}>
+                    {confirming ? 'جارٍ التأكيد...' : 'تأكيد الاستلام'}
+                  </Button>
+                ) : null}
 
                 {canDispute ? (
                   <Link href={`/account/orders/${orderId}/dispute`}>
@@ -165,26 +188,40 @@ const confirmReceipt = async () => {
 
           <div className="grid gap-5 lg:grid-cols-3">
             <Card className="p-6 lg:col-span-2">
-              <div className="text-sm font-extrabold text-kaffza-primary">المنتجات</div>
+              <div className="text-kaffza-primary text-sm font-extrabold">المنتجات</div>
               <div className="mt-4 space-y-3">
                 {(order.items || []).map((it: any) => (
-                  <div key={String(it.id)} className="flex items-start justify-between gap-3 rounded-xl border border-black/5 p-4">
+                  <div
+                    key={String(it.id)}
+                    className="flex items-start justify-between gap-3 rounded-xl border border-black/5 p-4"
+                  >
                     <div className="flex gap-3">
-                      <div className="h-14 w-14 overflow-hidden rounded-xl border border-black/10 bg-kaffza-bg">
+                      <div className="bg-kaffza-bg h-14 w-14 overflow-hidden rounded-xl border border-black/10">
                         {it.product?.images?.[0] ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={it.product?.images?.[0]} alt="img" className="h-full w-full object-cover" />
+                          <img
+                            src={it.product?.images?.[0]}
+                            alt="img"
+                            className="h-full w-full object-cover"
+                          />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-kaffza-text/60">No Image</div>
+                          <div className="text-kaffza-text/60 flex h-full w-full items-center justify-center text-[10px] font-bold">
+                            No Image
+                          </div>
                         )}
                       </div>
                       <div>
-                        <div className="text-sm font-bold text-kaffza-text">{it.productName}</div>
-                        <div className="mt-1 text-xs text-kaffza-text/70">الكمية: {it.quantity}</div>
-                        <div className="mt-1 text-xs text-kaffza-text/70">سعر الوحدة: {formatOMR(Number(it.unitPrice))}</div>
+                        <div className="text-kaffza-text text-sm font-bold">{it.productName}</div>
+                        <div className="text-kaffza-text/70 mt-1 text-xs">
+                          الكمية: {it.quantity}
+                        </div>
+                        <div className="text-kaffza-text/70 mt-1 text-xs">
+                          سعر الوحدة: {formatOMR(Number(it.unitPrice))}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-sm font-extrabold text-kaffza-primary">{formatOMR(Number(it.totalPrice))}</div>
+                    <div className="text-kaffza-primary text-sm font-extrabold">
+                      {formatOMR(Number(it.totalPrice))}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -192,17 +229,21 @@ const confirmReceipt = async () => {
 
             <div className="space-y-5 lg:col-span-1">
               <Card className="p-6">
-                <div className="text-sm font-extrabold text-kaffza-primary">عنوان الشحن</div>
-                <div className="mt-3 rounded-xl bg-kaffza-bg p-4 text-sm text-kaffza-text">
+                <div className="text-kaffza-primary text-sm font-extrabold">عنوان الشحن</div>
+                <div className="bg-kaffza-bg text-kaffza-text mt-3 rounded-xl p-4 text-sm">
                   <div className="font-bold">{order.shippingAddress?.fullName}</div>
-                  <div className="mt-1 text-xs text-kaffza-text/70">{order.shippingAddress?.phone}</div>
-                  <div className="mt-2">{order.shippingAddress?.state} - {order.shippingAddress?.city}</div>
+                  <div className="text-kaffza-text/70 mt-1 text-xs">
+                    {order.shippingAddress?.phone}
+                  </div>
+                  <div className="mt-2">
+                    {order.shippingAddress?.state} - {order.shippingAddress?.city}
+                  </div>
                   <div className="mt-1">{order.shippingAddress?.addressLine1}</div>
                 </div>
               </Card>
 
               <Card className="p-6">
-                <div className="text-sm font-extrabold text-kaffza-primary">الملخص المالي</div>
+                <div className="text-kaffza-primary text-sm font-extrabold">الملخص المالي</div>
                 <div className="mt-4 space-y-2 text-sm">
                   <Row label="Subtotal" value={formatOMR(totals.subtotal)} />
                   <Row label="Shipping" value={formatOMR(totals.shipping)} />
@@ -220,7 +261,10 @@ const confirmReceipt = async () => {
 }
 
 function Alert({ kind, text }: { kind: 'error' | 'success'; text: string }) {
-  const cls = kind === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700';
+  const cls =
+    kind === 'error'
+      ? 'border-red-200 bg-red-50 text-red-700'
+      : 'border-green-200 bg-green-50 text-green-700';
   return <div className={`rounded-xl border p-4 text-sm ${cls}`}>{text}</div>;
 }
 
@@ -229,25 +273,35 @@ function StatusBadge({ status }: { status: string }) {
   const base = 'inline-flex rounded-full px-3 py-1 text-xs font-extrabold';
   if (s === 'pending') return <span className={`${base} bg-yellow-50 text-yellow-700`}>معلق</span>;
   if (s === 'confirmed') return <span className={`${base} bg-blue-50 text-blue-700`}>مؤكد</span>;
-  if (s === 'shipped') return <span className={`${base} bg-orange-50 text-orange-700`}>تم الشحن</span>;
-  if (s === 'delivered') return <span className={`${base} bg-green-50 text-green-700`}>تم التسليم</span>;
+  if (s === 'shipped')
+    return <span className={`${base} bg-orange-50 text-orange-700`}>تم الشحن</span>;
+  if (s === 'delivered')
+    return <span className={`${base} bg-green-50 text-green-700`}>تم التسليم</span>;
   if (s === 'cancelled') return <span className={`${base} bg-red-50 text-red-700`}>ملغي</span>;
   return <span className={`${base} bg-gray-100 text-gray-700`}>{status}</span>;
 }
 
-function Timeline({ steps, activeIndex }: { steps: { key: string; label: string }[]; activeIndex: number }) {
+function Timeline({
+  steps,
+  activeIndex,
+}: {
+  steps: { key: string; label: string }[];
+  activeIndex: number;
+}) {
   return (
     <div className="grid gap-3 sm:grid-cols-4">
       {steps.map((s, i) => {
         const active = i <= activeIndex;
         return (
           <div key={s.key} className="flex items-center gap-2">
-            <div className={
-              'h-3 w-3 rounded-full ' + (active ? 'bg-kaffza-primary' : 'bg-black/10')
-            } />
-            <div className={
-              'text-xs font-bold ' + (active ? 'text-kaffza-primary' : 'text-kaffza-text/60')
-            }>
+            <div
+              className={'h-3 w-3 rounded-full ' + (active ? 'bg-kaffza-primary' : 'bg-black/10')}
+            />
+            <div
+              className={
+                'text-xs font-bold ' + (active ? 'text-kaffza-primary' : 'text-kaffza-text/60')
+              }
+            >
               {s.label}
             </div>
           </div>
@@ -261,7 +315,11 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
   return (
     <div className="flex items-center justify-between">
       <span className="text-kaffza-text/70">{label}</span>
-      <span className={strong ? 'font-extrabold text-kaffza-primary' : 'font-bold text-kaffza-text'}>{value}</span>
+      <span
+        className={strong ? 'text-kaffza-primary font-extrabold' : 'text-kaffza-text font-bold'}
+      >
+        {value}
+      </span>
     </div>
   );
 }

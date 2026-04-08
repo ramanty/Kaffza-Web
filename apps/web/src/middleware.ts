@@ -45,7 +45,13 @@ async function verifyHs256(token: string, secret: string): Promise<boolean> {
     const [h, p, s] = parts;
     const enc = new TextEncoder();
 
-    const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+    const key = await crypto.subtle.importKey(
+      'raw',
+      enc.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
     const data = enc.encode(`${h}.${p}`);
     const sig = base64UrlToUint8Array(s);
 
@@ -137,7 +143,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (isDash) {
-    if (role && role !== 'merchant' && role !== 'admin') return redirect(req, '/merchant/login', pathname);
+    if (role && role !== 'merchant' && role !== 'admin') return redirect(req, '/account/orders');
 
     if (role === 'merchant') {
       const ok = await hasStores(token);
@@ -146,7 +152,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (isOnboarding) {
-    if (role && role !== 'merchant' && role !== 'admin') return redirect(req, '/merchant/login', pathname);
+    if (role && role !== 'merchant' && role !== 'admin') return redirect(req, '/account/orders');
     if (role === 'merchant') {
       const ok = await hasStores(token);
       if (ok) return redirect(req, '/dashboard');

@@ -8,7 +8,14 @@ import { Input } from '../../../components/Input';
 import { Card } from '../../../components/Card';
 import { useStore } from '../store-context';
 
-type Tx = { id: string; amount: number; type: string; description: string; balanceAfter: number; createdAt: string };
+type Tx = {
+  id: string;
+  amount: number;
+  type: string;
+  description: string;
+  balanceAfter: number;
+  createdAt: string;
+};
 
 type Wallet = {
   availableBalance: number;
@@ -26,7 +33,12 @@ export default function WalletPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const [wallet, setWallet] = useState<Wallet | null>(null);
-  const [withdraw, setWithdraw] = useState({ amount: '', bankName: '', accountNumber: '', iban: '' });
+  const [withdraw, setWithdraw] = useState({
+    amount: '',
+    bankName: '',
+    accountNumber: '',
+    iban: '',
+  });
   const [submitting, setSubmitting] = useState(false);
 
   async function load() {
@@ -35,7 +47,9 @@ export default function WalletPage() {
     setError(null);
     setSuccess(null);
     try {
-      const res = await api.get(`/stores/${storeId}/wallet`, { headers: { ...authHeader(), 'x-client': 'web' } });
+      const res = await api.get(`/stores/${storeId}/wallet`, {
+        headers: { ...authHeader(), 'x-client': 'web' },
+      });
       setWallet(res?.data?.data || null);
     } catch (e: any) {
       setError(e?.response?.data?.message || e?.message || 'حدث خطأ أثناء تحميل المحفظة');
@@ -50,7 +64,6 @@ export default function WalletPage() {
       return;
     }
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeId]);
 
   const available = useMemo(() => Number(wallet?.availableBalance ?? 0), [wallet]);
@@ -68,10 +81,14 @@ export default function WalletPage() {
         accountNumber: withdraw.accountNumber.trim(),
         iban: withdraw.iban.trim(),
       };
-      if (!Number.isFinite(payload.amount) || payload.amount < 10) throw new Error('الحد الأدنى للسحب هو 10 ر.ع');
-      if (!payload.bankName || !payload.accountNumber || !payload.iban) throw new Error('يرجى تعبئة بيانات السحب كاملة');
+      if (!Number.isFinite(payload.amount) || payload.amount < 10)
+        throw new Error('الحد الأدنى للسحب هو 10 ر.ع');
+      if (!payload.bankName || !payload.accountNumber || !payload.iban)
+        throw new Error('يرجى تعبئة بيانات السحب كاملة');
 
-      await api.post(`/stores/${storeId}/wallet/withdrawals`, payload, { headers: { ...authHeader(), 'x-client': 'web' } });
+      await api.post(`/stores/${storeId}/wallet/withdrawals`, payload, {
+        headers: { ...authHeader(), 'x-client': 'web' },
+      });
 
       setWithdraw({ amount: '', bankName: '', accountNumber: '', iban: '' });
       setSuccess('تم تقديم طلب السحب بنجاح');
@@ -95,9 +112,11 @@ export default function WalletPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-extrabold text-kaffza-primary">المحفظة</h1>
-        <p className="mt-1 text-sm text-kaffza-text/80">الرصيد، الأرباح، السحب، وسجل المعاملات.</p>
-        {!storeId && !storesLoading ? <p className="mt-1 text-xs text-red-700">لا يوجد متجر محدد.</p> : null}
+        <h1 className="text-kaffza-primary text-2xl font-extrabold">المحفظة</h1>
+        <p className="text-kaffza-text/80 mt-1 text-sm">الرصيد، الأرباح، السحب، وسجل المعاملات.</p>
+        {!storeId && !storesLoading ? (
+          <p className="mt-1 text-xs text-red-700">لا يوجد متجر محدد.</p>
+        ) : null}
       </header>
 
       {error ? <Alert kind="error" text={error} /> : null}
@@ -110,21 +129,37 @@ export default function WalletPage() {
 
       <section className="grid gap-4 lg:grid-cols-3">
         <Card className="p-6 lg:col-span-1">
-          <div className="text-sm font-extrabold text-kaffza-primary">سحب رصيد</div>
-          <p className="mt-1 text-xs text-kaffza-text/70">الحد الأدنى للسحب 10 ر.ع.</p>
+          <div className="text-kaffza-primary text-sm font-extrabold">سحب رصيد</div>
+          <p className="text-kaffza-text/70 mt-1 text-xs">الحد الأدنى للسحب 10 ر.ع.</p>
 
           <div className="mt-4 grid gap-3">
             <Field label="المبلغ (OMR)">
-              <Input value={withdraw.amount} onChange={(e: any) => setWithdraw((s) => ({ ...s, amount: e.target.value }))} placeholder="10.000" />
+              <Input
+                value={withdraw.amount}
+                onChange={(e: any) => setWithdraw((s) => ({ ...s, amount: e.target.value }))}
+                placeholder="10.000"
+              />
             </Field>
             <Field label="اسم البنك">
-              <Input value={withdraw.bankName} onChange={(e: any) => setWithdraw((s) => ({ ...s, bankName: e.target.value }))} placeholder="Bank Muscat" />
+              <Input
+                value={withdraw.bankName}
+                onChange={(e: any) => setWithdraw((s) => ({ ...s, bankName: e.target.value }))}
+                placeholder="Bank Muscat"
+              />
             </Field>
             <Field label="رقم الحساب">
-              <Input value={withdraw.accountNumber} onChange={(e: any) => setWithdraw((s) => ({ ...s, accountNumber: e.target.value }))} placeholder="123456789" />
+              <Input
+                value={withdraw.accountNumber}
+                onChange={(e: any) => setWithdraw((s) => ({ ...s, accountNumber: e.target.value }))}
+                placeholder="123456789"
+              />
             </Field>
             <Field label="IBAN">
-              <Input value={withdraw.iban} onChange={(e: any) => setWithdraw((s) => ({ ...s, iban: e.target.value }))} placeholder="OM00XXXX..." />
+              <Input
+                value={withdraw.iban}
+                onChange={(e: any) => setWithdraw((s) => ({ ...s, iban: e.target.value }))}
+                placeholder="OM00XXXX..."
+              />
             </Field>
 
             <Button onClick={submitWithdraw} disabled={submitting}>
@@ -133,11 +168,13 @@ export default function WalletPage() {
           </div>
         </Card>
 
-        <Card className="p-0 lg:col-span-2 overflow-hidden">
+        <Card className="overflow-hidden p-0 lg:col-span-2">
           <div className="flex items-center justify-between border-b border-slate-100 p-5">
             <div>
-              <div className="text-sm font-extrabold text-kaffza-primary">سجل المعاملات</div>
-              <div className="mt-1 text-xs text-kaffza-text/70">آخر 50 معاملة (إن كانت متوفرة من الـ API).</div>
+              <div className="text-kaffza-primary text-sm font-extrabold">سجل المعاملات</div>
+              <div className="text-kaffza-text/70 mt-1 text-xs">
+                آخر 50 معاملة (إن كانت متوفرة من الـ API).
+              </div>
             </div>
             <Button variant="secondary" onClick={load}>
               تحديث
@@ -148,36 +185,38 @@ export default function WalletPage() {
             <table className="min-w-full text-sm">
               <thead className="bg-kaffza-bg">
                 <tr className="text-right">
-                  <th className="px-4 py-3 font-bold text-kaffza-text">التاريخ</th>
-                  <th className="px-4 py-3 font-bold text-kaffza-text">النوع</th>
-                  <th className="px-4 py-3 font-bold text-kaffza-text">المبلغ</th>
-                  <th className="px-4 py-3 font-bold text-kaffza-text">الوصف</th>
+                  <th className="text-kaffza-text px-4 py-3 font-bold">التاريخ</th>
+                  <th className="text-kaffza-text px-4 py-3 font-bold">النوع</th>
+                  <th className="text-kaffza-text px-4 py-3 font-bold">المبلغ</th>
+                  <th className="text-kaffza-text px-4 py-3 font-bold">الوصف</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={4} className="px-4 py-6 text-center text-kaffza-text/70">
+                    <td colSpan={4} className="text-kaffza-text/70 px-4 py-6 text-center">
                       جاري التحميل...
                     </td>
                   </tr>
                 ) : txs.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-4 py-6 text-center text-kaffza-text/70">
+                    <td colSpan={4} className="text-kaffza-text/70 px-4 py-6 text-center">
                       لا توجد معاملات لعرضها.
                     </td>
                   </tr>
                 ) : (
                   txs.map((t) => (
                     <tr key={t.id} className="border-t border-black/5">
-                      <td className="px-4 py-3 text-xs text-kaffza-text/70">{formatDate(t.createdAt)}</td>
+                      <td className="text-kaffza-text/70 px-4 py-3 text-xs">
+                        {formatDate(t.createdAt)}
+                      </td>
                       <td className="px-4 py-3">
                         <span className={pillClass(t.type)}>{mapTxType(t.type)}</span>
                       </td>
                       <td className="px-4 py-3">
                         <span className={amountClass(t.amount)}>{formatOMR(t.amount)}</span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-kaffza-text">{t.description}</td>
+                      <td className="text-kaffza-text px-4 py-3 text-sm">{t.description}</td>
                     </tr>
                   ))
                 )}
@@ -193,7 +232,7 @@ export default function WalletPage() {
 function Field({ label, children }: { label: string; children: any }) {
   return (
     <label className="grid gap-1">
-      <span className="text-sm font-bold text-kaffza-text">{label}</span>
+      <span className="text-kaffza-text text-sm font-bold">{label}</span>
       {children}
     </label>
   );
@@ -202,16 +241,23 @@ function Field({ label, children }: { label: string; children: any }) {
 function StatCard({ title, value, loading }: { title: string; value: string; loading: boolean }) {
   return (
     <div className="rounded-xl border border-black/5 bg-white p-5 shadow-sm">
-      <div className="text-sm text-kaffza-text/70">{title}</div>
-      <div className="mt-2 text-2xl font-extrabold text-kaffza-primary">
-        {loading ? <span className="inline-block h-7 w-28 animate-pulse rounded bg-black/10" /> : value}
+      <div className="text-kaffza-text/70 text-sm">{title}</div>
+      <div className="text-kaffza-primary mt-2 text-2xl font-extrabold">
+        {loading ? (
+          <span className="inline-block h-7 w-28 animate-pulse rounded bg-black/10" />
+        ) : (
+          value
+        )}
       </div>
     </div>
   );
 }
 
 function Alert({ kind, text }: { kind: 'error' | 'success'; text: string }) {
-  const cls = kind === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700';
+  const cls =
+    kind === 'error'
+      ? 'border-red-200 bg-red-50 text-red-700'
+      : 'border-green-200 bg-green-50 text-green-700';
   return <div className={`rounded-xl border p-4 text-sm ${cls}`}>{text}</div>;
 }
 
@@ -223,7 +269,13 @@ function formatOMR(v: number) {
 function formatDate(iso: string) {
   try {
     const d = new Date(iso);
-    return d.toLocaleString('ar', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleString('ar', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   } catch {
     return iso;
   }

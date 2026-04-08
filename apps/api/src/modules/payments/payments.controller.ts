@@ -85,6 +85,16 @@ export class PaymentsController {
   @Post('payments/webhook/thawani')
   @Throttle({ default: { limit: 100, ttl: 60000 } })
   async thawaniWebhook(@Req() req: any) {
+    return this.handleWebhookRequest(req);
+  }
+
+  @Post('thawani/webhook')
+  @Throttle({ default: { limit: 100, ttl: 60000 } })
+  async thawaniWebhookCompat(@Req() req: any) {
+    return this.handleWebhookRequest(req);
+  }
+
+  private async handleWebhookRequest(req: any) {
     const signature = req.headers['thawani-signature'] || req.headers['x-thawani-signature'];
     const webhookSecret = process.env.THAWANI_WEBHOOK_SECRET;
 

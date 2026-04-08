@@ -179,6 +179,7 @@ export class OrdersService {
     if (user.role !== 'admin' && order.customerId !== BigInt(user.sub))
       throw new ForbiddenException('ليس لديك صلاحية');
 
+    if (order.status !== 'shipped') throw new BadRequestException('يمكن التأكيد فقط بعد الشحن');
     if (!order.payment) throw new BadRequestException('لا يوجد سجل دفع');
     if (order.payment.status !== 'paid') throw new BadRequestException('لا يمكن التأكيد قبل الدفع');
     if (order.payment.escrowStatus !== 'held')
