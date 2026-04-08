@@ -1,15 +1,26 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class WalletsService {
-  constructor(private readonly prisma: PrismaService, private readonly notifications: NotificationsService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService
+  ) {}
 
   async getWallet(user: any, storeId: bigint) {
     await this.assertStoreOwner(user, storeId);
-    const wallet = await this.prisma.wallet.findUnique({ where: { storeId }, include: { transactions: { orderBy: { createdAt: 'desc' }, take: 50 } } });
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { storeId },
+      include: { transactions: { orderBy: { createdAt: 'desc' }, take: 50 } },
+    });
     if (!wallet) throw new NotFoundException('المحفظة غير موجودة');
     return { success: true, data: wallet };
   }
@@ -22,7 +33,8 @@ export class WalletsService {
 
     const amount = Number(dto.amount);
     if (amount < 10) throw new BadRequestException('الحد الأدنى للسحب هو 10 ر.ع');
-    if (Number(wallet.availableBalance) < amount) throw new BadRequestException('الرصيد المتاح غير كافي');
+    if (Number(wallet.availableBalance) < amount)
+      throw new BadRequestException('الرصيد المتاح غير كافي');
 
     const created = await this.prisma.$transaction(async (tx) => {
       const w = await tx.wallet.update({
@@ -71,10 +83,28 @@ export class WalletsService {
     return { success: true, message: 'تم تقديم طلب السحب', data: created };
   }
 
+  async requestMyWithdrawal(user: any, dto: any) {
+    if (!user?.sub) throw new ForbiddenException('غير مصرح');
+    if (user.role !== 'merchant' && user.role !== 'admin')
+      throw new ForbiddenException('فقط التاجر');
+
+    const store = await this.prisma.store.findFirst({
+      where: { ownerId: BigInt(user.sub) },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true },
+    });
+    if (!store) throw new NotFoundException('المتجر غير موجود');
+
+    return this.requestWithdrawal(user, store.id, dto);
+  }
+
   async adminApproveWithdrawal(admin: any, withdrawalId: bigint, approve: boolean, notes?: string) {
     if (admin.role !== 'admin') throw new ForbiddenException('Admin فقط');
 
-    const wd = await this.prisma.withdrawal.findUnique({ where: { id: withdrawalId }, include: { wallet: { include: { store: true } } } });
+    const wd = await this.prisma.withdrawal.findUnique({
+      where: { id: withdrawalId },
+      include: { wallet: { include: { store: true } } },
+    });
     if (!wd) throw new NotFoundException('طلب السحب غير موجود');
     if (wd.status !== 'pending') throw new BadRequestException('تمت معالجة الطلب مسبقاً');
 
@@ -142,7 +172,10 @@ export class WalletsService {
     if (user.role === 'admin') return;
     if (user.role !== 'merchant') throw new ForbiddenException('فقط التاجر');
 
-    const store = await this.prisma.store.findUnique({ where: { id: storeId }, select: { ownerId: true } });
+    const store = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: { ownerId: true },
+    });
     if (!store) throw new NotFoundException('المتجر غير موجود');
 
     if (store.ownerId !== BigInt(user.sub)) throw new ForbiddenException('ليس لديك صلاحية');

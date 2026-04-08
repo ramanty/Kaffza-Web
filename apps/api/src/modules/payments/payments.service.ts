@@ -43,15 +43,23 @@ export class PaymentsService {
     if (!order.payment) throw new BadRequestException('لا يوجد سجل دفع');
     if (order.payment.status === 'paid') throw new BadRequestException('تم الدفع مسبقاً');
 
-    const apiUrl = this.config.get<string>('thawani.apiUrl') || process.env.THAWANI_API_URL;
+    const apiUrl =
+      this.config.get<string>('thawani.baseUrl') ||
+      this.config.get<string>('thawani.apiUrl') ||
+      process.env.THAWANI_BASE_URL ||
+      process.env.THAWANI_API_URL;
+    const redirectBase =
+      this.config.get<string>('thawani.redirectBase') ||
+      process.env.THAWANI_REDIRECT_BASE ||
+      this.defaultRedirectBase(apiUrl);
     const publishableKey =
       this.config.get<string>('thawani.publishableKey') ||
       process.env.THAWANI_PUBLISHABLE_KEY ||
       process.env.THAWANI_API_KEY;
     const secretKey =
       this.config.get<string>('thawani.secretKey') ||
-      process.env.THAWANI_API_KEY ||
-      process.env.THAWANI_SECRET_KEY;
+      process.env.THAWANI_SECRET_KEY ||
+      process.env.THAWANI_API_KEY;
     const successUrl =
       this.config.get<string>('thawani.successUrl') || process.env.THAWANI_SUCCESS_URL;
     const cancelUrl =
@@ -68,7 +76,7 @@ export class PaymentsService {
     const products = order.items.map((i) => ({
       name: (i.productName || '').slice(0, 40) || 'Order Item',
       quantity: i.quantity,
-      unit_amount: Math.max(1, Math.round(Number(i.unitPrice) * 1000)),
+      unit_amount: Math.max(1, toThawaniBaisa(Number(i.unitPrice))),
     }));
 
     const body = {
@@ -109,7 +117,8 @@ export class PaymentsService {
     }
 
     const sessionId = data.data.session_id || data.data.sessionId;
-    const paymentUrl = `${apiUrl.includes('uat') ? 'https://uatcheckout.thawani.om' : 'https://checkout.thawani.om'}/pay/${sessionId}?key=${publishableKey}`;
+    const normalizedRedirectBase = redirectBase.endsWith('/') ? redirectBase : `${redirectBase}/`;
+    const paymentUrl = `${normalizedRedirectBase}${sessionId}?key=${publishableKey}`;
 
     await this.prisma.payment.update({
       where: { orderId },
@@ -216,6 +225,22 @@ export class PaymentsService {
   }
 
   async handleThawaniWebhook(payload: any) {
+    const paymentStatus = payload?.payment_status || payload?.data?.payment_status;
+    const sessionId = payload?.session_id || payload?.data?.session_id || payload?.data?.sessionId;
+    if (paymentStatus === 'paid' && sessionId) {
+      const payment = await this.prisma.payment.findFirst({
+        where: { gatewaySessionId: sessionId },
+        select: { orderId: true },
+      });
+      if (payment?.orderId) {
+        await this.processPaid(
+          BigInt(payment.orderId as any),
+          payload?.data?.payment_id || payload?.data?.paymentId || null
+        );
+      }
+      return { success: true };
+    }
+
     const orderIdStr =
       payload?.data?.metadata?.orderId ||
       payload?.metadata?.orderId ||
@@ -256,7 +281,11 @@ export class PaymentsService {
       throw new ForbiddenException('ليس لديك صلاحية');
     }
 
-    const apiUrl = this.config.get<string>('thawani.apiUrl') || process.env.THAWANI_API_URL;
+    const apiUrl =
+      this.config.get<string>('thawani.baseUrl') ||
+      this.config.get<string>('thawani.apiUrl') ||
+      process.env.THAWANI_BASE_URL ||
+      process.env.THAWANI_API_URL;
     const secretKey =
       this.config.get<string>('thawani.secretKey') ||
       process.env.THAWANI_API_KEY ||
@@ -282,4 +311,15 @@ export class PaymentsService {
 
     return { success: true, data: { orderId: orderId.toString(), paymentStatus, invoice } };
   }
+
+  private defaultRedirectBase(apiUrl?: string) {
+    if (!apiUrl) return 'https://checkout.thawani.om/pay/';
+    return apiUrl.includes('uat')
+      ? 'https://uatcheckout.thawani.om/pay/'
+      : 'https://checkout.thawani.om/pay/';
+  }
+}
+
+function toThawaniBaisa(omrAmount: number): number {
+  return Math.round(omrAmount * 1000);
 }

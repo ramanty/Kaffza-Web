@@ -31,11 +31,19 @@ export const jwtConfig = registerAs('jwt', () => ({
 }));
 
 export const thawaniConfig = registerAs('thawani', () => ({
-  apiUrl: process.env.THAWANI_API_URL || 'https://uatcheckout.thawani.om/api/v1',
+  baseUrl:
+    process.env.THAWANI_BASE_URL ||
+    process.env.THAWANI_API_URL ||
+    'https://uatcheckout.thawani.om/api/v1',
+  redirectBase: process.env.THAWANI_REDIRECT_BASE || 'https://uatcheckout.thawani.om/pay/',
+  apiUrl:
+    process.env.THAWANI_BASE_URL ||
+    process.env.THAWANI_API_URL ||
+    'https://uatcheckout.thawani.om/api/v1',
   apiKey: process.env.THAWANI_API_KEY || 'test_secret_key',
   publishableKey:
     process.env.THAWANI_PUBLISHABLE_KEY || process.env.THAWANI_API_KEY || 'test_publishable_key',
-  secretKey: process.env.THAWANI_API_KEY || process.env.THAWANI_SECRET_KEY || 'test_secret_key',
+  secretKey: process.env.THAWANI_SECRET_KEY || process.env.THAWANI_API_KEY || 'test_secret_key',
   successUrl: process.env.THAWANI_SUCCESS_URL || 'http://localhost:3000/pay/success',
   cancelUrl: process.env.THAWANI_CANCEL_URL || 'http://localhost:3000/pay/cancel',
   successUrlMobile:

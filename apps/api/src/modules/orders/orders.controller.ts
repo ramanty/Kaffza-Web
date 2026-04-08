@@ -78,6 +78,13 @@ export class OrdersController {
     return this.orders.confirmReceipt(user, this.toBigInt(orderId));
   }
 
+  @Patch('orders/:orderId/confirm-receipt')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  confirmPatch(@CurrentUser() user: any, @Param('orderId') orderId: string) {
+    return this.orders.confirmReceipt(user, this.toBigInt(orderId));
+  }
+
   private toBigInt(value: string): bigint {
     try {
       return BigInt(value);

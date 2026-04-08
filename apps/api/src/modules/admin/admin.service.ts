@@ -31,7 +31,10 @@ export class AdminService {
       appName: process.env.APP_NAME || 'Kaffza',
       appUrl: process.env.APP_URL || 'https://kaffza.om',
       supportEmail: process.env.SUPPORT_EMAIL || 'support@kaffza.om',
-      thawaniApiUrl: process.env.THAWANI_API_URL || 'https://uatcheckout.thawani.om/api/v1',
+      thawaniApiUrl:
+        process.env.THAWANI_BASE_URL ||
+        process.env.THAWANI_API_URL ||
+        'https://uatcheckout.thawani.om/api/v1',
       escrowNewMerchantDays: Number(process.env.ESCROW_NEW_MERCHANT_DAYS || 14),
       escrowStandardDays: Number(process.env.ESCROW_STANDARD_DAYS || 7),
       escrowTrustedDays: Number(process.env.ESCROW_TRUSTED_DAYS || 3),
