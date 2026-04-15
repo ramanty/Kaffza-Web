@@ -30,3 +30,8 @@ out/
 
 # dotenv environment variable file
 .env
+.env.production
+.env.local
+apps/api/.env
+!.env.example
+!.env.production.example

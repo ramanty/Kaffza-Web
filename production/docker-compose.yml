@@ -64,6 +64,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    ports:
+      - '127.0.0.1:4001:4000'
     healthcheck:
       test:
         [
@@ -88,6 +90,8 @@ services:
     depends_on:
       api:
         condition: service_healthy
+    ports:
+      - '127.0.0.1:3001:3000'
     healthcheck:
       test:
         [
