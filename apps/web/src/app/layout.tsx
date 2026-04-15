@@ -1,4 +1,21 @@
 import './globals.css';
+import type { Metadata } from 'next';
+
+import { SiteTopBar } from '../components/SiteTopBar';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Kaffza | Oman E-Commerce Platform',
+    template: '%s | Kaffza',
+  },
+  description:
+    'Kaffza is an Omani e-commerce platform for merchants to launch and manage online stores.',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,7 +28,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <SiteTopBar />
+        {children}
+      </body>
     </html>
   );
 }

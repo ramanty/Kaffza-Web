@@ -5,14 +5,9 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { Button } from '../components/Button';
+import { FEATURE_CATALOG } from '../lib/feature-catalog';
 
 const PAIN_POINTS = ['إرسال رقم حساب', 'طلبات ضائعة', 'عدم ثقة'];
-
-const HOW_STEPS = [
-  { n: '1', title: 'إنشاء متجر', desc: 'افتح حسابك وأنشئ متجرك في دقائق.' },
-  { n: '2', title: 'إضافة منتجات', desc: 'أضف منتجاتك وسعرك وصورك بسرعة.' },
-  { n: '3', title: 'مشاركة الرابط', desc: 'أرسل رابط متجرك وابدأ استقبال الطلبات.' },
-];
 
 const PRICING = [
   {
@@ -50,7 +45,9 @@ function LandingPageInner() {
       >
         <div className="mx-auto max-w-6xl px-6 py-14 sm:py-20">
           <div className="flex items-center justify-between gap-4">
-            <div className="text-xl font-extrabold text-white">Kaffza</div>
+            <a href="https://kaffza.me" className="text-xl font-extrabold text-white">
+              Kaffza
+            </a>
             <div className="flex items-center gap-4 text-sm">
               <Link href="/features" className="font-bold text-white/80 hover:text-white">
                 المميزات
@@ -99,8 +96,8 @@ function LandingPageInner() {
                     افتح متجرك الآن
                   </Button>
                 </Link>
-                <a href="#how" className="inline-flex">
-                  <Button variant="secondary">شاهد الخطوات</Button>
+                <a href="#features" className="inline-flex">
+                  <Button variant="secondary">شاهد المميزات</Button>
                 </a>
               </div>
 
@@ -143,15 +140,30 @@ function LandingPageInner() {
         </div>
       </section>
 
-      <section id="how" className="bg-kaffza-bg">
+      <section id="features" className="bg-kaffza-bg">
         <div className="mx-auto max-w-6xl px-6 py-14">
           <div className="max-w-2xl">
-            <h2 className="text-kaffza-primary text-2xl font-extrabold">3 خطوات وتبدأ البيع</h2>
+            <h2 className="text-kaffza-primary text-2xl font-extrabold">
+              6 مميزات أساسية في Kaffza
+            </h2>
+            <p className="text-kaffza-text/80 mt-2 text-sm">
+              اضغط على أي ميزة لفتح صفحة شرح مفصلة.
+            </p>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {HOW_STEPS.map((step) => (
-              <HowStep key={step.n} n={step.n} title={step.title} desc={step.desc} />
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {FEATURE_CATALOG.map((feature, idx) => (
+              <Link
+                key={feature.slug}
+                href={`/features/${feature.slug}`}
+                className="rounded-2xl border border-black/10 bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="text-kaffza-primary text-3xl font-extrabold">{idx + 1}</div>
+                <div className="text-kaffza-primary mt-3 text-sm font-extrabold">
+                  {feature.titleAr}
+                </div>
+                <div className="text-kaffza-text/80 mt-2 text-sm">{feature.summaryAr}</div>
+              </Link>
             ))}
           </div>
         </div>
@@ -195,7 +207,9 @@ function LandingPageInner() {
 
               <div className="mt-6">
                 <Link href="/merchant/register">
-                  <Button className="w-full">ابدأ الآن</Button>
+                  <Button className="bg-kaffza-primary w-full text-white hover:opacity-90">
+                    ابدأ الآن
+                  </Button>
                 </Link>
               </div>
             </div>
@@ -245,12 +259,6 @@ function LandingPageInner() {
               <Link className="text-kaffza-primary font-bold underline" href="/contact">
                 تواصل معنا
               </Link>
-              <a
-                className="text-kaffza-primary font-bold underline"
-                href="mailto:support@kaffza.com"
-              >
-                تواصل معنا
-              </a>
             </div>
           </div>
 
@@ -266,16 +274,6 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between rounded-2xl bg-white/10 px-4 py-3 text-white">
       <div className="text-xs font-bold text-white/80">{label}</div>
       <div className="text-sm font-extrabold">{value}</div>
-    </div>
-  );
-}
-
-function HowStep({ n, title, desc }: { n: string; title: string; desc: string }) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-white p-6">
-      <div className="text-kaffza-primary text-4xl font-extrabold">{n}</div>
-      <div className="text-kaffza-primary mt-3 text-sm font-extrabold">{title}</div>
-      <div className="text-kaffza-text/80 mt-2 text-sm">{desc}</div>
     </div>
   );
 }
