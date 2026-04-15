@@ -11,8 +11,7 @@ import { getAccessTokenFromCookies } from '../../../lib/auth';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
-
-const OMAN_PHONE_RE = /^\+968[0-9]{8}$/;
+import { isValidE164Phone } from '../../../lib/phone';
 
 function MerchantLoginPageInner() {
   const sp = useSearchParams();
@@ -30,10 +29,9 @@ function MerchantLoginPageInner() {
       // if already logged in, go to dashboard
       router.replace('/dashboard');
     }
-     
   }, []);
 
-  const phoneOk = useMemo(() => OMAN_PHONE_RE.test(phone.trim()), [phone]);
+  const phoneOk = useMemo(() => isValidE164Phone(phone.trim()), [phone]);
   const passOk = useMemo(() => password.trim().length >= 8, [password]);
 
   const login = async () => {
@@ -41,8 +39,8 @@ function MerchantLoginPageInner() {
     const p = phone.trim();
     const pw = password.trim();
 
-    if (!OMAN_PHONE_RE.test(p)) {
-      setMsg({ type: 'error', text: 'رقم الهاتف لازم يكون بصيغة عُمانية صحيحة: +968XXXXXXXX' });
+    if (!isValidE164Phone(p)) {
+      setMsg({ type: 'error', text: 'رقم الهاتف يجب أن يكون بصيغة دولية صحيحة' });
       return;
     }
     if (pw.length < 8) {
@@ -124,7 +122,7 @@ function MerchantLoginPageInner() {
               onChange={(e: any) => setPhone(e.target.value)}
               placeholder="+96891234567"
             />
-            <Hint>صيغة عمانية: +968XXXXXXXX</Hint>
+            <Hint>صيغة دولية: +968XXXXXXXX أو +1XXXXXXXXXX</Hint>
           </Field>
 
           <Field label="كلمة المرور">

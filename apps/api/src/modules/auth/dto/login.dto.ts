@@ -10,7 +10,9 @@ export class LoginDto {
   @ApiPropertyOptional({ example: '+96891234567' })
   @IsOptional()
   @IsString()
-  @Matches(/^\+968[0-9]{8}$/, { message: 'رقم الهاتف يجب أن يكون بصيغة عُمانية صحيحة (+968XXXXXXXX)' })
+  @Matches(/^\+[1-9]\d{7,14}$/, {
+    message: 'رقم الهاتف يجب أن يكون بصيغة دولية صحيحة (E.164)',
+  })
   phone?: string;
 
   @ApiPropertyOptional({ example: 'StrongPass1' })

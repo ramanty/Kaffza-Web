@@ -4,7 +4,9 @@ import { IsString, Length, Matches } from 'class-validator';
 export class VerifyOtpDto {
   @ApiProperty({ example: '+96891234567' })
   @IsString()
-  @Matches(/^\+968[0-9]{8}$/, { message: 'رقم الهاتف يجب أن يكون بصيغة عُمانية صحيحة (+968XXXXXXXX)' })
+  @Matches(/^\+[1-9]\d{7,14}$/, {
+    message: 'رقم الهاتف يجب أن يكون بصيغة دولية صحيحة (E.164)',
+  })
   phone: string;
 
   @ApiProperty({ example: '123456' })

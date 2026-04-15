@@ -29,6 +29,9 @@ export class AuthService {
     // Support phone-only customer registration for web.
     const role = dto.role || 'customer';
     const locale = dto.locale || 'ar';
+    if (role === 'merchant' && !dto.email) {
+      throw new BadRequestException('البريد الإلكتروني مطلوب لحساب التاجر');
+    }
     const email = dto.email || this.syntheticEmail(dto.phone);
     const plainPassword = dto.password || this.syntheticPassword();
 

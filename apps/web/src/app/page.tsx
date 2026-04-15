@@ -95,7 +95,9 @@ function LandingPageInner() {
 
               <div className="mt-7 flex flex-wrap gap-3">
                 <Link href="/merchant/register">
-                  <Button variant="premium">افتح متجرك الآن</Button>
+                  <Button className="text-kaffza-primary border border-white/60 bg-white shadow-sm hover:bg-slate-100">
+                    افتح متجرك الآن
+                  </Button>
                 </Link>
                 <a href="#how" className="inline-flex">
                   <Button variant="secondary">شاهد الخطوات</Button>

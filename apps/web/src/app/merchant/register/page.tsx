@@ -8,15 +8,8 @@ import { api } from '../../../lib/api';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
-
-const OMAN_PHONE_RE = /^\+968[0-9]{8}$/;
-
-function normalizeOmanPhone(raw: string) {
-  const compact = raw.trim().replace(/\s+/g, '');
-  if (/^[0-9]{8}$/.test(compact)) return `+968${compact}`;
-  if (/^968[0-9]{8}$/.test(compact)) return `+${compact}`;
-  return compact;
-}
+import { PhoneInput } from '../../../components/PhoneInput';
+import { isValidE164Phone } from '../../../lib/phone';
 
 export default function MerchantRegisterPage() {
   const router = useRouter();
@@ -32,14 +25,14 @@ export default function MerchantRegisterPage() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
-  const emailOk = useMemo(() => !email.trim() || /.+@.+\..+/.test(email.trim()), [email]);
+  const emailOk = useMemo(() => /.+@.+\..+/.test(email.trim()), [email]);
   const canSubmit = useMemo(() => {
     return (
       name.trim().length >= 2 &&
-      OMAN_PHONE_RE.test(normalizeOmanPhone(phone)) &&
+      isValidE164Phone(phone) &&
+      emailOk &&
       password.trim().length >= 8 &&
-      password.trim() === confirm.trim() &&
-      emailOk
+      password.trim() === confirm.trim()
     );
   }, [name, phone, password, confirm, emailOk]);
   const canVerify = useMemo(() => /^[0-9]{6}$/.test(otp.trim()), [otp]);
@@ -47,27 +40,23 @@ export default function MerchantRegisterPage() {
   const submit = async () => {
     setMsg(null);
     const n = name.trim();
-    const p = normalizeOmanPhone(phone);
+    const p = phone.trim();
     const e = email.trim();
     const pw = password.trim();
 
     if (n.length < 2) return setMsg({ type: 'error', text: 'الاسم لازم يكون حرفين على الأقل' });
-    if (!OMAN_PHONE_RE.test(p))
-      return setMsg({
-        type: 'error',
-        text: 'رقم الهاتف لازم يكون بصيغة عُمانية صحيحة: +968XXXXXXXX',
-      });
+    if (!isValidE164Phone(p)) return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
+    if (!emailOk) return setMsg({ type: 'error', text: 'البريد الإلكتروني غير صحيح' });
     if (pw.length < 8)
       return setMsg({ type: 'error', text: 'كلمة المرور لازم تكون 8 أحرف/أرقام على الأقل' });
     if (pw !== confirm.trim())
       return setMsg({ type: 'error', text: 'تأكيد كلمة المرور غير مطابق' });
-    if (!emailOk) return setMsg({ type: 'error', text: 'البريد الإلكتروني غير صحيح' });
 
     setLoading(true);
     try {
       await api.post(
         '/auth/register',
-        { name: n, phone: p, email: e || undefined, password: pw, role: 'merchant', locale: 'ar' },
+        { name: n, phone: p, email: e, password: pw, role: 'merchant', locale: 'ar' },
         { headers: { 'x-client': 'web' } }
       );
 
@@ -82,9 +71,9 @@ export default function MerchantRegisterPage() {
 
   const verifyOtp = async () => {
     setMsg(null);
-    const p = normalizeOmanPhone(phone);
+    const p = phone.trim();
     const code = otp.trim();
-    if (!OMAN_PHONE_RE.test(p)) return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
+    if (!isValidE164Phone(p)) return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
     if (!/^[0-9]{6}$/.test(code))
       return setMsg({ type: 'error', text: 'الرمز يجب أن يكون 6 أرقام' });
 
@@ -108,8 +97,8 @@ export default function MerchantRegisterPage() {
 
   const resendOtp = async () => {
     setMsg(null);
-    const p = normalizeOmanPhone(phone);
-    if (!OMAN_PHONE_RE.test(p)) return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
+    const p = phone.trim();
+    if (!isValidE164Phone(p)) return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
     setLoading(true);
     try {
       await api.post('/auth/otp/resend', { phone: p }, { headers: { 'x-client': 'web' } });
@@ -134,7 +123,9 @@ export default function MerchantRegisterPage() {
       </div>
 
       <Card className="mt-6 p-6">
-        <p className="text-kaffza-text/80 text-sm">أنشئ حساب تاجر جديد ثم سجّل دخولك.</p>
+        <p className="text-kaffza-text/80 text-sm">
+          لفتح متجر وبدء البيع يجب إدخال البريد الإلكتروني ورقم الهاتف معاً.
+        </p>
 
         {msg ? (
           <div
@@ -159,21 +150,17 @@ export default function MerchantRegisterPage() {
               />
             </Field>
 
-            <Field label="رقم الهاتف">
-              <Input
-                value={phone}
-                onChange={(e: any) => setPhone(e.target.value)}
-                placeholder="+96891234567"
-              />
-              <Hint>صيغة عمانية: +968XXXXXXXX</Hint>
-            </Field>
-
-            <Field label="البريد الإلكتروني (اختياري)">
+            <Field label="البريد الإلكتروني (مطلوب)">
               <Input
                 value={email}
                 onChange={(e: any) => setEmail(e.target.value)}
                 placeholder="merchant@example.com"
               />
+            </Field>
+
+            <Field label="رقم الهاتف (مطلوب)">
+              <PhoneInput value={phone} onChange={setPhone} />
+              <Hint>اختر الدولة ثم اكتب رقم الهاتف بدون رمز الدولة</Hint>
             </Field>
 
             <Field label="كلمة المرور">
@@ -213,7 +200,7 @@ export default function MerchantRegisterPage() {
         ) : (
           <div className="mt-5 grid gap-3">
             <div className="bg-kaffza-bg text-kaffza-text rounded-xl p-3 text-xs">
-              <span className="font-bold">الهاتف:</span> {normalizeOmanPhone(phone)}
+              <span className="font-bold">الهاتف:</span> {phone.trim()}
             </div>
 
             <Field label="OTP (6 أرقام)">
@@ -243,7 +230,10 @@ export default function MerchantRegisterPage() {
               </button>
               <button
                 className="text-kaffza-text/70 text-xs font-bold underline"
-                onClick={() => setStep('register')}
+                onClick={() => {
+                  setStep('register');
+                  setOtp('');
+                }}
               >
                 تعديل البيانات
               </button>

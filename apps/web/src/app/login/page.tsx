@@ -9,8 +9,7 @@ import { getAccessTokenFromCookies } from '../../lib/auth';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
-
-const OMAN_PHONE_RE = /^\+968[0-9]{8}$/;
+import { isValidE164Phone } from '../../lib/phone';
 
 function LoginPageInner() {
   const router = useRouter();
@@ -37,7 +36,9 @@ function LoginPageInner() {
     if (!token) return;
     (async () => {
       try {
-        const me = await api.get('/auth/me', { headers: { 'x-client': 'web', Authorization: `Bearer ${token}` } });
+        const me = await api.get('/auth/me', {
+          headers: { 'x-client': 'web', Authorization: `Bearer ${token}` },
+        });
         const role = me?.data?.data?.role;
         if (handleRoleRedirect(role)) return;
         router.replace(next);
@@ -45,43 +46,46 @@ function LoginPageInner() {
         router.replace(next);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
-  const phoneOk = useMemo(() => OMAN_PHONE_RE.test(phone.trim()), [phone]);
+  const phoneOk = useMemo(() => isValidE164Phone(phone.trim()), [phone]);
   const passOk = useMemo(() => password.trim().length >= 8, [password]);
 
-  const otpPhoneOk = useMemo(() => OMAN_PHONE_RE.test(otpPhone.trim()), [otpPhone]);
+  const otpPhoneOk = useMemo(() => isValidE164Phone(otpPhone.trim()), [otpPhone]);
   const otpOk = useMemo(() => /^[0-9]{6}$/.test(otp.trim()), [otp]);
 
   const setError = (text: string) => setMsg({ type: 'error', text });
   const setSuccess = (text: string) => setMsg({ type: 'success', text });
 
-const handleRoleRedirect = (role: string) => {
-  const r = String(role || '').toLowerCase();
-  if (r === 'merchant') {
-    router.replace('/merchant/login');
-    return true;
-  }
-  if (r === 'admin') {
-    router.replace(next.startsWith('/admin') ? next : '/admin');
-    return true;
-  }
-  return false;
-};
-
+  const handleRoleRedirect = (role: string) => {
+    const r = String(role || '').toLowerCase();
+    if (r === 'merchant') {
+      router.replace('/merchant/login');
+      return true;
+    }
+    if (r === 'admin') {
+      router.replace(next.startsWith('/admin') ? next : '/admin');
+      return true;
+    }
+    return false;
+  };
 
   const doPasswordLogin = async () => {
     setMsg(null);
     const p = phone.trim();
     const pw = password.trim();
 
-    if (!OMAN_PHONE_RE.test(p)) return setError('رقم الهاتف لازم يكون بصيغة عُمانية صحيحة: +968XXXXXXXX');
+    if (!isValidE164Phone(p)) return setError('رقم الهاتف يجب أن يكون بصيغة دولية صحيحة');
     if (pw.length < 8) return setError('كلمة المرور لازم تكون 8 أحرف/أرقام على الأقل');
 
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { phone: p, password: pw }, { headers: { 'x-client': 'web' } });
+      const res = await api.post(
+        '/auth/login',
+        { phone: p, password: pw },
+        { headers: { 'x-client': 'web' } }
+      );
       const token = res?.data?.data?.tokens?.accessToken;
       if (!token) throw new Error('لم يتم استلام access token');
 
@@ -98,7 +102,7 @@ const handleRoleRedirect = (role: string) => {
   const requestOtp = async () => {
     setMsg(null);
     const p = otpPhone.trim();
-    if (!OMAN_PHONE_RE.test(p)) return setError('رقم الهاتف لازم يكون بصيغة عُمانية صحيحة: +968XXXXXXXX');
+    if (!isValidE164Phone(p)) return setError('رقم الهاتف يجب أن يكون بصيغة دولية صحيحة');
 
     setLoading(true);
     try {
@@ -117,12 +121,16 @@ const handleRoleRedirect = (role: string) => {
     const p = otpPhone.trim();
     const code = otp.trim();
 
-    if (!OMAN_PHONE_RE.test(p)) return setError('رقم الهاتف غير صحيح');
+    if (!isValidE164Phone(p)) return setError('رقم الهاتف غير صحيح');
     if (!/^[0-9]{6}$/.test(code)) return setError('الرمز يجب أن يكون 6 أرقام');
 
     setLoading(true);
     try {
-      const res = await api.post('/auth/otp/verify', { phone: p, otp: code }, { headers: { 'x-client': 'web' } });
+      const res = await api.post(
+        '/auth/otp/verify',
+        { phone: p, otp: code },
+        { headers: { 'x-client': 'web' } }
+      );
       const token = res?.data?.data?.tokens?.accessToken;
       if (!token) throw new Error('لم يتم استلام access token');
 
@@ -139,8 +147,8 @@ const handleRoleRedirect = (role: string) => {
   return (
     <main dir="rtl" className="mx-auto max-w-lg px-6 py-12">
       <div className="flex items-center justify-between">
-        <div className="text-2xl font-extrabold text-kaffza-primary">تسجيل الدخول</div>
-        <Link className="text-sm font-bold text-kaffza-text/70 underline" href="/">
+        <div className="text-kaffza-primary text-2xl font-extrabold">تسجيل الدخول</div>
+        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/">
           الرئيسية
         </Link>
       </div>
@@ -159,7 +167,9 @@ const handleRoleRedirect = (role: string) => {
           <div
             className={
               'mt-4 rounded-xl border p-3 text-sm ' +
-              (msg.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700')
+              (msg.type === 'success'
+                ? 'border-green-200 bg-green-50 text-green-700'
+                : 'border-red-200 bg-red-50 text-red-700')
             }
           >
             {msg.text}
@@ -169,12 +179,21 @@ const handleRoleRedirect = (role: string) => {
         {tab === 'password' ? (
           <div className="mt-5 grid gap-3">
             <Field label="رقم الهاتف">
-              <Input value={phone} onChange={(e: any) => setPhone(e.target.value)} placeholder="+96891234567" />
-              <Hint>صيغة عمانية: +968XXXXXXXX</Hint>
+              <Input
+                value={phone}
+                onChange={(e: any) => setPhone(e.target.value)}
+                placeholder="+96891234567"
+              />
+              <Hint>صيغة دولية: +968XXXXXXXX أو +1XXXXXXXXXX</Hint>
             </Field>
 
             <Field label="كلمة المرور">
-              <Input value={password} onChange={(e: any) => setPassword(e.target.value)} placeholder="********" type="password" />
+              <Input
+                value={password}
+                onChange={(e: any) => setPassword(e.target.value)}
+                placeholder="********"
+                type="password"
+              />
               <Hint>8 أحرف/أرقام على الأقل</Hint>
             </Field>
 
@@ -183,10 +202,16 @@ const handleRoleRedirect = (role: string) => {
             </Button>
 
             <div className="flex items-center justify-between text-sm">
-              <Link className="font-bold text-kaffza-primary underline" href={`/register?next=${encodeURIComponent(next)}`}>
+              <Link
+                className="text-kaffza-primary font-bold underline"
+                href={`/register?next=${encodeURIComponent(next)}`}
+              >
                 إنشاء حساب
               </Link>
-              <Link className="text-xs font-bold text-kaffza-text/70 underline" href={`/forgot-password?next=${encodeURIComponent(next)}`}>
+              <Link
+                className="text-kaffza-text/70 text-xs font-bold underline"
+                href={`/forgot-password?next=${encodeURIComponent(next)}`}
+              >
                 نسيت كلمة المرور؟
               </Link>
             </div>
@@ -196,8 +221,12 @@ const handleRoleRedirect = (role: string) => {
             {otpStep === 'phone' ? (
               <>
                 <Field label="رقم الهاتف">
-                  <Input value={otpPhone} onChange={(e: any) => setOtpPhone(e.target.value)} placeholder="+96891234567" />
-                  <Hint>صيغة عمانية: +968XXXXXXXX</Hint>
+                  <Input
+                    value={otpPhone}
+                    onChange={(e: any) => setOtpPhone(e.target.value)}
+                    placeholder="+96891234567"
+                  />
+                  <Hint>صيغة دولية: +968XXXXXXXX أو +1XXXXXXXXXX</Hint>
                 </Field>
 
                 <Button onClick={requestOtp} disabled={loading || !otpPhoneOk}>
@@ -206,19 +235,27 @@ const handleRoleRedirect = (role: string) => {
 
                 <div className="text-sm">
                   عندك حساب؟{' '}
-                  <Link className="font-bold text-kaffza-primary underline" href={`/register?next=${encodeURIComponent(next)}`}>
+                  <Link
+                    className="text-kaffza-primary font-bold underline"
+                    href={`/register?next=${encodeURIComponent(next)}`}
+                  >
                     إنشاء حساب
                   </Link>
                 </div>
               </>
             ) : (
               <>
-                <div className="rounded-xl bg-kaffza-bg p-3 text-xs text-kaffza-text">
+                <div className="bg-kaffza-bg text-kaffza-text rounded-xl p-3 text-xs">
                   <span className="font-bold">الهاتف:</span> {otpPhone.trim()}
                 </div>
 
                 <Field label="OTP (6 أرقام)">
-                  <Input value={otp} onChange={(e: any) => setOtp(e.target.value)} placeholder="123456" inputMode="numeric" />
+                  <Input
+                    value={otp}
+                    onChange={(e: any) => setOtp(e.target.value)}
+                    placeholder="123456"
+                    inputMode="numeric"
+                  />
                 </Field>
 
                 <Button onClick={verifyOtp} disabled={loading || !otpOk}>
@@ -226,11 +263,15 @@ const handleRoleRedirect = (role: string) => {
                 </Button>
 
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                  <button className="font-bold text-kaffza-primary underline disabled:opacity-50" onClick={requestOtp} disabled={loading || !otpPhoneOk}>
+                  <button
+                    className="text-kaffza-primary font-bold underline disabled:opacity-50"
+                    onClick={requestOtp}
+                    disabled={loading || !otpPhoneOk}
+                  >
                     إعادة إرسال OTP
                   </button>
                   <button
-                    className="text-xs font-bold text-kaffza-text/70 underline"
+                    className="text-kaffza-text/70 text-xs font-bold underline"
                     onClick={() => {
                       setOtp('');
                       setOtpStep('phone');
@@ -246,9 +287,13 @@ const handleRoleRedirect = (role: string) => {
         )}
       </Card>
 
-      <div className="mt-6 flex flex-wrap gap-3 text-xs text-kaffza-text">
-        <Link className="underline" href="/legal/terms">الشروط</Link>
-        <Link className="underline" href="/legal/privacy">الخصوصية</Link>
+      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
+        <Link className="underline" href="/legal/terms">
+          الشروط
+        </Link>
+        <Link className="underline" href="/legal/privacy">
+          الخصوصية
+        </Link>
       </div>
     </main>
   );
@@ -271,14 +316,20 @@ function TabButton({ active, onClick, children }: any) {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-sm font-bold text-kaffza-text">{label}</span>
+      <span className="text-kaffza-text text-sm font-bold">{label}</span>
       {children}
     </label>
   );
 }
 
 function Hint({ children }: any) {
-  return <span className="text-xs text-kaffza-text/60">{children}</span>;
+  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
 }
 
-export default function LoginPage() { return <Suspense><LoginPageInner /></Suspense>; }
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginPageInner />
+    </Suspense>
+  );
+}
