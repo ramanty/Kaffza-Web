@@ -51,14 +51,20 @@ function LandingPageInner() {
         <div className="mx-auto max-w-6xl px-6 py-14 sm:py-20">
           <div className="flex items-center justify-between gap-4">
             <div className="text-xl font-extrabold text-white">Kaffza</div>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/merchant/login"
-                className="text-sm font-bold text-white/80 hover:text-white"
-              >
+            <div className="flex items-center gap-4 text-sm">
+              <Link href="/features" className="font-bold text-white/80 hover:text-white">
+                المميزات
+              </Link>
+              <Link href="/pricing" className="font-bold text-white/80 hover:text-white">
+                الأسعار
+              </Link>
+              <Link href="/contact" className="font-bold text-white/80 hover:text-white">
+                تواصل
+              </Link>
+              <Link href="/merchant/login" className="font-bold text-white/80 hover:text-white">
                 دخول التاجر
               </Link>
-              <Link href="/login" className="text-sm font-bold text-white/80 hover:text-white">
+              <Link href="/login" className="font-bold text-white/80 hover:text-white">
                 دخول العميل
               </Link>
             </div>
@@ -227,6 +233,15 @@ function LandingPageInner() {
               </Link>
               <Link className="text-kaffza-primary font-bold underline" href="/legal/terms">
                 الشروط والأحكام
+              </Link>
+              <Link className="text-kaffza-primary font-bold underline" href="/features">
+                المميزات
+              </Link>
+              <Link className="text-kaffza-primary font-bold underline" href="/pricing">
+                الأسعار
+              </Link>
+              <Link className="text-kaffza-primary font-bold underline" href="/contact">
+                تواصل معنا
               </Link>
               <a
                 className="text-kaffza-primary font-bold underline"
