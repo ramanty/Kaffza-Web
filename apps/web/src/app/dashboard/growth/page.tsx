@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { api } from '../../../lib/api';
 import { authHeader } from '../../../lib/auth';
 import { Button } from '../../../components/Button';
@@ -12,11 +14,18 @@ type Automation = {
   abandonedCartEnabled: boolean;
   abandonedCartDelayMin: number;
   abandonedCartChannels: string[];
+  abandonedCartDiscountEnabled: boolean;
+  abandonedCartDiscountPercent: number;
+  reminderCadencePreset: 'gentle' | 'standard' | 'aggressive';
+  campaignScheduleMode: 'manual' | 'scheduled';
+  campaignTimezone: string;
   welcomeAutomationEnabled: boolean;
   lowStockAlertEnabled: boolean;
 };
 
-export default function GrowthPage() {
+function GrowthPageInner() {
+  const sp = useSearchParams();
+  const isEn = sp.get('lang') === 'en';
   const { storeId } = useStore();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -26,9 +35,82 @@ export default function GrowthPage() {
     abandonedCartEnabled: false,
     abandonedCartDelayMin: 60,
     abandonedCartChannels: ['sms'],
+    abandonedCartDiscountEnabled: false,
+    abandonedCartDiscountPercent: 10,
+    reminderCadencePreset: 'standard',
+    campaignScheduleMode: 'manual',
+    campaignTimezone: 'Asia/Muscat',
     welcomeAutomationEnabled: false,
     lowStockAlertEnabled: true,
   });
+
+  const t = useMemo(
+    () =>
+      isEn
+        ? {
+            title: 'Growth & Automation Hub',
+            subtitle:
+              'Configure cart recovery incentives, reminder cadence, and campaign scheduling defaults.',
+            loadError: 'Failed to load growth settings',
+            saveError: 'Failed to save settings',
+            saveSuccess: 'Automation settings saved successfully',
+            abandonToggle: 'Enable abandoned cart recovery',
+            delayLabel: 'First reminder delay (minutes)',
+            delayHint: 'Example: first reminder 60 minutes after cart abandonment.',
+            channels: 'Reminder channels',
+            discountToggle: 'Enable abandoned-cart discount offer',
+            discountLabel: 'Discount value (%)',
+            cadenceLabel: 'Reminder cadence preset',
+            scheduleLabel: 'Campaign scheduling mode',
+            timezoneLabel: 'Campaign timezone',
+            welcomeToggle: 'Send welcome message after signup',
+            stockToggle: 'Low stock alerts',
+            save: 'Save growth settings',
+            saving: 'Saving...',
+            presets: {
+              gentle: 'Gentle (single reminder)',
+              standard: 'Standard (3 reminders)',
+              aggressive: 'Aggressive (hourly sequence)',
+            },
+            scheduleModes: {
+              manual: 'Manual launch',
+              scheduled: 'Scheduled by default',
+            },
+            campaignsCta: 'Open campaign manager',
+          }
+        : {
+            title: 'مركز النمو والأتمتة',
+            subtitle:
+              'اضبط حوافز استرجاع السلات، وتواتر التذكيرات، وإعدادات جدولة الحملات بشكل افتراضي.',
+            loadError: 'تعذر تحميل إعدادات النمو',
+            saveError: 'تعذر حفظ الإعدادات',
+            saveSuccess: 'تم حفظ إعدادات الأتمتة بنجاح',
+            abandonToggle: 'تفعيل استرجاع السلات المتروكة',
+            delayLabel: 'تأخير التذكير الأول (بالدقائق)',
+            delayHint: 'مثال: إرسال أول تذكير بعد 60 دقيقة من ترك السلة.',
+            channels: 'قنوات التذكير',
+            discountToggle: 'تفعيل خصم السلة المتروكة',
+            discountLabel: 'قيمة الخصم (%)',
+            cadenceLabel: 'نمط تواتر التذكيرات',
+            scheduleLabel: 'وضع جدولة الحملات',
+            timezoneLabel: 'المنطقة الزمنية للحملات',
+            welcomeToggle: 'تفعيل رسالة الترحيب بعد التسجيل',
+            stockToggle: 'تنبيهات انخفاض المخزون',
+            save: 'حفظ إعدادات النمو',
+            saving: 'جارٍ الحفظ...',
+            presets: {
+              gentle: 'هادئ (تذكير واحد)',
+              standard: 'قياسي (3 تذكيرات)',
+              aggressive: 'مكثف (تسلسل كل ساعة)',
+            },
+            scheduleModes: {
+              manual: 'تشغيل يدوي',
+              scheduled: 'مجدول افتراضياً',
+            },
+            campaignsCta: 'فتح مدير الحملات',
+          },
+    [isEn]
+  );
 
   async function load() {
     if (!storeId) return;
@@ -38,9 +120,12 @@ export default function GrowthPage() {
       const res = await api.get(`/stores/${storeId}/automation`, {
         headers: { ...authHeader(), 'x-client': 'web' },
       });
-      setForm(res?.data?.data || form);
+      setForm((prev) => ({
+        ...prev,
+        ...(res?.data?.data || {}),
+      }));
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || 'تعذر تحميل إعدادات النمو');
+      setError(e?.response?.data?.message || e?.message || t.loadError);
     } finally {
       setLoading(false);
     }
@@ -55,9 +140,9 @@ export default function GrowthPage() {
       await api.patch(`/stores/${storeId}/automation`, form, {
         headers: { ...authHeader(), 'x-client': 'web' },
       });
-      setSuccess('تم حفظ إعدادات الأتمتة بنجاح');
+      setSuccess(t.saveSuccess);
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || 'تعذر حفظ الإعدادات');
+      setError(e?.response?.data?.message || e?.message || t.saveError);
     } finally {
       setSaving(false);
     }
@@ -73,18 +158,24 @@ export default function GrowthPage() {
     });
   }
 
+  function withLang(path: string) {
+    return isEn ? `${path}?lang=en` : path;
+  }
+
   useEffect(() => {
     load();
-     
-  }, [storeId]);
+  }, [storeId, isEn]);
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-kaffza-primary text-2xl font-extrabold">مركز النمو والتسويق</h1>
-        <p className="text-kaffza-text/70 mt-1 text-sm">
-          فعّل الحملات الآلية: استرجاع السلات المتروكة، رسائل الترحيب، وتنبيهات المخزون.
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-kaffza-primary text-2xl font-extrabold">{t.title}</h1>
+          <p className="text-kaffza-text/70 mt-1 text-sm">{t.subtitle}</p>
+        </div>
+        <Link href={withLang('/dashboard/campaigns')}>
+          <Button variant="secondary">{t.campaignsCta}</Button>
+        </Link>
       </header>
 
       {error ? (
@@ -100,13 +191,13 @@ export default function GrowthPage() {
 
       <Card className="space-y-5 p-6">
         <SwitchRow
-          label="تفعيل استرجاع السلات المتروكة"
+          label={t.abandonToggle}
           checked={form.abandonedCartEnabled}
           onChange={(checked) => setForm((s) => ({ ...s, abandonedCartEnabled: checked }))}
         />
 
         <div className="grid gap-2">
-          <label className="text-kaffza-text text-sm font-bold">مدة التذكير (بالدقائق)</label>
+          <label className="text-kaffza-text text-sm font-bold">{t.delayLabel}</label>
           <Input
             type="number"
             min={5}
@@ -116,13 +207,11 @@ export default function GrowthPage() {
               setForm((s) => ({ ...s, abandonedCartDelayMin: Number(e.target.value || 60) }))
             }
           />
-          <p className="text-kaffza-text/60 text-xs">
-            مثال: 60 دقيقة بعد ترك العميل للسلة بدون إتمام الطلب.
-          </p>
+          <p className="text-kaffza-text/60 text-xs">{t.delayHint}</p>
         </div>
 
         <div>
-          <div className="text-kaffza-text text-sm font-bold">قنوات التذكير</div>
+          <div className="text-kaffza-text text-sm font-bold">{t.channels}</div>
           <div className="mt-2 flex flex-wrap gap-2">
             {['sms', 'whatsapp', 'email'].map((ch) => {
               const active = form.abandonedCartChannels.includes(ch);
@@ -146,24 +235,99 @@ export default function GrowthPage() {
         </div>
 
         <SwitchRow
-          label="تفعيل رسالة الترحيب بعد التسجيل"
+          label={t.discountToggle}
+          checked={form.abandonedCartDiscountEnabled}
+          onChange={(checked) => setForm((s) => ({ ...s, abandonedCartDiscountEnabled: checked }))}
+        />
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <label className="text-kaffza-text text-sm font-bold">{t.discountLabel}</label>
+            <Input
+              type="number"
+              min={1}
+              max={90}
+              value={String(form.abandonedCartDiscountPercent)}
+              onChange={(e: any) =>
+                setForm((s) => ({
+                  ...s,
+                  abandonedCartDiscountPercent: Number(e.target.value || 10),
+                }))
+              }
+            />
+          </div>
+          <div className="grid gap-2">
+            <label className="text-kaffza-text text-sm font-bold">{t.timezoneLabel}</label>
+            <Input
+              value={form.campaignTimezone || ''}
+              onChange={(e: any) => setForm((s) => ({ ...s, campaignTimezone: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <label className="text-kaffza-text text-sm font-bold">{t.cadenceLabel}</label>
+            <select
+              className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold"
+              value={form.reminderCadencePreset}
+              onChange={(e) =>
+                setForm((s) => ({
+                  ...s,
+                  reminderCadencePreset: e.target.value as Automation['reminderCadencePreset'],
+                }))
+              }
+            >
+              <option value="gentle">{t.presets.gentle}</option>
+              <option value="standard">{t.presets.standard}</option>
+              <option value="aggressive">{t.presets.aggressive}</option>
+            </select>
+          </div>
+          <div className="grid gap-2">
+            <label className="text-kaffza-text text-sm font-bold">{t.scheduleLabel}</label>
+            <select
+              className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold"
+              value={form.campaignScheduleMode}
+              onChange={(e) =>
+                setForm((s) => ({
+                  ...s,
+                  campaignScheduleMode: e.target.value as Automation['campaignScheduleMode'],
+                }))
+              }
+            >
+              <option value="manual">{t.scheduleModes.manual}</option>
+              <option value="scheduled">{t.scheduleModes.scheduled}</option>
+            </select>
+          </div>
+        </div>
+
+        <SwitchRow
+          label={t.welcomeToggle}
           checked={form.welcomeAutomationEnabled}
           onChange={(checked) => setForm((s) => ({ ...s, welcomeAutomationEnabled: checked }))}
         />
 
         <SwitchRow
-          label="تنبيهات انخفاض المخزون"
+          label={t.stockToggle}
           checked={form.lowStockAlertEnabled}
           onChange={(checked) => setForm((s) => ({ ...s, lowStockAlertEnabled: checked }))}
         />
 
         <div>
           <Button onClick={save} disabled={saving || loading}>
-            {saving ? 'جارٍ الحفظ...' : 'حفظ إعدادات النمو'}
+            {saving ? t.saving : t.save}
           </Button>
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function GrowthPage() {
+  return (
+    <Suspense fallback={<div className="text-kaffza-text/60 text-sm">...</div>}>
+      <GrowthPageInner />
+    </Suspense>
   );
 }
 

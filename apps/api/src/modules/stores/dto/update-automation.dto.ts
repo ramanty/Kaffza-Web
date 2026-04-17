@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class UpdateAutomationDto {
   @ApiPropertyOptional()
@@ -19,6 +19,33 @@ export class UpdateAutomationDto {
   @IsArray()
   @IsString({ each: true })
   abandonedCartChannels?: string[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  abandonedCartDiscountEnabled?: boolean;
+
+  @ApiPropertyOptional({ minimum: 1, maximum: 90 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(90)
+  abandonedCartDiscountPercent?: number;
+
+  @ApiPropertyOptional({ enum: ['gentle', 'standard', 'aggressive'], default: 'standard' })
+  @IsOptional()
+  @IsIn(['gentle', 'standard', 'aggressive'])
+  reminderCadencePreset?: 'gentle' | 'standard' | 'aggressive';
+
+  @ApiPropertyOptional({ enum: ['manual', 'scheduled'], default: 'manual' })
+  @IsOptional()
+  @IsIn(['manual', 'scheduled'])
+  campaignScheduleMode?: 'manual' | 'scheduled';
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  campaignTimezone?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

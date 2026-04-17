@@ -9,6 +9,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { UpdateAutomationDto } from './dto/update-automation.dto';
+import { CreateCampaignDto } from './dto/create-campaign.dto';
 
 const ONBOARDING_STEPS = [
   {
@@ -50,6 +51,7 @@ const ONBOARDING_STEPS = [
 ] as const;
 
 type OnboardingStepKey = (typeof ONBOARDING_STEPS)[number]['key'];
+type CampaignStatus = 'draft' | 'scheduled' | 'active' | 'paused' | 'completed';
 
 @Injectable()
 export class StoresService {
@@ -93,6 +95,11 @@ export class StoresService {
               abandonedCartEnabled: false,
               abandonedCartDelayMin: 60,
               abandonedCartChannels: ['sms'] as any,
+              abandonedCartDiscountEnabled: false,
+              abandonedCartDiscountPercent: 10,
+              reminderCadencePreset: 'standard',
+              campaignScheduleMode: 'manual',
+              campaignTimezone: 'Asia/Muscat',
               welcomeAutomationEnabled: false,
               lowStockAlertEnabled: true,
             },
@@ -266,6 +273,9 @@ export class StoresService {
     if (dto.abandonedCartChannels && dto.abandonedCartChannels.length === 0) {
       throw new BadRequestException('يجب اختيار قناة واحدة على الأقل');
     }
+    if (dto.campaignTimezone && dto.campaignTimezone.length > 100) {
+      throw new BadRequestException('المنطقة الزمنية طويلة جداً');
+    }
 
     const updated = await this.prisma.storeAutomationSettings.upsert({
       where: { storeId },
@@ -275,6 +285,11 @@ export class StoresService {
         abandonedCartChannels: dto.abandonedCartChannels
           ? (dto.abandonedCartChannels as any)
           : undefined,
+        abandonedCartDiscountEnabled: dto.abandonedCartDiscountEnabled,
+        abandonedCartDiscountPercent: dto.abandonedCartDiscountPercent,
+        reminderCadencePreset: dto.reminderCadencePreset,
+        campaignScheduleMode: dto.campaignScheduleMode,
+        campaignTimezone: dto.campaignTimezone,
         welcomeAutomationEnabled: dto.welcomeAutomationEnabled,
         lowStockAlertEnabled: dto.lowStockAlertEnabled,
       },
@@ -283,12 +298,77 @@ export class StoresService {
         abandonedCartEnabled: dto.abandonedCartEnabled ?? false,
         abandonedCartDelayMin: dto.abandonedCartDelayMin ?? 60,
         abandonedCartChannels: (dto.abandonedCartChannels ?? ['sms']) as any,
+        abandonedCartDiscountEnabled: dto.abandonedCartDiscountEnabled ?? false,
+        abandonedCartDiscountPercent: dto.abandonedCartDiscountPercent ?? 10,
+        reminderCadencePreset: dto.reminderCadencePreset ?? 'standard',
+        campaignScheduleMode: dto.campaignScheduleMode ?? 'manual',
+        campaignTimezone: dto.campaignTimezone ?? 'Asia/Muscat',
         welcomeAutomationEnabled: dto.welcomeAutomationEnabled ?? false,
         lowStockAlertEnabled: dto.lowStockAlertEnabled ?? true,
       },
     });
 
     return { success: true, message: 'تم حفظ إعدادات الأتمتة', data: updated };
+  }
+
+  async listCampaigns(user: { sub: string; role: string }, storeId: bigint) {
+    await this.assertStoreOwner(user, storeId);
+    const campaigns = await this.prisma.storeCampaign.findMany({
+      where: { storeId },
+      orderBy: [{ createdAt: 'desc' }],
+      take: 50,
+    });
+    return {
+      success: true,
+      data: campaigns.map((campaign) => ({
+        ...campaign,
+        discountPercent: campaign.discountPercent ?? null,
+      })),
+    };
+  }
+
+  async createCampaign(
+    user: { sub: string; role: string },
+    storeId: bigint,
+    dto: CreateCampaignDto
+  ) {
+    await this.assertStoreOwner(user, storeId);
+    const nameAr = dto.nameAr?.trim();
+    const nameEn = dto.nameEn?.trim();
+    if (!nameAr || !nameEn) {
+      throw new BadRequestException('اسم الحملة مطلوب بالعربية والإنجليزية');
+    }
+
+    const startsAt = dto.startsAt ? new Date(dto.startsAt) : null;
+    const endsAt = dto.endsAt ? new Date(dto.endsAt) : null;
+    const scheduledAt = dto.scheduledAt ? new Date(dto.scheduledAt) : null;
+    if (startsAt && endsAt && endsAt < startsAt) {
+      throw new BadRequestException('تاريخ نهاية الحملة يجب أن يكون بعد تاريخ البداية');
+    }
+
+    const automation = await this.ensureAutomationSettings(storeId);
+    const defaultStatus: CampaignStatus =
+      dto.status ??
+      (automation.campaignScheduleMode === 'scheduled' || scheduledAt ? 'scheduled' : 'draft');
+
+    const created = await this.prisma.storeCampaign.create({
+      data: {
+        storeId,
+        nameAr,
+        nameEn,
+        objective: (dto.objective || 'sales_boost').trim(),
+        channel: (dto.channel || 'sms') as any,
+        audience: (dto.audience || 'all_customers') as any,
+        status: defaultStatus as any,
+        discountPercent: dto.discountPercent,
+        reminderCadencePreset: dto.reminderCadencePreset || automation.reminderCadencePreset,
+        scheduledAt,
+        startsAt,
+        endsAt,
+      },
+    });
+
+    return { success: true, message: 'تم إنشاء الحملة', data: created };
   }
 
   async getAnalyticsOverview(
@@ -301,20 +381,28 @@ export class StoresService {
     const from = new Date();
     from.setDate(from.getDate() - (days - 1));
     from.setHours(0, 0, 0, 0);
+    const prevFrom = new Date(from);
+    prevFrom.setDate(prevFrom.getDate() - days);
 
-    const orders = await this.prisma.order.findMany({
-      where: { storeId, createdAt: { gte: from } },
-      orderBy: { createdAt: 'asc' },
-      include: {
-        items: {
-          select: {
-            productName: true,
-            quantity: true,
-            totalPrice: true,
+    const [orders, previousPeriodOrders] = await Promise.all([
+      this.prisma.order.findMany({
+        where: { storeId, createdAt: { gte: from } },
+        orderBy: { createdAt: 'asc' },
+        include: {
+          items: {
+            select: {
+              productName: true,
+              quantity: true,
+              totalPrice: true,
+            },
           },
         },
-      },
-    });
+      }),
+      this.prisma.order.findMany({
+        where: { storeId, createdAt: { gte: prevFrom, lt: from } },
+        include: { items: { select: { quantity: true, totalPrice: true } } },
+      }),
+    ]);
 
     const nonCancelled = orders.filter((o) => o.status !== 'cancelled' && o.status !== 'refunded');
     const revenue = nonCancelled.reduce((sum, o) => sum + Number(o.totalAmount), 0);
@@ -325,6 +413,17 @@ export class StoresService {
     const cancelledCount = orders.filter(
       (o) => o.status === 'cancelled' || o.status === 'refunded'
     ).length;
+    const confirmedLikeCount = orders.filter((o) =>
+      ['confirmed', 'processing', 'shipped', 'delivered'].includes(o.status)
+    ).length;
+    const statusCounts = {
+      pending: orders.filter((o) => o.status === 'pending').length,
+      confirmed: orders.filter((o) => o.status === 'confirmed').length,
+      processing: orders.filter((o) => o.status === 'processing').length,
+      shipped: orders.filter((o) => o.status === 'shipped').length,
+      delivered: deliveredCount,
+      cancelled: cancelledCount,
+    };
 
     const byCustomer = new Map<string, number>();
     for (const o of orders) {
@@ -333,6 +432,20 @@ export class StoresService {
     }
     const repeatCustomers = [...byCustomer.values()].filter((x) => x > 1).length;
     const repeatCustomerRate = byCustomer.size ? (repeatCustomers / byCustomer.size) * 100 : 0;
+    const repeatOrdersCount = orders.reduce((sum, o) => {
+      const key = o.customerId.toString();
+      return sum + ((byCustomer.get(key) || 0) > 1 ? 1 : 0);
+    }, 0);
+    const totalItemsSold = nonCancelled.reduce(
+      (sum, o) => sum + o.items.reduce((x, item) => x + item.quantity, 0),
+      0
+    );
+    const avgItemsPerOrder = nonCancelled.length ? totalItemsSold / nonCancelled.length : 0;
+    const checkoutCompletionProxyRate = ordersCount ? (confirmedLikeCount / ordersCount) * 100 : 0;
+    const deliverySuccessRate = nonCancelled.length
+      ? (deliveredCount / nonCancelled.length) * 100
+      : 0;
+    const cancellationRate = ordersCount ? (cancelledCount / ordersCount) * 100 : 0;
 
     const productStats = new Map<string, { quantity: number; revenue: number }>();
     for (const o of nonCancelled) {
@@ -359,6 +472,32 @@ export class StoresService {
       const key = o.createdAt.toISOString().slice(0, 10);
       dayMap.set(key, (dayMap.get(key) || 0) + Number(o.totalAmount));
     }
+    const dailyOrderCountMap = new Map<string, number>();
+    for (let i = 0; i < days; i++) {
+      const d = new Date(from);
+      d.setDate(from.getDate() + i);
+      dailyOrderCountMap.set(d.toISOString().slice(0, 10), 0);
+    }
+    for (const o of orders) {
+      const key = o.createdAt.toISOString().slice(0, 10);
+      dailyOrderCountMap.set(key, (dailyOrderCountMap.get(key) || 0) + 1);
+    }
+
+    const prevNonCancelled = previousPeriodOrders.filter(
+      (o) => o.status !== 'cancelled' && o.status !== 'refunded'
+    );
+    const prevRevenue = prevNonCancelled.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+    const prevOrdersCount = previousPeriodOrders.length;
+    const prevAvgOrderValue = prevNonCancelled.length ? prevRevenue / prevNonCancelled.length : 0;
+    const prevByCustomer = new Map<string, number>();
+    for (const o of previousPeriodOrders) {
+      const key = o.customerId.toString();
+      prevByCustomer.set(key, (prevByCustomer.get(key) || 0) + 1);
+    }
+    const prevRepeatCustomers = [...prevByCustomer.values()].filter((x) => x > 1).length;
+    const prevRepeatCustomerRate = prevByCustomer.size
+      ? (prevRepeatCustomers / prevByCustomer.size) * 100
+      : 0;
 
     return {
       success: true,
@@ -371,12 +510,37 @@ export class StoresService {
           deliveredCount,
           pendingCount,
           cancelledCount,
+          uniqueCustomers: byCustomer.size,
+          repeatCustomers,
+          repeatOrdersCount,
+          returningOrdersShare: Number(
+            (ordersCount ? (repeatOrdersCount / ordersCount) * 100 : 0).toFixed(1)
+          ),
+          checkoutCompletionProxyRate: Number(checkoutCompletionProxyRate.toFixed(1)),
+          deliverySuccessRate: Number(deliverySuccessRate.toFixed(1)),
+          cancellationRate: Number(cancellationRate.toFixed(1)),
+          avgItemsPerOrder: Number(avgItemsPerOrder.toFixed(2)),
           repeatCustomerRate: Number(repeatCustomerRate.toFixed(1)),
         },
         dailySales: [...dayMap.entries()].map(([date, total]) => ({
           date,
           total: round3(total),
         })),
+        dailyOrders: [...dailyOrderCountMap.entries()].map(([date, count]) => ({
+          date,
+          count,
+        })),
+        statusDistribution: Object.entries(statusCounts).map(([status, count]) => ({
+          status,
+          count,
+          percent: Number((ordersCount ? (count / ordersCount) * 100 : 0).toFixed(1)),
+        })),
+        trendComparison: {
+          revenueDeltaPercent: calcDeltaPercent(revenue, prevRevenue),
+          ordersDeltaPercent: calcDeltaPercent(ordersCount, prevOrdersCount),
+          avgOrderValueDeltaPercent: calcDeltaPercent(avgOrderValue, prevAvgOrderValue),
+          repeatRateDeltaPercent: calcDeltaPercent(repeatCustomerRate, prevRepeatCustomerRate),
+        },
         topProducts,
       },
     };
@@ -391,6 +555,11 @@ export class StoresService {
         abandonedCartEnabled: false,
         abandonedCartDelayMin: 60,
         abandonedCartChannels: ['sms'] as any,
+        abandonedCartDiscountEnabled: false,
+        abandonedCartDiscountPercent: 10,
+        reminderCadencePreset: 'standard',
+        campaignScheduleMode: 'manual',
+        campaignTimezone: 'Asia/Muscat',
         welcomeAutomationEnabled: false,
         lowStockAlertEnabled: true,
       },
@@ -427,4 +596,10 @@ export class StoresService {
 
 function round3(v: number) {
   return Number(v.toFixed(3));
+}
+
+function calcDeltaPercent(current: number, previous: number) {
+  if (!previous && !current) return 0;
+  if (!previous) return 100;
+  return Number((((current - previous) / previous) * 100).toFixed(1));
 }

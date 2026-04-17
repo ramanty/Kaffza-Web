@@ -18,6 +18,7 @@ import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { CompleteOnboardingStepDto } from './dto/complete-onboarding-step.dto';
 import { UpdateAutomationDto } from './dto/update-automation.dto';
+import { CreateCampaignDto } from './dto/create-campaign.dto';
 
 @ApiTags('Stores')
 @Controller('stores')
@@ -96,6 +97,24 @@ export class StoresController {
     @Body() dto: UpdateAutomationDto
   ) {
     return this.stores.updateAutomationSettings(user, this.toBigInt(id), dto);
+  }
+
+  @Get(':id/campaigns')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  campaigns(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.stores.listCampaigns(user, this.toBigInt(id));
+  }
+
+  @Post(':id/campaigns')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  createCampaign(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Body() dto: CreateCampaignDto
+  ) {
+    return this.stores.createCampaign(user, this.toBigInt(id), dto);
   }
 
   @Get(':id/analytics/overview')
