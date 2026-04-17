@@ -15,6 +15,7 @@ import {
   getEnabledPaymentMethods,
   normalizePaymentSettings,
 } from '../stores/store-settings.util';
+import { IntegrationsService } from '../integrations/integrations.service';
 
 const THAWANI_GATEWAY_FEE_RATE = 0.02;
 
@@ -23,7 +24,8 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cart: CartService,
-    private readonly notifications: NotificationsService
+    private readonly notifications: NotificationsService,
+    private readonly integrations: IntegrationsService
   ) {}
 
   async checkout(user: any, storeId: bigint, dto: CheckoutDto) {
@@ -63,6 +65,8 @@ export class OrdersService {
     const merchantAmount = round3(totalAmount - thawaniFee - commissionAmount);
 
     const orderNumber = await this.generateOrderNumber();
+    const hasExistingCustomerOrder =
+      (await this.prisma.order.count({ where: { storeId, customerId: BigInt(user.sub) } })) > 0;
 
     const paymentGateway = this.paymentGatewayFromMethod(paymentMethod);
 
@@ -136,6 +140,28 @@ export class OrdersService {
     await this.cart.clearCart(user.sub, storeId.toString());
 
     // notify merchant new order
+    await this.integrations
+      .emitEvent(storeId, 'order.created', {
+        orderId: created.id.toString(),
+        orderNumber,
+        status: created.status,
+        totalAmount,
+        paymentMethod,
+        customerId: user.sub,
+      })
+      .catch(() => undefined);
+
+    if (!hasExistingCustomerOrder) {
+      await this.integrations
+        .emitEvent(storeId, 'customer.created', {
+          customerId: user.sub,
+          email: user.email || null,
+          role: user.role || 'customer',
+          firstOrderId: created.id.toString(),
+        })
+        .catch(() => undefined);
+    }
+
     await this.notifications.notifyUser(store.ownerId, {
       titleAr: 'طلب جديد',
       titleEn: 'New Order',
@@ -175,6 +201,15 @@ export class OrdersService {
       where: { id: orderId },
       data: { status: status as any },
     });
+
+    await this.integrations
+      .emitEvent(storeId, 'order.updated', {
+        orderId: orderId.toString(),
+        orderNumber: order.orderNumber,
+        previousStatus: order.status,
+        status: updated.status,
+      })
+      .catch(() => undefined);
 
     // notify customer
     await this.notifications.notifyUser(order.customerId, {

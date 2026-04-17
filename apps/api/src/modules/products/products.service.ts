@@ -9,10 +9,14 @@ import { PrismaService } from '../../database/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ListProductsQuery } from './dto/list-products.query';
+import { IntegrationsService } from '../integrations/integrations.service';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly integrations: IntegrationsService
+  ) {}
 
   async create(user: any, storeId: bigint, dto: CreateProductDto) {
     await this.assertStoreOwner(user, storeId);
@@ -54,6 +58,16 @@ export class ProductsService {
       },
       include: { variants: true },
     });
+
+    await this.integrations
+      .emitEvent(storeId, 'product.created', {
+        productId: product.id.toString(),
+        nameAr: product.nameAr,
+        nameEn: product.nameEn,
+        isActive: product.isActive,
+        stock: product.stock,
+      })
+      .catch(() => undefined);
 
     return { success: true, message: 'تم إضافة المنتج', data: this.map(product) };
   }
@@ -129,6 +143,16 @@ export class ProductsService {
       },
       include: { variants: true },
     });
+
+    await this.integrations
+      .emitEvent(storeId, 'product.updated', {
+        productId: updated.id.toString(),
+        nameAr: updated.nameAr,
+        nameEn: updated.nameEn,
+        isActive: updated.isActive,
+        stock: updated.stock,
+      })
+      .catch(() => undefined);
 
     return { success: true, message: 'تم تحديث المنتج', data: this.map(updated) };
   }

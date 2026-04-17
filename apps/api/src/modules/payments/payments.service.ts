@@ -8,13 +8,15 @@ import { ConfigService } from '@nestjs/config';
 
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { IntegrationsService } from '../integrations/integrations.service';
 
 @Injectable()
 export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
-    private readonly notifications: NotificationsService
+    private readonly notifications: NotificationsService,
+    private readonly integrations: IntegrationsService
   ) {}
 
   async createThawaniSessionByOrderId(user: any, orderId: bigint, isMobile = false) {
@@ -216,6 +218,16 @@ export class PaymentsService {
         },
       });
     });
+
+    await this.integrations
+      .emitEvent(order.storeId, 'payment.status_changed', {
+        orderId: orderId.toString(),
+        orderNumber: order.orderNumber,
+        paymentStatus: 'paid',
+        gateway: order.payment.gateway,
+        amount: Number(order.payment.amount),
+      })
+      .catch(() => undefined);
 
     await this.notifications.notifyUser(order.store.ownerId, {
       titleAr: 'طلب جديد مدفوع',

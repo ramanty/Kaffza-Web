@@ -18,6 +18,7 @@ const NAV_AR: NavItem[] = [
   { href: '/dashboard/shipping', label: 'الشحن', icon: '🚚' },
   { href: '/dashboard/disputes', label: 'النزاعات', icon: '⚖️' },
   { href: '/dashboard/wallet', label: 'المحفظة', icon: '👜' },
+  { href: '/dashboard/integrations', label: 'التكاملات', icon: '🧩' },
   { href: '/dashboard/settings', label: 'الإعدادات', icon: '⚙️' },
 ];
 
@@ -33,6 +34,7 @@ const NAV_EN: NavItem[] = [
   { href: '/dashboard/shipping', label: 'Shipping', icon: '🚚' },
   { href: '/dashboard/disputes', label: 'Disputes', icon: '⚖️' },
   { href: '/dashboard/wallet', label: 'Wallet', icon: '👜' },
+  { href: '/dashboard/integrations', label: 'Integrations', icon: '🧩' },
   { href: '/dashboard/settings', label: 'Settings', icon: '⚙️' },
 ];
 

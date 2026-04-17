@@ -24,6 +24,7 @@ import { EscrowModule } from './modules/escrow/escrow.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { HealthModule } from './modules/health/health.module';
+import { IntegrationsModule } from './modules/integrations/integrations.module';
 
 // Config & Database
 import { DatabaseModule } from './database/database.module';
@@ -62,6 +63,7 @@ import { ConfigModule } from './config/config.module';
     AdminModule,
     UploadsModule,
     HealthModule,
+    IntegrationsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

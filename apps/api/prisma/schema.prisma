@@ -106,6 +106,9 @@ model Store {
   onboardingSteps StoreOnboardingStepProgress[]
   automation      StoreAutomationSettings?
   campaigns       StoreCampaign[]
+  webhookEndpoints StoreWebhookEndpoint[]
+  integrationApiKeys StoreIntegrationApiKey[]
+  integrationEvents IntegrationEvent[]
 
   @@map("stores")
 }
@@ -396,6 +399,27 @@ enum EscrowStatus {
   disputed
 }
 
+enum IntegrationEventType {
+  order_created
+  order_updated
+  payment_status_changed
+  product_created
+  product_updated
+  customer_created
+}
+
+enum IntegrationEventStatus {
+  pending
+  processing
+  delivered
+  failed
+}
+
+enum IntegrationDeliveryStatus {
+  success
+  failed
+}
+
 model Payment {
   id                BigInt        @id @default(autoincrement())
   orderId           BigInt        @unique @map("order_id")
@@ -414,6 +438,81 @@ model Payment {
 
   @@index([escrowStatus, releaseAt])
   @@map("payments")
+}
+
+model StoreWebhookEndpoint {
+  id             BigInt   @id @default(autoincrement())
+  storeId        BigInt   @map("store_id")
+  name           String   @db.VarChar(80)
+  url            String   @db.VarChar(500)
+  secret         String   @db.VarChar(128)
+  events         Json     @default("[]")
+  isActive       Boolean  @default(true) @map("is_active")
+  lastDeliveryAt DateTime? @map("last_delivery_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  store          Store    @relation(fields: [storeId], references: [id])
+  deliveries     IntegrationEventDelivery[]
+
+  @@index([storeId, isActive])
+  @@map("store_webhook_endpoints")
+}
+
+model StoreIntegrationApiKey {
+  id         BigInt    @id @default(autoincrement())
+  storeId    BigInt    @map("store_id")
+  name       String    @db.VarChar(80)
+  keyPrefix  String    @map("key_prefix") @db.VarChar(20)
+  keyHash    String    @unique @map("key_hash") @db.VarChar(128)
+  isActive   Boolean   @default(true) @map("is_active")
+  lastUsedAt DateTime? @map("last_used_at")
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  store      Store     @relation(fields: [storeId], references: [id])
+
+  @@index([storeId, isActive])
+  @@map("store_integration_api_keys")
+}
+
+model IntegrationEvent {
+  id             BigInt                 @id @default(autoincrement())
+  storeId        BigInt                 @map("store_id")
+  eventType      IntegrationEventType   @map("event_type")
+  payload        Json
+  status         IntegrationEventStatus @default(pending)
+  attempts       Int                    @default(0)
+  nextAttemptAt  DateTime               @default(now()) @map("next_attempt_at")
+  lastError      String?                @map("last_error") @db.Text
+  processedAt    DateTime?              @map("processed_at")
+  createdAt      DateTime               @default(now()) @map("created_at")
+  updatedAt      DateTime               @updatedAt @map("updated_at")
+
+  store          Store                  @relation(fields: [storeId], references: [id])
+  deliveries     IntegrationEventDelivery[]
+
+  @@index([status, nextAttemptAt])
+  @@index([storeId, createdAt])
+  @@map("integration_events")
+}
+
+model IntegrationEventDelivery {
+  id         BigInt                    @id @default(autoincrement())
+  eventId    BigInt                    @map("event_id")
+  endpointId BigInt                    @map("endpoint_id")
+  status     IntegrationDeliveryStatus
+  attempt    Int
+  httpStatus Int?                      @map("http_status")
+  error      String?                   @db.Text
+  createdAt  DateTime                  @default(now()) @map("created_at")
+
+  event      IntegrationEvent          @relation(fields: [eventId], references: [id])
+  endpoint   StoreWebhookEndpoint      @relation(fields: [endpointId], references: [id])
+
+  @@index([eventId])
+  @@map("integration_event_deliveries")
 }
 
 // ---- Shipments ----
