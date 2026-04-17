@@ -81,7 +81,6 @@ function OnboardingPageInner() {
         // ignore
       }
     })();
-     
   }, []);
 
   const step1Ok = useMemo(
@@ -191,19 +190,19 @@ function OnboardingPageInner() {
 
   return (
     <main dir={isEn ? 'ltr' : 'rtl'} className="mx-auto max-w-4xl px-6 py-10">
-      <div>
+      <Card className="border-black/10 p-6">
         <div className="text-kaffza-text/70 text-xs">
           {isEn ? 'Merchant setup' : 'إعدادات التاجر'}
         </div>
-        <h1 className="text-kaffza-primary text-2xl font-extrabold">
+        <h1 className="text-kaffza-primary mt-1 text-3xl font-extrabold">
           {isEn ? 'Create your store' : 'إنشاء متجرك'}
         </h1>
-        <p className="text-kaffza-text/80 mt-1 text-sm">
+        <p className="text-kaffza-text/80 mt-2 text-sm leading-6">
           {isEn
-            ? '3 simple steps to start selling on Kaffza.'
-            : '3 خطوات بسيطة لتبدأ البيع على Kaffza.'}
+            ? 'Complete these 3 guided steps to launch your storefront with a clean setup and ready checkout.'
+            : 'أكمل 3 خطوات واضحة لإطلاق متجرك بسرعة مع إعداد منظم وتجربة دفع جاهزة.'}
         </p>
-      </div>
+      </Card>
 
       <Stepper step={step} isEn={isEn} />
 
@@ -221,7 +220,7 @@ function OnboardingPageInner() {
       ) : null}
 
       {step === 1 ? (
-        <Card className="mt-6 p-6">
+        <Card className="mt-6 border-black/10 p-6">
           <div className="text-kaffza-primary text-sm font-extrabold">
             {isEn ? 'Step 1 — Store details' : 'الخطوة 1 — معلومات المتجر'}
           </div>
@@ -275,7 +274,7 @@ function OnboardingPageInner() {
       ) : null}
 
       {step === 2 ? (
-        <Card className="mt-6 p-6">
+        <Card className="mt-6 border-black/10 p-6">
           <div className="text-kaffza-primary text-sm font-extrabold">
             {isEn ? 'Step 2 — URL & identity' : 'الخطوة 2 — الرابط والهوية'}
           </div>
@@ -329,9 +328,14 @@ function OnboardingPageInner() {
 
       {step === 3 ? (
         <div className="mt-6 space-y-4">
-          <Card className="p-6">
+          <Card className="border-black/10 p-6">
             <div className="text-kaffza-primary text-sm font-extrabold">
               {isEn ? 'Step 3 — Pick a plan' : 'الخطوة 3 — اختيار الخطة'}
+            </div>
+            <div className="text-kaffza-text/70 mt-2 text-xs">
+              {isEn
+                ? 'You can upgrade later anytime from your dashboard.'
+                : 'يمكنك ترقية الخطة لاحقاً في أي وقت من لوحة التحكم.'}
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-3">
               {PLANS.map((p) => (
@@ -410,7 +414,7 @@ function Step({ active, done, title, label }: any) {
   return (
     <div
       className={
-        'rounded-xl border p-4 ' +
+        'rounded-xl border p-4 shadow-sm ' +
         (active ? 'border-kaffza-primary bg-white' : 'border-black/10 bg-white')
       }
     >
@@ -434,12 +438,14 @@ function Step({ active, done, title, label }: any) {
 }
 
 function PlanCard({ plan, selected, onSelect, isEn }: any) {
-  const border = selected ? 'border-kaffza-primary' : 'border-black/10';
+  const border = selected
+    ? 'border-kaffza-primary ring-1 ring-kaffza-primary/30'
+    : 'border-black/10';
   const bg = plan.popular ? 'bg-[#F5A623]/10' : 'bg-white';
   return (
     <button
       onClick={onSelect}
-      className={`rounded-2xl border text-right ${border} ${bg} hover:border-kaffza-primary p-5 transition`}
+      className={`hover:border-kaffza-primary rounded-2xl border p-5 text-right transition ${border} ${bg}`}
     >
       <div className="flex items-center justify-between">
         <div className="text-kaffza-primary text-sm font-extrabold">{plan.name}</div>

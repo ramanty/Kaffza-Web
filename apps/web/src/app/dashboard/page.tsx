@@ -3,7 +3,16 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { TrendingUp, ShoppingBag, Wallet, Clock, Plus, Rocket, Megaphone } from 'lucide-react';
+import {
+  TrendingUp,
+  ShoppingBag,
+  Wallet,
+  Clock,
+  Plus,
+  Rocket,
+  Megaphone,
+  LifeBuoy,
+} from 'lucide-react';
 import { api } from '../../lib/api';
 import { authHeader } from '../../lib/auth';
 import { useStore } from './store-context';
@@ -97,8 +106,8 @@ function DashboardPageInner() {
             }))
           );
         } else {
-          setOrdersFromApi(false);
-          setRecentOrders(MOCK_RECENT_ORDERS);
+          setOrdersFromApi(true);
+          setRecentOrders([]);
         }
       } catch (e: any) {
         const msg =
@@ -107,6 +116,7 @@ function DashboardPageInner() {
           (isEn ? 'Failed to load dashboard data' : 'حدث خطأ أثناء تحميل البيانات');
         if (mounted) {
           setError(msg);
+          setOrdersFromApi(false);
           setRecentOrders(MOCK_RECENT_ORDERS);
         }
       } finally {
@@ -121,11 +131,11 @@ function DashboardPageInner() {
 
   const totalSales = useMemo(() => Number(wallet?.totalEarned ?? 0), [wallet]);
   const walletBalance = useMemo(() => Number(wallet?.availableBalance ?? 0), [wallet]);
+  const hasNoStore = !storesLoading && !storeLabel;
 
   return (
     <div className="space-y-6">
-      {/* ── Welcome ── */}
-      <header className="flex flex-col gap-1">
+      <header className="space-y-4">
         {welcome && (
           <div className="border-kaffza-success/30 bg-kaffza-success/10 text-kaffza-success rounded-xl border p-4 text-sm font-bold">
             {isEn
@@ -134,62 +144,91 @@ function DashboardPageInner() {
           </div>
         )}
 
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-kaffza-primary text-2xl font-extrabold">
-              {storesLoading
-                ? isEn
-                  ? 'Loading...'
-                  : 'جاري التحميل...'
-                : storeLabel
+        <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-kaffza-primary text-2xl font-extrabold">
+                {storesLoading
                   ? isEn
-                    ? 'Welcome back to your store 👋'
-                    : 'مرحباً بك في متجرك 👋'
-                  : isEn
-                    ? 'Welcome to Kaffza 👋'
-                    : 'مرحباً بك في Kaffza 👋'}
-            </h1>
-            <p className="text-kaffza-text/70 mt-1 text-sm">
-              {storesLoading
-                ? isEn
-                  ? 'Loading stores...'
-                  : 'تحميل المتاجر...'
-                : storeLabel
+                    ? 'Loading...'
+                    : 'جاري التحميل...'
+                  : storeLabel
+                    ? isEn
+                      ? 'Welcome back 👋'
+                      : 'مرحباً بعودتك 👋'
+                    : isEn
+                      ? 'Start your merchant workspace'
+                      : 'ابدأ مساحة عمل متجرك'}
+              </h1>
+              <p className="text-kaffza-text/70 mt-1 text-sm">
+                {storesLoading
                   ? isEn
-                    ? `Store performance overview: ${storeLabel}`
-                    : `نظرة عامة على أداء متجرك: ${storeLabel}`
-                  : isEn
-                    ? 'No store is linked to your account yet'
-                    : 'لا يوجد متجر مرتبط بحسابك بعد'}
-            </p>
+                    ? 'Loading stores...'
+                    : 'تحميل المتاجر...'
+                  : storeLabel
+                    ? isEn
+                      ? `Today overview for ${storeLabel}`
+                      : `ملخص اليوم لمتجرك: ${storeLabel}`
+                    : isEn
+                      ? 'No store linked yet. Complete onboarding to activate your dashboard.'
+                      : 'لا يوجد متجر مرتبط بعد. أكمل الإعداد لتفعيل لوحة التحكم.'}
+              </p>
+            </div>
+
+            <Link
+              href={withLang('/dashboard/products/new', isEn)}
+              className="bg-kaffza-primary inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-opacity hover:opacity-90"
+            >
+              <Plus className="h-4 w-4" />
+              {isEn ? 'Add Product' : 'إضافة منتج'}
+            </Link>
           </div>
 
-          {/* Quick Action */}
-          <Link
-            href={withLang('/dashboard/products', isEn)}
-            className="bg-kaffza-primary inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-opacity hover:opacity-90"
-          >
-            <Plus className="h-4 w-4" />
-            {isEn ? 'Add New Product' : 'إضافة منتج جديد'}
-          </Link>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Link
-            href={withLang('/dashboard/onboarding', isEn)}
-            className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
-          >
-            <Rocket className="h-4 w-4" />
-            {isEn ? 'Launch Plan' : 'خطة الانطلاقة'}
-          </Link>
-          <Link
-            href={withLang('/dashboard/growth', isEn)}
-            className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
-          >
-            <Megaphone className="h-4 w-4" />
-            {isEn ? 'Growth Hub' : 'مركز النمو'}
-          </Link>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href={withLang('/dashboard/onboarding', isEn)}
+              className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
+            >
+              <Rocket className="h-4 w-4" />
+              {isEn ? 'Launch checklist' : 'خطة الانطلاقة'}
+            </Link>
+            <Link
+              href={withLang('/dashboard/growth', isEn)}
+              className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
+            >
+              <Megaphone className="h-4 w-4" />
+              {isEn ? 'Growth hub' : 'مركز النمو'}
+            </Link>
+            <Link
+              href={withLang('/dashboard/settings', isEn)}
+              className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
+            >
+              <LifeBuoy className="h-4 w-4" />
+              {isEn ? 'Store settings' : 'إعدادات المتجر'}
+            </Link>
+          </div>
         </div>
       </header>
+
+      {hasNoStore ? (
+        <div className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
+          <h2 className="text-kaffza-primary text-lg font-extrabold">
+            {isEn ? 'No active store yet' : 'لا يوجد متجر نشط بعد'}
+          </h2>
+          <p className="text-kaffza-text/70 mt-2 text-sm">
+            {isEn
+              ? 'Finish onboarding to create your first store, then return here for sales and order insights.'
+              : 'أكمل خطوات الإعداد لإنشاء متجرك الأول ثم عد هنا لمتابعة الطلبات والمبيعات.'}
+          </p>
+          <div className="mt-4">
+            <Link href={withLang('/onboarding', isEn)}>
+              <span className="bg-kaffza-primary inline-flex rounded-xl px-4 py-2 text-sm font-bold text-white">
+                {isEn ? 'Continue onboarding' : 'متابعة الإعداد'}
+              </span>
+            </Link>
+          </div>
+        </div>
+      ) : null}
 
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -197,7 +236,6 @@ function DashboardPageInner() {
         </div>
       )}
 
-      {/* ── KPI Cards ── */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title={isEn ? 'Total Sales' : 'إجمالي المبيعات'}
@@ -233,7 +271,6 @@ function DashboardPageInner() {
         />
       </section>
 
-      {/* ── Chart + Wallet Summary ── */}
       <section className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <SalesChart isEn={isEn} />
@@ -275,7 +312,6 @@ function DashboardPageInner() {
         </div>
       </section>
 
-      {/* ── Recent Orders ── */}
       <section>
         {!ordersFromApi && !loading && (
           <div className="border-kaffza-warning/30 bg-kaffza-warning/10 text-kaffza-warning mb-3 rounded-lg border px-4 py-2 text-xs font-semibold">
@@ -284,6 +320,34 @@ function DashboardPageInner() {
               : 'يتم عرض بيانات تجريبية — قم بتوصيل متجرك لعرض طلباتك الحقيقية'}
           </div>
         )}
+
+        {ordersFromApi && !loading && recentOrders.length === 0 ? (
+          <div className="mb-3 rounded-lg border border-black/10 bg-white px-4 py-4 text-sm">
+            <div className="text-kaffza-primary font-extrabold">
+              {isEn ? 'No orders yet' : 'لا توجد طلبات حتى الآن'}
+            </div>
+            <p className="text-kaffza-text/70 mt-1 text-xs">
+              {isEn
+                ? 'Add products and share your storefront link to receive your first order.'
+                : 'أضف منتجاتك وشارك رابط متجرك لبدء استقبال أول طلب.'}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                href={withLang('/dashboard/products/new', isEn)}
+                className="text-kaffza-primary rounded-lg border border-black/10 px-3 py-1.5 text-xs font-bold"
+              >
+                {isEn ? 'Add first product' : 'إضافة أول منتج'}
+              </Link>
+              <Link
+                href={withLang('/dashboard/onboarding', isEn)}
+                className="text-kaffza-primary rounded-lg border border-black/10 px-3 py-1.5 text-xs font-bold"
+              >
+                {isEn ? 'Open checklist' : 'فتح خطة الانطلاقة'}
+              </Link>
+            </div>
+          </div>
+        ) : null}
+
         <RecentOrdersTable orders={recentOrders} loading={loading} isEn={isEn} />
       </section>
     </div>
