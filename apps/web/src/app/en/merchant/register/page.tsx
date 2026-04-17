@@ -95,7 +95,7 @@ export default function EnMerchantRegisterPage() {
       const token = res?.data?.data?.tokens?.accessToken;
       if (!token) throw new Error('No access token received');
       document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
-      router.replace('/onboarding');
+      router.replace('/onboarding?lang=en');
     } catch (e: any) {
       setMsg({ type: 'error', text: extractApiErrorMessage(e, 'OTP verification failed') });
     } finally {
@@ -206,7 +206,7 @@ export default function EnMerchantRegisterPage() {
               onError={(text) => setMsg({ type: 'error', text })}
               onAuthSuccess={(token) => {
                 document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
-                router.replace('/onboarding');
+                router.replace('/onboarding?lang=en');
               }}
             />
           </div>

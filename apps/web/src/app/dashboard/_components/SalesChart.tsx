@@ -1,34 +1,41 @@
-// Mock sales data for the last 7 days
-const DAYS = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+const DAYS_AR = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+const DAYS_EN = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
 const MOCK_SALES = [
-  { day: 'السبت', amount: 142.5 },
-  { day: 'الأحد', amount: 89.0 },
-  { day: 'الاثنين', amount: 230.75 },
-  { day: 'الثلاثاء', amount: 178.25 },
-  { day: 'الأربعاء', amount: 315.0 },
-  { day: 'الخميس', amount: 265.5 },
-  { day: 'الجمعة', amount: 420.0 },
+  { amount: 142.5 },
+  { amount: 89.0 },
+  { amount: 230.75 },
+  { amount: 178.25 },
+  { amount: 315.0 },
+  { amount: 265.5 },
+  { amount: 420.0 },
 ];
 
-export function SalesChart() {
+export function SalesChart({ isEn = false }: { isEn?: boolean }) {
   const max = Math.max(...MOCK_SALES.map((d) => d.amount));
+  const days = isEn ? DAYS_EN : DAYS_AR;
 
   return (
     <div className="rounded-xl border border-black/5 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-kaffza-primary text-base font-extrabold">المبيعات — آخر 7 أيام</h2>
-          <p className="text-kaffza-text/60 mt-0.5 text-xs">بيانات تجريبية (OMR)</p>
+          <h2 className="text-kaffza-primary text-base font-extrabold">
+            {isEn ? 'Sales — Last 7 Days' : 'المبيعات — آخر 7 أيام'}
+          </h2>
+          <p className="text-kaffza-text/60 mt-0.5 text-xs">
+            {isEn ? 'Demo data (OMR)' : 'بيانات تجريبية (OMR)'}
+          </p>
         </div>
         <div className="bg-kaffza-premium/10 text-kaffza-premium rounded-lg px-3 py-1.5 text-xs font-bold">
-          {MOCK_SALES.reduce((sum, d) => sum + d.amount, 0).toFixed(3)} ر.ع إجمالاً
+          {MOCK_SALES.reduce((sum, d) => sum + d.amount, 0).toFixed(3)} ر.ع{' '}
+          {isEn ? 'total' : 'إجمالاً'}
         </div>
       </div>
 
       {/* Bar chart */}
       <div className="flex h-36 items-end gap-2">
-        {MOCK_SALES.map(({ day, amount }) => {
+        {MOCK_SALES.map(({ amount }, idx) => {
+          const day = days[idx];
           const heightPct = max > 0 ? (amount / max) * 100 : 0;
           return (
             <div key={day} className="group relative flex flex-1 flex-col items-center gap-1">
@@ -47,7 +54,7 @@ export function SalesChart() {
 
       {/* X-axis labels */}
       <div className="mt-2 flex gap-2">
-        {MOCK_SALES.map(({ day }) => (
+        {days.map((day) => (
           <div
             key={day}
             className="text-kaffza-text/60 flex-1 text-center text-[10px] font-semibold"
@@ -61,4 +68,4 @@ export function SalesChart() {
 }
 
 // re-export so it's easy to import the days constant if needed
-export { DAYS };
+export const DAYS = DAYS_AR;

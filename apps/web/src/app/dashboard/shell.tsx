@@ -9,7 +9,7 @@ import { api } from '../../lib/api';
 import { authHeader, clearAuthCookiesClientSide } from '../../lib/auth';
 import { clearStoreCookie, useStore } from './store-context';
 
-const NAV = [
+const NAV_AR = [
   { href: '/dashboard', label: 'نظرة عامة', icon: '📊' },
   { href: '/dashboard/products', label: 'المنتجات', icon: '📦' },
   { href: '/dashboard/categories', label: 'التصنيفات', icon: '🏷️' },
@@ -20,6 +20,17 @@ const NAV = [
   { href: '/dashboard/settings', label: 'الإعدادات', icon: '⚙️' },
 ];
 
+const NAV_EN = [
+  { href: '/dashboard', label: 'Overview', icon: '📊' },
+  { href: '/dashboard/products', label: 'Products', icon: '📦' },
+  { href: '/dashboard/categories', label: 'Categories', icon: '🏷️' },
+  { href: '/dashboard/orders', label: 'Orders', icon: '🧾' },
+  { href: '/dashboard/shipping', label: 'Shipping', icon: '🚚' },
+  { href: '/dashboard/disputes', label: 'Disputes', icon: '⚖️' },
+  { href: '/dashboard/wallet', label: 'Wallet', icon: '👜' },
+  { href: '/dashboard/settings', label: 'Settings', icon: '⚙️' },
+];
+
 function isActive(pathname: string, href: string) {
   if (href === '/dashboard') return pathname === '/dashboard';
   return pathname === href || pathname.startsWith(href + '/');
@@ -27,10 +38,18 @@ function isActive(pathname: string, href: string) {
 
 export default function DashboardShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() || '/dashboard';
+  const [isEn, setIsEn] = useState(false);
+  const nav = isEn ? NAV_EN : NAV_AR;
+  const withLang = (href: string) => (isEn ? `${href}?lang=en` : href);
   const router = useRouter();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userName, setUserName] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setIsEn(new URLSearchParams(window.location.search).get('lang') === 'en');
+  }, [pathname]);
 
   const { stores, storeId, setStoreId, loading: storesLoading, reload: reloadStores } = useStore();
 
@@ -47,12 +66,12 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
   }, []);
 
   const activeLabel = useMemo(
-    () => NAV.find((n) => isActive(pathname, n.href))?.label || 'لوحة التحكم',
-    [pathname]
+    () =>
+      nav.find((n) => isActive(pathname, n.href))?.label || (isEn ? 'Dashboard' : 'لوحة التحكم'),
+    [isEn, nav, pathname]
   );
 
   async function logout() {
-    // 1) revoke refresh token (best effort). If it fails, continue logout.
     try {
       await api.post('/auth/logout', {}, { headers: { 'x-client': 'web' } });
     } catch {
@@ -63,7 +82,6 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
       }
     }
 
-    // 2) clear cookies
     try {
       clearAuthCookiesClientSide();
       clearStoreCookie();
@@ -71,13 +89,11 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
       // ignore
     }
 
-    // 3) redirect
-    router.push('/login');
+    router.push(isEn ? '/en/merchant/login' : '/merchant/login');
   }
 
   return (
     <div className="bg-kaffza-bg text-kaffza-text min-h-screen">
-      {/* Desktop */}
       <div className="hidden md:flex md:flex-row-reverse">
         <DashboardSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
@@ -91,6 +107,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
             onChangeStore={(id) => setStoreId(id)}
             storesLoading={storesLoading}
             onReloadStores={() => reloadStores()}
+            isEn={isEn}
           />
           <main className="min-w-0 flex-1 p-4 md:p-8">
             <div className="mx-auto max-w-6xl">{children}</div>
@@ -98,7 +115,6 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      {/* Mobile */}
       <div className="md:hidden">
         <Header
           title={activeLabel}
@@ -111,27 +127,30 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
           onChangeStore={(id) => setStoreId(id)}
           storesLoading={storesLoading}
           onReloadStores={() => reloadStores()}
+          isEn={isEn}
         />
 
         {mobileOpen ? (
           <div className="fixed inset-0 z-50">
             <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
             <div
-              dir="rtl"
+              dir={isEn ? 'ltr' : 'rtl'}
               className="absolute right-0 top-0 h-full w-[82%] max-w-xs bg-[#1A2B4A] shadow-xl"
             >
               <div className="flex items-center justify-between border-b border-white/10 p-4">
-                <div className="text-kaffza-premium text-sm font-extrabold">القائمة</div>
+                <div className="text-kaffza-premium text-sm font-extrabold">
+                  {isEn ? 'Menu' : 'القائمة'}
+                </div>
                 <button
                   className="text-sm font-bold text-white/70"
                   onClick={() => setMobileOpen(false)}
                 >
-                  إغلاق
+                  {isEn ? 'Close' : 'إغلاق'}
                 </button>
               </div>
 
               <div className="border-b border-white/10 p-4">
-                <div className="text-xs font-bold text-white/70">المتجر</div>
+                <div className="text-xs font-bold text-white/70">{isEn ? 'Store' : 'المتجر'}</div>
                 <div className="mt-2">
                   <StoreSwitcher
                     stores={stores}
@@ -139,17 +158,18 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
                     onChange={(id) => setStoreId(id)}
                     loading={storesLoading}
                     onReload={() => reloadStores()}
+                    isEn={isEn}
                   />
                 </div>
               </div>
 
               <nav className="p-3">
-                {NAV.map((item) => {
+                {nav.map((item) => {
                   const active = isActive(pathname, item.href);
                   return (
                     <Link
                       key={item.href}
-                      href={item.href}
+                      href={withLang(item.href)}
                       onClick={() => setMobileOpen(false)}
                       className={
                         'mb-1 flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ' +
@@ -176,12 +196,12 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
 
         <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/10 bg-white">
           <div className="mx-auto grid max-w-6xl grid-cols-5">
-            {NAV.map((item) => {
+            {nav.map((item) => {
               const active = isActive(pathname, item.href);
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={withLang(item.href)}
                   className={
                     'flex flex-col items-center justify-center gap-1 px-2 py-2 text-[11px] ' +
                     (active ? 'text-kaffza-primary' : 'text-kaffza-text/70')
@@ -214,6 +234,7 @@ function Header({
   onChangeStore,
   storesLoading,
   onReloadStores,
+  isEn,
 }: {
   title: string;
   userName: string;
@@ -225,6 +246,7 @@ function Header({
   onChangeStore: (id: string) => void;
   storesLoading: boolean;
   onReloadStores: () => void;
+  isEn: boolean;
 }) {
   return (
     <header className="sticky top-0 z-30 border-b border-black/10 bg-white/90 backdrop-blur">
@@ -234,7 +256,7 @@ function Header({
             <button
               onClick={onOpenMobile}
               className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-bold"
-              aria-label="فتح القائمة"
+              aria-label={isEn ? 'Open menu' : 'فتح القائمة'}
             >
               ☰
             </button>
@@ -242,7 +264,13 @@ function Header({
 
           <div className="min-w-0">
             <div className="text-kaffza-text/70 truncate text-sm">
-              {userName ? `مرحباً، ${userName}` : 'لوحة التاجر'}
+              {userName
+                ? isEn
+                  ? `Hi, ${userName}`
+                  : `مرحباً، ${userName}`
+                : isEn
+                  ? 'Merchant Dashboard'
+                  : 'لوحة التاجر'}
             </div>
             <div className="text-kaffza-primary truncate text-base font-extrabold">{title}</div>
           </div>
@@ -254,13 +282,14 @@ function Header({
               onChange={onChangeStore}
               loading={storesLoading}
               onReload={onReloadStores}
+              isEn={isEn}
             />
           </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
           <Button variant="secondary" onClick={onLogout}>
-            تسجيل خروج
+            {isEn ? 'Logout' : 'تسجيل خروج'}
           </Button>
         </div>
       </div>
@@ -272,6 +301,7 @@ function Header({
           onChange={onChangeStore}
           loading={storesLoading}
           onReload={onReloadStores}
+          isEn={isEn}
         />
       </div>
     </header>
@@ -284,24 +314,30 @@ function StoreSwitcher({
   onChange,
   loading,
   onReload,
+  isEn,
 }: {
   stores: { id: string; nameAr?: string; nameEn?: string; subdomain?: string }[];
   storeId: string | null;
   onChange: (id: string) => void;
   loading: boolean;
   onReload: () => void;
+  isEn: boolean;
 }) {
   const multiple = stores.length > 1;
 
   if (!multiple) {
     const s = stores[0];
-    const label = s ? s.nameAr || s.nameEn || s.subdomain || s.id : '—';
+    const label = s
+      ? isEn
+        ? s.nameEn || s.nameAr || s.subdomain || s.id
+        : s.nameAr || s.nameEn || s.subdomain || s.id
+      : '—';
     return (
       <div className="bg-kaffza-bg text-kaffza-text flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
-        <span className="font-bold">المتجر:</span>
+        <span className="font-bold">{isEn ? 'Store:' : 'المتجر:'}</span>
         <span className="text-kaffza-primary font-extrabold">{loading ? '...' : label}</span>
         <button className="text-kaffza-text/70 underline" onClick={onReload}>
-          تحديث
+          {isEn ? 'Refresh' : 'تحديث'}
         </button>
       </div>
     );
@@ -316,7 +352,9 @@ function StoreSwitcher({
         disabled={loading}
       >
         {stores.map((s) => {
-          const label = s.nameAr || s.nameEn || s.subdomain || s.id;
+          const label = isEn
+            ? s.nameEn || s.nameAr || s.subdomain || s.id
+            : s.nameAr || s.nameEn || s.subdomain || s.id;
           return (
             <option key={s.id} value={s.id}>
               {label}
@@ -325,7 +363,7 @@ function StoreSwitcher({
         })}
       </select>
       <button className="text-kaffza-text/70 text-xs font-bold underline" onClick={onReload}>
-        تحديث
+        {isEn ? 'Refresh' : 'تحديث'}
       </button>
     </div>
   );

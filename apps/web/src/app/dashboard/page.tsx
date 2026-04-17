@@ -27,8 +27,13 @@ function formatOMR(v: number) {
   return `${n.toFixed(3)} ر.ع`;
 }
 
+function withLang(path: string, isEn: boolean) {
+  return isEn ? `${path}?lang=en` : path;
+}
+
 function DashboardPageInner() {
   const sp = useSearchParams();
+  const isEn = sp.get('lang') === 'en';
   const welcome = sp.get('welcome') === '1';
   const { storeId, stores, loading: storesLoading } = useStore();
 
@@ -43,8 +48,10 @@ function DashboardPageInner() {
   const storeLabel = useMemo(() => {
     const s = stores.find((x) => x.id === storeId) || stores[0];
     if (!s) return '';
-    return s.nameAr || s.nameEn || s.subdomain || s.id;
-  }, [stores, storeId]);
+    return isEn
+      ? s.nameEn || s.nameAr || s.subdomain || s.id
+      : s.nameAr || s.nameEn || s.subdomain || s.id;
+  }, [isEn, stores, storeId]);
 
   useEffect(() => {
     let mounted = true;
@@ -82,7 +89,8 @@ function DashboardPageInner() {
             orders.slice(0, 5).map((o) => ({
               id: String(o.id),
               orderNumber: o.orderNumber,
-              customerName: o.customerName || `عميل #${o.customerId}`,
+              customerName:
+                o.customerName || (isEn ? `Customer #${o.customerId}` : `عميل #${o.customerId}`),
               createdAt: o.createdAt,
               totalAmount: Number(o.totalAmount),
               status: o.status,
@@ -93,7 +101,10 @@ function DashboardPageInner() {
           setRecentOrders(MOCK_RECENT_ORDERS);
         }
       } catch (e: any) {
-        const msg = e?.response?.data?.message || e?.message || 'حدث خطأ أثناء تحميل البيانات';
+        const msg =
+          e?.response?.data?.message ||
+          e?.message ||
+          (isEn ? 'Failed to load dashboard data' : 'حدث خطأ أثناء تحميل البيانات');
         if (mounted) {
           setError(msg);
           setRecentOrders(MOCK_RECENT_ORDERS);
@@ -106,7 +117,7 @@ function DashboardPageInner() {
     return () => {
       mounted = false;
     };
-  }, [storeId]);
+  }, [isEn, storeId]);
 
   const totalSales = useMemo(() => Number(wallet?.totalEarned ?? 0), [wallet]);
   const walletBalance = useMemo(() => Number(wallet?.availableBalance ?? 0), [wallet]);
@@ -117,7 +128,9 @@ function DashboardPageInner() {
       <header className="flex flex-col gap-1">
         {welcome && (
           <div className="border-kaffza-success/30 bg-kaffza-success/10 text-kaffza-success rounded-xl border p-4 text-sm font-bold">
-            مرحباً بك في Kaffza 🎉 — تم إنشاء متجرك بنجاح!
+            {isEn
+              ? 'Welcome to Kaffza 🎉 — your store was created successfully!'
+              : 'مرحباً بك في Kaffza 🎉 — تم إنشاء متجرك بنجاح!'}
           </div>
         )}
 
@@ -125,43 +138,55 @@ function DashboardPageInner() {
           <div>
             <h1 className="text-kaffza-primary text-2xl font-extrabold">
               {storesLoading
-                ? 'جاري التحميل...'
+                ? isEn
+                  ? 'Loading...'
+                  : 'جاري التحميل...'
                 : storeLabel
-                  ? `مرحباً بك في متجرك 👋`
-                  : 'مرحباً بك في Kaffza 👋'}
+                  ? isEn
+                    ? 'Welcome back to your store 👋'
+                    : 'مرحباً بك في متجرك 👋'
+                  : isEn
+                    ? 'Welcome to Kaffza 👋'
+                    : 'مرحباً بك في Kaffza 👋'}
             </h1>
             <p className="text-kaffza-text/70 mt-1 text-sm">
               {storesLoading
-                ? 'تحميل المتاجر...'
+                ? isEn
+                  ? 'Loading stores...'
+                  : 'تحميل المتاجر...'
                 : storeLabel
-                  ? `نظرة عامة على أداء متجرك: ${storeLabel}`
-                  : 'لا يوجد متجر مرتبط بحسابك بعد'}
+                  ? isEn
+                    ? `Store performance overview: ${storeLabel}`
+                    : `نظرة عامة على أداء متجرك: ${storeLabel}`
+                  : isEn
+                    ? 'No store is linked to your account yet'
+                    : 'لا يوجد متجر مرتبط بحسابك بعد'}
             </p>
           </div>
 
           {/* Quick Action */}
           <Link
-            href="/dashboard/products"
+            href={withLang('/dashboard/products', isEn)}
             className="bg-kaffza-primary inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-opacity hover:opacity-90"
           >
             <Plus className="h-4 w-4" />
-            إضافة منتج جديد
+            {isEn ? 'Add New Product' : 'إضافة منتج جديد'}
           </Link>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
-            href="/dashboard/onboarding"
+            href={withLang('/dashboard/onboarding', isEn)}
             className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
           >
             <Rocket className="h-4 w-4" />
-            خطة الانطلاقة
+            {isEn ? 'Launch Plan' : 'خطة الانطلاقة'}
           </Link>
           <Link
-            href="/dashboard/growth"
+            href={withLang('/dashboard/growth', isEn)}
             className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
           >
             <Megaphone className="h-4 w-4" />
-            مركز النمو
+            {isEn ? 'Growth Hub' : 'مركز النمو'}
           </Link>
         </div>
       </header>
@@ -175,62 +200,66 @@ function DashboardPageInner() {
       {/* ── KPI Cards ── */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="إجمالي المبيعات"
+          title={isEn ? 'Total Sales' : 'إجمالي المبيعات'}
           value={formatOMR(totalSales)}
           loading={loading}
           icon={<TrendingUp className="h-5 w-5" />}
           variant="primary"
-          subtitle="إجمالي الأرباح المحققة"
+          subtitle={isEn ? 'Total generated revenue' : 'إجمالي الأرباح المحققة'}
         />
         <StatCard
-          title="إجمالي الطلبات"
+          title={isEn ? 'Total Orders' : 'إجمالي الطلبات'}
           value={String(ordersCount)}
           loading={loading}
           icon={<ShoppingBag className="h-5 w-5" />}
           variant="order"
-          subtitle="جميع الطلبات الواردة"
+          subtitle={isEn ? 'All incoming orders' : 'جميع الطلبات الواردة'}
         />
         <StatCard
-          title="الرصيد المتاح للسحب"
+          title={isEn ? 'Available for Withdrawal' : 'الرصيد المتاح للسحب'}
           value={formatOMR(walletBalance)}
           loading={loading}
           icon={<Wallet className="h-5 w-5" />}
           variant="premium"
-          subtitle="رصيد جاهز للسحب الآن"
+          subtitle={isEn ? 'Ready to withdraw now' : 'رصيد جاهز للسحب الآن'}
         />
         <StatCard
-          title="طلبات قيد المعالجة"
+          title={isEn ? 'Pending Orders' : 'طلبات قيد المعالجة'}
           value={String(pendingOrdersCount)}
           loading={loading}
           icon={<Clock className="h-5 w-5" />}
           variant="warning"
-          subtitle="تحتاج إلى إجراء"
+          subtitle={isEn ? 'Need your action' : 'تحتاج إلى إجراء'}
         />
       </section>
 
       {/* ── Chart + Wallet Summary ── */}
       <section className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <SalesChart />
+          <SalesChart isEn={isEn} />
         </div>
 
         <div className="rounded-xl border border-black/5 bg-white p-5 shadow-sm">
-          <h2 className="text-kaffza-primary text-base font-extrabold">ملخص المحفظة</h2>
-          <p className="text-kaffza-text/60 mt-0.5 text-xs">العملة: OMR</p>
+          <h2 className="text-kaffza-primary text-base font-extrabold">
+            {isEn ? 'Wallet Summary' : 'ملخص المحفظة'}
+          </h2>
+          <p className="text-kaffza-text/60 mt-0.5 text-xs">
+            {isEn ? 'Currency: OMR' : 'العملة: OMR'}
+          </p>
 
           <div className="mt-4 space-y-3">
             <InfoRow
-              label="الرصيد المعلق (Escrow)"
+              label={isEn ? 'Pending Balance (Escrow)' : 'الرصيد المعلق (Escrow)'}
               value={formatOMR(Number(wallet?.pendingBalance ?? 0))}
               loading={loading}
             />
             <InfoRow
-              label="إجمالي المسحوبات"
+              label={isEn ? 'Total Withdrawn' : 'إجمالي المسحوبات'}
               value={formatOMR(Number(wallet?.totalWithdrawn ?? 0))}
               loading={loading}
             />
             <InfoRow
-              label="إجمالي الأرباح"
+              label={isEn ? 'Total Earnings' : 'إجمالي الأرباح'}
               value={formatOMR(totalSales)}
               loading={loading}
               highlight
@@ -238,10 +267,10 @@ function DashboardPageInner() {
           </div>
 
           <Link
-            href="/dashboard/wallet"
+            href={withLang('/dashboard/wallet', isEn)}
             className="border-kaffza-primary/30 text-kaffza-primary hover:bg-kaffza-primary mt-4 flex w-full items-center justify-center rounded-xl border py-2 text-sm font-bold transition-colors hover:text-white"
           >
-            إدارة المحفظة
+            {isEn ? 'Manage Wallet' : 'إدارة المحفظة'}
           </Link>
         </div>
       </section>
@@ -250,10 +279,12 @@ function DashboardPageInner() {
       <section>
         {!ordersFromApi && !loading && (
           <div className="border-kaffza-warning/30 bg-kaffza-warning/10 text-kaffza-warning mb-3 rounded-lg border px-4 py-2 text-xs font-semibold">
-            يتم عرض بيانات تجريبية — قم بتوصيل متجرك لعرض طلباتك الحقيقية
+            {isEn
+              ? 'Showing demo data — connect your store to see real orders'
+              : 'يتم عرض بيانات تجريبية — قم بتوصيل متجرك لعرض طلباتك الحقيقية'}
           </div>
         )}
-        <RecentOrdersTable orders={recentOrders} loading={loading} />
+        <RecentOrdersTable orders={recentOrders} loading={loading} isEn={isEn} />
       </section>
     </div>
   );

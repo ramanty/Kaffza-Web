@@ -93,6 +93,10 @@ async function hasStores(token: string): Promise<boolean> {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const isEn = req.nextUrl.searchParams.get('lang') === 'en';
+  const merchantLoginPath = isEn ? '/en/merchant/login' : '/merchant/login';
+  const customerLoginPath = isEn ? '/en/login' : '/login';
+  const homePath = isEn ? '/en' : '/';
 
   const isDash = pathname.startsWith(DASH_PREFIX);
   const isAccount = pathname.startsWith(ACCOUNT_PREFIX);
@@ -103,31 +107,31 @@ export async function middleware(req: NextRequest) {
 
   const token = getToken(req);
   if (!token) {
-    if (isAdmin) return redirect(req, '/login', pathname);
-    if (isAccount) return redirect(req, '/login', pathname);
-    return redirect(req, '/merchant/login', pathname);
+    if (isAdmin) return redirect(req, customerLoginPath, pathname);
+    if (isAccount) return redirect(req, customerLoginPath, pathname);
+    return redirect(req, merchantLoginPath, pathname);
   }
 
   const payload = decodeJwtPayload(token);
   if (!payload) {
-    if (isAdmin) return redirect(req, '/login', pathname);
-    if (isAccount) return redirect(req, '/login', pathname);
-    return redirect(req, '/merchant/login', pathname);
+    if (isAdmin) return redirect(req, customerLoginPath, pathname);
+    if (isAccount) return redirect(req, customerLoginPath, pathname);
+    return redirect(req, merchantLoginPath, pathname);
   }
 
   if (payload?.exp && Date.now() >= Number(payload.exp) * 1000) {
-    if (isAdmin) return redirect(req, '/login', pathname);
-    if (isAccount) return redirect(req, '/login', pathname);
-    return redirect(req, '/merchant/login', pathname);
+    if (isAdmin) return redirect(req, customerLoginPath, pathname);
+    if (isAccount) return redirect(req, customerLoginPath, pathname);
+    return redirect(req, merchantLoginPath, pathname);
   }
 
   const secret = process.env.JWT_SECRET;
   if (secret) {
     const ok = await verifyHs256(token, secret);
     if (!ok) {
-      if (isAdmin) return redirect(req, '/login', pathname);
-      if (isAccount) return redirect(req, '/login', pathname);
-      return redirect(req, '/merchant/login', pathname);
+      if (isAdmin) return redirect(req, customerLoginPath, pathname);
+      if (isAccount) return redirect(req, customerLoginPath, pathname);
+      return redirect(req, merchantLoginPath, pathname);
     }
   }
 
@@ -136,7 +140,7 @@ export async function middleware(req: NextRequest) {
   if (isAdmin) {
     if (role !== 'admin') {
       const url = req.nextUrl.clone();
-      url.pathname = '/';
+      url.pathname = homePath;
       url.searchParams.set('unauthorized', '1');
       return NextResponse.redirect(url);
     }
@@ -160,7 +164,8 @@ export async function middleware(req: NextRequest) {
   }
 
   if (isAccount) {
-    if (role && role !== 'customer' && role !== 'admin') return redirect(req, '/login', pathname);
+    if (role && role !== 'customer' && role !== 'admin')
+      return redirect(req, customerLoginPath, pathname);
   }
 
   return NextResponse.next();

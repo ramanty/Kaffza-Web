@@ -54,7 +54,7 @@ export const MOCK_RECENT_ORDERS: OrderRow[] = [
   },
 ];
 
-const STATUS_META: Record<string, { label: string; cls: string }> = {
+const STATUS_META_AR: Record<string, { label: string; cls: string }> = {
   [OrderStatus.PENDING]: {
     label: 'معلق',
     cls: 'bg-kaffza-warning/10 text-kaffza-warning',
@@ -85,21 +85,57 @@ const STATUS_META: Record<string, { label: string; cls: string }> = {
   },
 };
 
-function getStatusMeta(status: string) {
-  return STATUS_META[status] ?? { label: status, cls: 'bg-gray-100 text-gray-600' };
+const STATUS_META_EN: Record<string, { label: string; cls: string }> = {
+  [OrderStatus.PENDING]: {
+    label: 'Pending',
+    cls: 'bg-kaffza-warning/10 text-kaffza-warning',
+  },
+  [OrderStatus.CONFIRMED]: {
+    label: 'Confirmed',
+    cls: 'bg-kaffza-info/10 text-kaffza-info',
+  },
+  [OrderStatus.PROCESSING]: {
+    label: 'Processing',
+    cls: 'bg-kaffza-order/10 text-kaffza-order',
+  },
+  [OrderStatus.SHIPPED]: {
+    label: 'Shipped',
+    cls: 'bg-kaffza-info/10 text-kaffza-info',
+  },
+  [OrderStatus.DELIVERED]: {
+    label: 'Delivered',
+    cls: 'bg-kaffza-success/10 text-kaffza-success',
+  },
+  [OrderStatus.CANCELLED]: {
+    label: 'Cancelled',
+    cls: 'bg-red-50 text-red-600',
+  },
+  [OrderStatus.REFUNDED]: {
+    label: 'Refunded',
+    cls: 'bg-gray-100 text-gray-600',
+  },
+};
+
+function getStatusMeta(status: string, isEn: boolean) {
+  const map = isEn ? STATUS_META_EN : STATUS_META_AR;
+  return map[status] ?? { label: status, cls: 'bg-gray-100 text-gray-600' };
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const { label, cls } = getStatusMeta(status);
+function StatusBadge({ status, isEn }: { status: string; isEn: boolean }) {
+  const { label, cls } = getStatusMeta(status, isEn);
   return (
     <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${cls}`}>{label}</span>
   );
 }
 
-function formatDate(val: string | Date) {
+function formatDate(val: string | Date, isEn: boolean) {
   try {
     const d = typeof val === 'string' ? new Date(val) : val;
-    return d.toLocaleString('ar', { year: 'numeric', month: 'short', day: '2-digit' });
+    return d.toLocaleString(isEn ? 'en' : 'ar', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+    });
   } catch {
     return String(val);
   }
@@ -108,40 +144,65 @@ function formatDate(val: string | Date) {
 export interface RecentOrdersTableProps {
   orders: OrderRow[];
   loading?: boolean;
+  isEn?: boolean;
 }
 
-export function RecentOrdersTable({ orders, loading = false }: RecentOrdersTableProps) {
+function withLang(path: string, isEn: boolean) {
+  return isEn ? `${path}${path.includes('?') ? '&' : '?'}lang=en` : path;
+}
+
+export function RecentOrdersTable({
+  orders,
+  loading = false,
+  isEn = false,
+}: RecentOrdersTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-black/5 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-black/5 px-5 py-4">
         <div>
-          <h2 className="text-kaffza-primary text-base font-extrabold">آخر الطلبات</h2>
+          <h2 className="text-kaffza-primary text-base font-extrabold">
+            {isEn ? 'Recent Orders' : 'آخر الطلبات'}
+          </h2>
           <p className="text-kaffza-text/60 mt-0.5 text-xs">
-            {loading ? 'جاري التحميل...' : `${orders.length} طلبات حديثة`}
+            {loading
+              ? isEn
+                ? 'Loading...'
+                : 'جاري التحميل...'
+              : isEn
+                ? `${orders.length} recent orders`
+                : `${orders.length} طلبات حديثة`}
           </p>
         </div>
         <Link
-          href="/dashboard/orders"
+          href={withLang('/dashboard/orders', isEn)}
           className="bg-kaffza-bg text-kaffza-primary hover:bg-kaffza-primary/10 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors"
         >
-          عرض الكل
+          {isEn ? 'View all' : 'عرض الكل'}
         </Link>
       </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead className="bg-kaffza-bg">
-            <tr className="text-right">
+            <tr className={isEn ? 'text-left' : 'text-right'}>
               <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
-                رقم الطلب
+                {isEn ? 'Order #' : 'رقم الطلب'}
               </th>
-              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">العميل</th>
-              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">التاريخ</th>
               <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
-                الإجمالي
+                {isEn ? 'Customer' : 'العميل'}
               </th>
-              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">الحالة</th>
-              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">إجراء</th>
+              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
+                {isEn ? 'Date' : 'التاريخ'}
+              </th>
+              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
+                {isEn ? 'Total' : 'الإجمالي'}
+              </th>
+              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
+                {isEn ? 'Status' : 'الحالة'}
+              </th>
+              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
+                {isEn ? 'Action' : 'إجراء'}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -158,7 +219,7 @@ export function RecentOrdersTable({ orders, loading = false }: RecentOrdersTable
             ) : orders.length === 0 ? (
               <tr>
                 <td colSpan={6} className="text-kaffza-text/60 px-5 py-8 text-center text-sm">
-                  لا توجد طلبات حديثة
+                  {isEn ? 'No recent orders' : 'لا توجد طلبات حديثة'}
                 </td>
               </tr>
             ) : (
@@ -171,19 +232,21 @@ export function RecentOrdersTable({ orders, loading = false }: RecentOrdersTable
                     <span className="text-kaffza-text font-extrabold">{order.orderNumber}</span>
                   </td>
                   <td className="text-kaffza-text/80 px-5 py-3">{order.customerName}</td>
-                  <td className="text-kaffza-text/60 px-5 py-3">{formatDate(order.createdAt)}</td>
+                  <td className="text-kaffza-text/60 px-5 py-3">
+                    {formatDate(order.createdAt, isEn)}
+                  </td>
                   <td className="text-kaffza-primary px-5 py-3 font-bold">
                     {Number(order.totalAmount).toFixed(3)} ر.ع
                   </td>
                   <td className="px-5 py-3">
-                    <StatusBadge status={order.status} />
+                    <StatusBadge status={order.status} isEn={isEn} />
                   </td>
                   <td className="px-5 py-3">
                     <Link
-                      href={`/dashboard/orders?id=${order.id}`}
+                      href={withLang(`/dashboard/orders?id=${order.id}`, isEn)}
                       className="border-kaffza-primary/30 text-kaffza-primary hover:bg-kaffza-primary rounded-lg border px-3 py-1 text-xs font-bold transition-colors hover:text-white"
                     >
-                      عرض التفاصيل
+                      {isEn ? 'View details' : 'عرض التفاصيل'}
                     </Link>
                   </td>
                 </tr>

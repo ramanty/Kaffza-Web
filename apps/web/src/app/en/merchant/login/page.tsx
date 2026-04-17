@@ -24,7 +24,7 @@ function EnMerchantLoginInner() {
 
   useEffect(() => {
     const token = getAccessTokenFromCookies();
-    if (token) router.replace('/dashboard');
+    if (token) router.replace('/dashboard?lang=en');
   }, []);
 
   const phoneOk = useMemo(() => isValidE164Phone(phone.trim()), [phone]);
@@ -62,7 +62,7 @@ function EnMerchantLoginInner() {
         return setMsg({ type: 'error', text: 'This account is not a merchant account.' });
       }
       document.cookie = `kaffza_access=${encodeURIComponent(accessToken)}; Path=/; SameSite=Lax`;
-      router.replace('/dashboard');
+      router.replace('/dashboard?lang=en');
     } catch (e: any) {
       setMsg({ type: 'error', text: extractApiErrorMessage(e, 'Login failed') });
     } finally {
@@ -155,7 +155,7 @@ function EnMerchantLoginInner() {
             onError={(text) => setMsg({ type: 'error', text })}
             onAuthSuccess={(token) => {
               document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
-              router.replace('/dashboard');
+              router.replace('/dashboard?lang=en');
             }}
           />
         </div>

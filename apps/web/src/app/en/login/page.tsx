@@ -250,7 +250,7 @@ function EnLoginPageInner() {
               </Link>
               <Link
                 className="text-kaffza-text/70 text-xs font-bold underline"
-                href={`/forgot-password?next=${encodeURIComponent(next)}`}
+                href={`/en/forgot-password?next=${encodeURIComponent(next)}`}
               >
                 Forgot password?
               </Link>
