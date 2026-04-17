@@ -45,7 +45,7 @@ export default function ContactPage() {
 
       <div className="mt-8 flex flex-wrap gap-3">
         <Link href="/merchant/register">
-          <Button>ابدأ كتاجر</Button>
+          <Button>سجّل كتاجر</Button>
         </Link>
         <Link href="/store">
           <Button variant="secondary">استكشف المتاجر</Button>

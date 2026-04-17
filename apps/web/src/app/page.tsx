@@ -32,6 +32,7 @@ const PRICING = [
 ];
 
 const TRUST_BADGES = ['Escrow', 'ثواني باي', 'Made in Oman'];
+const LANDING_FEATURES = FEATURE_CATALOG.slice(0, 6);
 
 function LandingPageInner() {
   const sp = useSearchParams();
@@ -44,26 +45,32 @@ function LandingPageInner() {
         style={{ background: 'linear-gradient(135deg, #1B3A6B 0%, #2A5298 100%)' }}
       >
         <div className="mx-auto max-w-6xl px-6 py-14 sm:py-20">
-          <div className="flex items-center justify-between gap-4">
-            <a href="https://kaffza.me" className="text-xl font-extrabold text-white">
-              Kaffza
-            </a>
-            <div className="flex items-center gap-4 text-sm">
-              <Link href="/features" className="font-bold text-white/80 hover:text-white">
-                المميزات
-              </Link>
-              <Link href="/pricing" className="font-bold text-white/80 hover:text-white">
-                الأسعار
-              </Link>
-              <Link href="/contact" className="font-bold text-white/80 hover:text-white">
-                تواصل
-              </Link>
-              <Link href="/merchant/login" className="font-bold text-white/80 hover:text-white">
-                دخول التاجر
-              </Link>
-              <Link href="/login" className="font-bold text-white/80 hover:text-white">
-                دخول العميل
-              </Link>
+          <div className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 shadow-lg backdrop-blur">
+            <div className="flex items-center justify-between gap-4">
+              <a
+                href="https://kaffza.me"
+                className="text-xl font-extrabold text-white transition hover:text-white/80"
+                aria-label="Kaffza"
+              >
+                Kaffza
+              </a>
+              <div className="flex items-center gap-4 text-sm">
+                <Link href="/features" className="font-bold text-white/80 hover:text-white">
+                  المميزات
+                </Link>
+                <Link href="/pricing" className="font-bold text-white/80 hover:text-white">
+                  الأسعار
+                </Link>
+                <Link href="/contact" className="font-bold text-white/80 hover:text-white">
+                  الدعم
+                </Link>
+                <Link href="/merchant/login" className="font-bold text-white/80 hover:text-white">
+                  دخول التاجر
+                </Link>
+                <Link href="/login" className="font-bold text-white/80 hover:text-white">
+                  دخول العميل
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -93,7 +100,7 @@ function LandingPageInner() {
               <div className="mt-7 flex flex-wrap gap-3">
                 <Link href="/merchant/register">
                   <Button className="text-kaffza-primary border border-white/60 bg-white shadow-sm hover:bg-slate-100">
-                    افتح متجرك الآن
+                    سجّل كتاجر مجاناً
                   </Button>
                 </Link>
                 <a href="#features" className="inline-flex">
@@ -152,7 +159,7 @@ function LandingPageInner() {
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {FEATURE_CATALOG.map((feature, idx) => (
+            {LANDING_FEATURES.map((feature, idx) => (
               <Link
                 key={feature.slug}
                 href={`/features/${feature.slug}`}
@@ -179,7 +186,7 @@ function LandingPageInner() {
             <div
               key={p.key}
               className={
-                'rounded-2xl border bg-white p-6 ' +
+                'rounded-2xl border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ' +
                 (p.popular ? 'border-[#F5A623]' : 'border-black/10')
               }
             >
@@ -208,7 +215,7 @@ function LandingPageInner() {
               <div className="mt-6">
                 <Link href="/merchant/register">
                   <Button className="bg-kaffza-primary w-full text-white hover:opacity-90">
-                    ابدأ الآن
+                    سجّل الآن
                   </Button>
                 </Link>
               </div>
@@ -237,7 +244,12 @@ function LandingPageInner() {
         <div className="mx-auto max-w-6xl px-6 py-10">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <div className="text-kaffza-primary text-lg font-extrabold">Kaffza</div>
+              <a
+                href="https://kaffza.me"
+                className="text-kaffza-primary text-lg font-extrabold transition hover:opacity-80"
+              >
+                Kaffza
+              </a>
               <div className="text-kaffza-text/70 mt-2 text-sm">
                 منصة عُمانية للتجارة الإلكترونية — Ship or die.
               </div>
@@ -255,9 +267,6 @@ function LandingPageInner() {
               </Link>
               <Link className="text-kaffza-primary font-bold underline" href="/pricing">
                 الأسعار
-              </Link>
-              <Link className="text-kaffza-primary font-bold underline" href="/contact">
-                تواصل معنا
               </Link>
             </div>
           </div>

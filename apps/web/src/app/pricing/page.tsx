@@ -64,7 +64,7 @@ export default function PricingPage() {
             </ul>
             <div className="mt-5">
               <Link href="/merchant/register">
-                <Button className="w-full">ابدأ بهذه الخطة</Button>
+                <Button className="w-full">سجّل كتاجر</Button>
               </Link>
             </div>
           </Card>

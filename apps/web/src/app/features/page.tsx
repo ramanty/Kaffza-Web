@@ -4,6 +4,8 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { FEATURE_CATALOG } from '../../lib/feature-catalog';
 
+const FEATURE_PAGES = FEATURE_CATALOG.slice(0, 6);
+
 export default function FeaturesPage() {
   return (
     <main dir="rtl" className="mx-auto max-w-6xl px-6 py-12">
@@ -19,7 +21,7 @@ export default function FeaturesPage() {
       </p>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {FEATURE_CATALOG.map((feature, idx) => (
+        {FEATURE_PAGES.map((feature, idx) => (
           <Link key={feature.slug} href={`/features/${feature.slug}`}>
             <Card className="h-full p-6 transition hover:-translate-y-0.5 hover:shadow-md">
               <div className="text-kaffza-primary text-2xl font-extrabold">{idx + 1}</div>
@@ -34,7 +36,7 @@ export default function FeaturesPage() {
 
       <div className="mt-8 flex flex-wrap gap-3">
         <Link href="/merchant/register">
-          <Button>افتح متجرك الآن</Button>
+          <Button>سجّل كتاجر</Button>
         </Link>
         <Link href="/pricing">
           <Button variant="secondary">شاهد الخطط</Button>

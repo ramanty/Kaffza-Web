@@ -38,7 +38,7 @@ export default function FeatureDetailsPage({ params }: { params: { slug: string 
 
       <div className="mt-8 flex flex-wrap gap-3">
         <Link href="/merchant/register">
-          <Button>ابدأ الآن</Button>
+          <Button>سجّل كتاجر</Button>
         </Link>
         <Link href="/contact">
           <Button variant="secondary">تواصل معنا</Button>
