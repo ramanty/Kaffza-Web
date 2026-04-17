@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { TrendingUp, ShoppingBag, Wallet, Clock, Plus } from 'lucide-react';
+import { TrendingUp, ShoppingBag, Wallet, Clock, Plus, Rocket, Megaphone } from 'lucide-react';
 import { api } from '../../lib/api';
 import { authHeader } from '../../lib/auth';
 import { useStore } from './store-context';
@@ -146,6 +146,22 @@ function DashboardPageInner() {
           >
             <Plus className="h-4 w-4" />
             إضافة منتج جديد
+          </Link>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/onboarding"
+            className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
+          >
+            <Rocket className="h-4 w-4" />
+            خطة الانطلاقة
+          </Link>
+          <Link
+            href="/dashboard/growth"
+            className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
+          >
+            <Megaphone className="h-4 w-4" />
+            مركز النمو
           </Link>
         </div>
       </header>
