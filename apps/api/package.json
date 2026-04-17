@@ -4,7 +4,8 @@
   "private": true,
   "description": "Kaffza Backend API — NestJS + PostgreSQL",
   "scripts": {
-    "build": "nest build",
+    "prisma:generate": "prisma generate",
+    "build": "pnpm run prisma:generate && nest build",
     "dev": "nest start --watch",
     "start": "node dist/main",
     "start:prod": "node dist/main",
