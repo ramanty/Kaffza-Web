@@ -5,33 +5,13 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { Button } from '../components/Button';
+import { PlanCardActions } from '../components/PlanCardActions';
 import { FEATURE_CATALOG } from '../lib/feature-catalog';
+import { PLAN_CATALOG } from '../lib/plan-catalog';
+import { TRUST_CATALOG } from '../lib/trust-catalog';
 
 const PAIN_POINTS = ['إرسال رقم حساب', 'طلبات ضائعة', 'عدم ثقة'];
 
-const PRICING = [
-  {
-    key: 'starter',
-    name: 'Starter',
-    price: 5,
-    features: ['متجر إلكتروني جاهز', 'ربط دفع عبر ثواني باي', 'دعم فني أساسي'],
-  },
-  {
-    key: 'growth',
-    name: 'Growth',
-    price: 8,
-    popular: true,
-    features: ['حتى 1000 منتج', 'كوبونات وخصومات', 'دعم فني متقدم'],
-  },
-  {
-    key: 'pro',
-    name: 'Pro',
-    price: 35,
-    features: ['منتجات غير محدودة', 'دعم VIP', 'أولوية أعلى'],
-  },
-];
-
-const TRUST_BADGES = ['Escrow', 'ثواني باي', 'Made in Oman'];
 const LANDING_FEATURES = FEATURE_CATALOG.slice(0, 6);
 
 function LandingPageInner() {
@@ -99,7 +79,7 @@ function LandingPageInner() {
 
               <div className="mt-7 flex flex-wrap gap-3">
                 <Link href="/merchant/register">
-                  <Button className="text-kaffza-primary border border-white/60 bg-white shadow-sm hover:bg-slate-100">
+                  <Button className="border border-white/60 bg-white !text-[#1B3A6B] shadow-sm hover:bg-slate-100">
                     سجّل كتاجر مجاناً
                   </Button>
                 </Link>
@@ -109,10 +89,14 @@ function LandingPageInner() {
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3 text-xs text-white/80">
-                {TRUST_BADGES.map((badge) => (
-                  <span key={badge} className="rounded-full bg-white/10 px-3 py-1">
-                    {badge}
-                  </span>
+                {TRUST_CATALOG.map((item) => (
+                  <Link
+                    key={item.slug}
+                    href={`/trust/${item.slug}`}
+                    className="rounded-full bg-white/10 px-3 py-1 hover:bg-white/20"
+                  >
+                    {item.title}
+                  </Link>
                 ))}
               </div>
             </div>
@@ -182,16 +166,18 @@ function LandingPageInner() {
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {PRICING.map((p) => (
+          {PLAN_CATALOG.map((p) => (
             <div
-              key={p.key}
+              key={p.slug}
               className={
                 'rounded-2xl border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ' +
                 (p.popular ? 'border-[#F5A623]' : 'border-black/10')
               }
             >
               <div className="flex items-center justify-between">
-                <div className="text-kaffza-primary text-sm font-extrabold">{p.name}</div>
+                <div className="text-kaffza-primary text-sm font-extrabold">
+                  {p.name} ({p.subtitle})
+                </div>
                 {p.popular ? (
                   <span className="rounded-full bg-[#F5A623] px-3 py-1 text-[11px] font-extrabold text-white">
                     الأكثر شعبية
@@ -200,7 +186,7 @@ function LandingPageInner() {
               </div>
 
               <div className="text-kaffza-info mt-4 text-3xl font-extrabold">
-                {p.price} ر.ع <span className="text-kaffza-text/60 text-sm font-bold">/شهر</span>
+                {p.priceOmr} ر.ع <span className="text-kaffza-text/60 text-sm font-bold">/شهر</span>
               </div>
 
               <ul className="text-kaffza-text/80 mt-5 space-y-2 text-sm">
@@ -212,13 +198,7 @@ function LandingPageInner() {
                 ))}
               </ul>
 
-              <div className="mt-6">
-                <Link href="/merchant/register">
-                  <Button className="bg-kaffza-primary w-full text-white hover:opacity-90">
-                    سجّل الآن
-                  </Button>
-                </Link>
-              </div>
+              <PlanCardActions slug={p.slug} />
             </div>
           ))}
         </div>
@@ -228,14 +208,21 @@ function LandingPageInner() {
         <div className="mx-auto max-w-6xl px-6 py-14">
           <h2 className="text-kaffza-primary text-2xl font-extrabold">الثقة والأمان</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            {TRUST_BADGES.map((badge) => (
-              <div
-                key={badge}
-                className="text-kaffza-primary rounded-2xl border border-black/10 bg-white p-6 text-center text-sm font-extrabold"
+            {TRUST_CATALOG.map((item) => (
+              <Link
+                key={item.slug}
+                href={`/trust/${item.slug}`}
+                className="rounded-2xl border border-black/10 bg-white p-6 text-center transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                {badge}
-              </div>
+                <div className="text-kaffza-primary text-sm font-extrabold">{item.title}</div>
+                <div className="text-kaffza-text/80 mt-2 text-xs">{item.summary}</div>
+              </Link>
             ))}
+          </div>
+          <div className="mt-6">
+            <Link className="text-kaffza-primary text-sm font-bold underline" href="/trust">
+              عرض كل صفحات الثقة والأمان
+            </Link>
           </div>
         </div>
       </section>
@@ -267,6 +254,9 @@ function LandingPageInner() {
               </Link>
               <Link className="text-kaffza-primary font-bold underline" href="/pricing">
                 الأسعار
+              </Link>
+              <Link className="text-kaffza-primary font-bold underline" href="/contact">
+                تواصل معنا
               </Link>
             </div>
           </div>

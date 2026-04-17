@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { getPlanCartCount } from '../lib/plan-cart';
 
 function buildLocalizedPath(pathname: string) {
   const protectedOnly = ['/dashboard', '/admin', '/account', '/merchant', '/onboarding'];
@@ -21,6 +23,19 @@ export function SiteTopBar() {
   const pathname = usePathname();
   const nextLocalePath = buildLocalizedPath(pathname);
   const localeLabel = pathname === '/en' || pathname.startsWith('/en/') ? 'العربية' : 'English';
+  const isEn = pathname === '/en' || pathname.startsWith('/en/');
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const update = () => setCount(getPlanCartCount());
+    update();
+    window.addEventListener('storage', update);
+    window.addEventListener('kaffza-plan-cart-updated', update);
+    return () => {
+      window.removeEventListener('storage', update);
+      window.removeEventListener('kaffza-plan-cart-updated', update);
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 border-b border-black/10 bg-white/95 backdrop-blur">
@@ -34,6 +49,18 @@ export function SiteTopBar() {
         </a>
 
         <div className="flex items-center gap-3 text-sm">
+          {count > 0 ? (
+            <Link
+              className="text-kaffza-primary relative rounded-full border border-black/10 px-3 py-1 font-bold"
+              href={isEn ? '/en/plans/cart' : '/plans/cart'}
+              aria-label={isEn ? 'Plan cart' : 'سلة الخطط'}
+            >
+              {isEn ? 'Cart' : 'السلة'}
+              <span className="bg-kaffza-primary ml-2 rounded-full px-2 py-0.5 text-xs text-white">
+                {count}
+              </span>
+            </Link>
+          ) : null}
           <Link className="text-kaffza-primary font-bold underline" href={nextLocalePath}>
             {localeLabel}
           </Link>

@@ -1,10 +1,10 @@
 import Link from 'next/link';
 
 import { Card } from '../../components/Card';
-import { PlanCardActions } from '../../components/PlanCardActions';
 import { PLAN_CATALOG } from '../../lib/plan-catalog';
+import { PlanCardActions } from '../../components/PlanCardActions';
 
-export default function PricingPage() {
+export default function PlansPage() {
   return (
     <main dir="rtl" className="mx-auto max-w-6xl px-6 py-12">
       <div className="flex items-center justify-between gap-3">
@@ -15,7 +15,7 @@ export default function PricingPage() {
       </div>
 
       <p className="text-kaffza-text/80 mt-3 text-sm">
-        اختر الخطة المناسبة لمرحلة متجرك. العمولة تُحسب على الطلبات الناجحة حسب الخطة.
+        اختر الخطة المناسبة لمرحلة متجرك، ثم أضفها للسلة لإكمال الدفع.
       </p>
 
       <div className="mt-8 grid gap-4 md:grid-cols-3">

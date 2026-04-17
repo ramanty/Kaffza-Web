@@ -180,7 +180,7 @@ function RegisterPageInner() {
             </Field>
 
             <Button
-              className="bg-kaffza-primary w-full text-white"
+              className="w-full !text-white"
               onClick={submit}
               disabled={!canSubmit || loading}
             >
@@ -213,7 +213,7 @@ function RegisterPageInner() {
             </Field>
 
             <Button
-              className="bg-kaffza-primary w-full text-white"
+              className="w-full !text-white"
               onClick={verifyOtp}
               disabled={!canVerify || loading}
             >

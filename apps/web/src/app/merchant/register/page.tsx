@@ -183,7 +183,7 @@ export default function MerchantRegisterPage() {
             </Field>
 
             <Button
-              className="bg-kaffza-primary w-full text-white"
+              className="w-full !text-white"
               onClick={submit}
               disabled={!canSubmit || loading}
             >
@@ -213,7 +213,7 @@ export default function MerchantRegisterPage() {
             </Field>
 
             <Button
-              className="bg-kaffza-primary w-full text-white"
+              className="w-full !text-white"
               onClick={verifyOtp}
               disabled={!canVerify || loading}
             >
