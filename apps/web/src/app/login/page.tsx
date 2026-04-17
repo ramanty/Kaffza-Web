@@ -9,6 +9,8 @@ import { getAccessTokenFromCookies } from '../../lib/auth';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
+import { SocialAuthButtons } from '../../components/SocialAuthButtons';
+import { extractApiErrorMessage } from '../../lib/api-error';
 import { isValidE164Phone } from '../../lib/phone';
 
 function LoginPageInner() {
@@ -20,7 +22,9 @@ function LoginPageInner() {
   const [tab, setTab] = useState<'password' | 'otp'>('password');
 
   // password login
+  const [passwordMethod, setPasswordMethod] = useState<'phone' | 'email'>('phone');
   const [phone, setPhone] = useState(phoneFromQuery);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   // otp login
@@ -49,6 +53,7 @@ function LoginPageInner() {
   }, []);
 
   const phoneOk = useMemo(() => isValidE164Phone(phone.trim()), [phone]);
+  const emailOk = useMemo(() => /.+@.+\..+/.test(email.trim()), [email]);
   const passOk = useMemo(() => password.trim().length >= 8, [password]);
 
   const otpPhoneOk = useMemo(() => isValidE164Phone(otpPhone.trim()), [otpPhone]);
@@ -73,16 +78,24 @@ function LoginPageInner() {
   const doPasswordLogin = async () => {
     setMsg(null);
     const p = phone.trim();
+    const e = email.trim();
     const pw = password.trim();
 
-    if (!isValidE164Phone(p)) return setError('رقم الهاتف يجب أن يكون بصيغة دولية صحيحة');
+    if (passwordMethod === 'phone' && !isValidE164Phone(p)) {
+      return setError('رقم الهاتف يجب أن يكون بصيغة دولية صحيحة');
+    }
+    if (passwordMethod === 'email' && !emailOk) return setError('البريد الإلكتروني غير صحيح');
     if (pw.length < 8) return setError('كلمة المرور لازم تكون 8 أحرف/أرقام على الأقل');
 
     setLoading(true);
     try {
       const res = await api.post(
         '/auth/login',
-        { phone: p, password: pw },
+        {
+          phone: passwordMethod === 'phone' ? p : undefined,
+          email: passwordMethod === 'email' ? e : undefined,
+          password: pw,
+        },
         { headers: { 'x-client': 'web' } }
       );
       const token = res?.data?.data?.tokens?.accessToken;
@@ -92,7 +105,7 @@ function LoginPageInner() {
       setSuccess('تم تسجيل الدخول بنجاح');
       router.replace(next);
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || 'فشل تسجيل الدخول');
+      setError(extractApiErrorMessage(e, 'فشل تسجيل الدخول'));
     } finally {
       setLoading(false);
     }
@@ -109,7 +122,7 @@ function LoginPageInner() {
       setSuccess('تم إرسال OTP');
       setOtpStep('code');
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'تعذر إرسال OTP');
+      setError(extractApiErrorMessage(e, 'تعذر إرسال OTP'));
     } finally {
       setLoading(false);
     }
@@ -137,7 +150,7 @@ function LoginPageInner() {
       setSuccess('تم تسجيل الدخول بنجاح');
       router.replace(next);
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'فشل التحقق من الرمز');
+      setError(extractApiErrorMessage(e, 'فشل التحقق من الرمز'));
     } finally {
       setLoading(false);
     }
@@ -177,14 +190,42 @@ function LoginPageInner() {
 
         {tab === 'password' ? (
           <div className="mt-5 grid gap-3">
-            <Field label="رقم الهاتف">
-              <Input
-                value={phone}
-                onChange={(e: any) => setPhone(e.target.value)}
-                placeholder="+96891234567"
-              />
-              <Hint>صيغة دولية: +968XXXXXXXX أو +1XXXXXXXXXX</Hint>
-            </Field>
+            <div className="grid gap-2">
+              <span className="text-kaffza-text text-sm font-bold">طريقة تسجيل الدخول</span>
+              <div className="flex gap-2">
+                <TabButton
+                  active={passwordMethod === 'phone'}
+                  onClick={() => setPasswordMethod('phone')}
+                >
+                  الهاتف
+                </TabButton>
+                <TabButton
+                  active={passwordMethod === 'email'}
+                  onClick={() => setPasswordMethod('email')}
+                >
+                  البريد
+                </TabButton>
+              </div>
+            </div>
+
+            {passwordMethod === 'phone' ? (
+              <Field label="رقم الهاتف">
+                <Input
+                  value={phone}
+                  onChange={(e: any) => setPhone(e.target.value)}
+                  placeholder="+96891234567"
+                />
+                <Hint>صيغة دولية: +968XXXXXXXX أو +1XXXXXXXXXX</Hint>
+              </Field>
+            ) : (
+              <Field label="البريد الإلكتروني">
+                <Input
+                  value={email}
+                  onChange={(e: any) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                />
+              </Field>
+            )}
 
             <Field label="كلمة المرور">
               <Input
@@ -196,7 +237,10 @@ function LoginPageInner() {
               <Hint>8 أحرف/أرقام على الأقل</Hint>
             </Field>
 
-            <Button onClick={doPasswordLogin} disabled={loading || !phoneOk || !passOk}>
+            <Button
+              onClick={doPasswordLogin}
+              disabled={loading || !(passwordMethod === 'phone' ? phoneOk : emailOk) || !passOk}
+            >
               {loading ? 'جارٍ الدخول...' : 'دخول'}
             </Button>
 
@@ -214,6 +258,14 @@ function LoginPageInner() {
                 نسيت كلمة المرور؟
               </Link>
             </div>
+            <SocialAuthButtons
+              locale="ar"
+              onError={setError}
+              onAuthSuccess={(token) => {
+                document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
+                router.replace(next);
+              }}
+            />
           </div>
         ) : (
           <div className="mt-5 grid gap-3">

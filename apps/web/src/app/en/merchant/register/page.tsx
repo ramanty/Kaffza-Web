@@ -1,61 +1,56 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-import { api } from '../../../lib/api';
-import { Card } from '../../../components/Card';
-import { Button } from '../../../components/Button';
-import { Input } from '../../../components/Input';
-import { PhoneInput } from '../../../components/PhoneInput';
-import { SocialAuthButtons } from '../../../components/SocialAuthButtons';
-import { isValidE164Phone } from '../../../lib/phone';
-import { extractApiErrorMessage } from '../../../lib/api-error';
+import { api } from '../../../../lib/api';
+import { Card } from '../../../../components/Card';
+import { Button } from '../../../../components/Button';
+import { Input } from '../../../../components/Input';
+import { PhoneInput } from '../../../../components/PhoneInput';
+import { SocialAuthButtons } from '../../../../components/SocialAuthButtons';
+import { isValidE164Phone } from '../../../../lib/phone';
+import { extractApiErrorMessage } from '../../../../lib/api-error';
 
-type RegisterMethod = 'phone' | 'email';
-
-function EnRegisterPageInner() {
+export default function EnMerchantRegisterPage() {
   const router = useRouter();
-  const sp = useSearchParams();
-  const next = sp.get('next') || '/en';
-
-  const [method, setMethod] = useState<RegisterMethod>('phone');
+  const [method, setMethod] = useState<'phone' | 'email'>('phone');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'register' | 'verify'>('register');
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
-  const emailOk = useMemo(() => !email.trim() || /.+@.+\..+/.test(email.trim()), [email]);
-
-  const canSubmit = useMemo(() => {
-    return (
+  const emailOk = useMemo(() => /.+@.+\..+/.test(email.trim()), [email]);
+  const canSubmit = useMemo(
+    () =>
       name.trim().length >= 2 &&
-      (method === 'email' || isValidE164Phone(phone)) &&
-      (method === 'phone' || !!email.trim()) &&
-      emailOk &&
-      password.trim().length >= 8
-    );
-  }, [name, phone, email, emailOk, method, password]);
-
+      (method === 'phone' ? isValidE164Phone(phone) : emailOk) &&
+      password.trim().length >= 8 &&
+      password.trim() === confirm.trim(),
+    [name, method, phone, emailOk, password, confirm]
+  );
   const canVerify = useMemo(() => /^[0-9]{6}$/.test(otp.trim()), [otp]);
 
-  const submit = async () => {
+  async function submit() {
     setMsg(null);
     const n = name.trim();
     const p = phone.trim();
     const e = email.trim();
     const pw = password.trim();
-
-    if (n.length < 2) return setMsg('Name must be at least 2 characters');
-    if (method === 'phone' && !isValidE164Phone(p)) return setMsg('Invalid phone number');
-    if (method === 'email' && !e) return setMsg('Email is required for this method');
-    if (!emailOk) return setMsg('Invalid email address');
-    if (pw.length < 8) return setMsg('Password must be at least 8 characters');
+    if (method === 'phone' && !isValidE164Phone(p))
+      return setMsg({ type: 'error', text: 'Invalid phone number' });
+    if (method === 'email' && !emailOk)
+      return setMsg({ type: 'error', text: 'Invalid email address' });
+    if (pw.length < 8)
+      return setMsg({ type: 'error', text: 'Password must be at least 8 characters' });
+    if (pw !== confirm.trim())
+      return setMsg({ type: 'error', text: 'Password confirmation does not match' });
 
     setLoading(true);
     try {
@@ -67,35 +62,31 @@ function EnRegisterPageInner() {
           phone: method === 'phone' ? p : undefined,
           email: method === 'email' ? e : e || undefined,
           password: pw,
-          role: 'customer',
+          role: 'merchant',
           locale: 'en',
         },
         { headers: { 'x-client': 'web' } }
       );
       setStep('verify');
-      setMsg('OTP sent. Enter the code to activate your account.');
+      setMsg({ type: 'success', text: 'OTP sent. Enter code to activate your merchant account.' });
     } catch (e: any) {
-      setMsg(extractApiErrorMessage(e, 'Failed to create account'));
+      setMsg({ type: 'error', text: extractApiErrorMessage(e, 'Failed to create account') });
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const verifyOtp = async () => {
+  async function verifyOtp() {
     setMsg(null);
-    const p = phone.trim();
     const code = otp.trim();
-    if (method === 'phone' && !isValidE164Phone(p)) return setMsg('Invalid phone number');
-    if (method === 'email' && !email.trim()) return setMsg('Invalid email address');
-    if (!/^[0-9]{6}$/.test(code)) return setMsg('Code must be 6 digits');
-
+    if (!/^[0-9]{6}$/.test(code)) return setMsg({ type: 'error', text: 'Code must be 6 digits' });
     setLoading(true);
     try {
       const res = await api.post(
         '/auth/otp/verify',
         {
           method,
-          phone: method === 'phone' ? p : undefined,
+          phone: method === 'phone' ? phone.trim() : undefined,
           email: method === 'email' ? email.trim() : undefined,
           otp: code,
         },
@@ -103,49 +94,42 @@ function EnRegisterPageInner() {
       );
       const token = res?.data?.data?.tokens?.accessToken;
       if (!token) throw new Error('No access token received');
-
       document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
-      router.replace(next);
+      router.replace('/onboarding');
     } catch (e: any) {
-      setMsg(extractApiErrorMessage(e, 'OTP verification failed'));
+      setMsg({ type: 'error', text: extractApiErrorMessage(e, 'OTP verification failed') });
     } finally {
       setLoading(false);
     }
-  };
-
-  const resendOtp = async () => {
-    setMsg(null);
-    const p = phone.trim();
-    if (method === 'phone' && !isValidE164Phone(p)) return setMsg('Invalid phone number');
-    if (method === 'email') return setMsg('Resend OTP by email will be available in login soon.');
-    setLoading(true);
-    try {
-      await api.post('/auth/otp/resend', { phone: p }, { headers: { 'x-client': 'web' } });
-      setMsg('OTP re-sent');
-    } catch (e: any) {
-      setMsg(extractApiErrorMessage(e, 'Could not resend OTP'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  }
 
   return (
     <main dir="ltr" className="mx-auto max-w-lg px-6 py-12">
       <div className="flex items-center justify-between">
-        <div className="text-kaffza-primary text-2xl font-extrabold">Create account</div>
+        <div>
+          <div className="text-kaffza-text/70 text-xs">Merchant area</div>
+          <div className="text-kaffza-primary text-2xl font-extrabold">Merchant Registration</div>
+        </div>
         <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/en">
           Home
         </Link>
       </div>
 
       <Card className="mt-6 p-6">
-        <div className="text-kaffza-text/80 text-sm">
-          Choose your preferred registration method. OTP will be sent to your phone.
-        </div>
+        <p className="text-kaffza-text/80 text-sm">
+          You can register by email or phone. Before publishing products, both must be linked.
+        </p>
 
         {msg ? (
-          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {msg}
+          <div
+            className={
+              'mt-4 rounded-xl border p-3 text-sm ' +
+              (msg.type === 'success'
+                ? 'border-green-200 bg-green-50 text-green-700'
+                : 'border-red-200 bg-red-50 text-red-700')
+            }
+          >
+            {msg.text}
           </div>
         ) : null}
 
@@ -176,26 +160,30 @@ function EnRegisterPageInner() {
                 <Input
                   value={email}
                   onChange={(e: any) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  placeholder="merchant@example.com"
                 />
               </Field>
-            ) : null}
-
-            {method === 'phone' ? (
-              <Field label="Phone number">
+            ) : (
+              <Field label="Phone">
                 <PhoneInput value={phone} onChange={setPhone} />
-                <Hint>Select country then enter phone without country code.</Hint>
               </Field>
-            ) : null}
+            )}
 
             <Field label="Password">
               <Input
                 value={password}
                 onChange={(e: any) => setPassword(e.target.value)}
-                placeholder="********"
                 type="password"
+                placeholder="********"
               />
-              <Hint>At least 8 characters</Hint>
+            </Field>
+            <Field label="Confirm password">
+              <Input
+                value={confirm}
+                onChange={(e: any) => setConfirm(e.target.value)}
+                type="password"
+                placeholder="********"
+              />
             </Field>
 
             <Button
@@ -203,24 +191,22 @@ function EnRegisterPageInner() {
               onClick={submit}
               disabled={!canSubmit || loading}
             >
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? 'Creating...' : 'Create account'}
             </Button>
 
             <div className="text-sm">
               Already have an account?{' '}
-              <Link
-                className="text-kaffza-primary font-bold underline"
-                href={`/en/login?next=${encodeURIComponent(next)}`}
-              >
+              <Link className="text-kaffza-primary font-bold underline" href="/en/merchant/login">
                 Login
               </Link>
             </div>
+
             <SocialAuthButtons
               locale="en"
-              onError={(text) => setMsg(text)}
+              onError={(text) => setMsg({ type: 'error', text })}
               onAuthSuccess={(token) => {
                 document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
-                router.replace(next);
+                router.replace('/onboarding');
               }}
             />
           </div>
@@ -230,7 +216,6 @@ function EnRegisterPageInner() {
               <span className="font-bold">{method === 'email' ? 'Email:' : 'Phone:'}</span>{' '}
               {method === 'email' ? email.trim() : phone.trim()}
             </div>
-
             <Field label="OTP (6 digits)">
               <Input
                 value={otp}
@@ -239,45 +224,16 @@ function EnRegisterPageInner() {
                 inputMode="numeric"
               />
             </Field>
-
             <Button
               className="w-full !text-white"
               onClick={verifyOtp}
               disabled={!canVerify || loading}
             >
-              {loading ? 'Verifying...' : 'Confirm and activate'}
+              {loading ? 'Verifying...' : 'Verify and activate'}
             </Button>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-              <button
-                className="text-kaffza-primary font-bold underline disabled:opacity-50"
-                onClick={resendOtp}
-                disabled={loading}
-              >
-                Resend OTP
-              </button>
-              <button
-                className="text-kaffza-text/70 text-xs font-bold underline"
-                onClick={() => {
-                  setStep('register');
-                  setOtp('');
-                }}
-              >
-                Edit details
-              </button>
-            </div>
           </div>
         )}
       </Card>
-
-      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
-        <Link className="underline" href="/en/legal/terms">
-          Terms
-        </Link>
-        <Link className="underline" href="/en/legal/privacy">
-          Privacy
-        </Link>
-      </div>
     </main>
   );
 }
@@ -289,10 +245,6 @@ function Field({ label, children }: any) {
       {children}
     </label>
   );
-}
-
-function Hint({ children }: any) {
-  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
 }
 
 function TabButton({ active, onClick, children }: any) {
@@ -309,13 +261,5 @@ function TabButton({ active, onClick, children }: any) {
     >
       {children}
     </button>
-  );
-}
-
-export default function EnRegisterPage() {
-  return (
-    <Suspense>
-      <EnRegisterPageInner />
-    </Suspense>
   );
 }

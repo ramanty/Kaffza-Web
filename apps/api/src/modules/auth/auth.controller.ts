@@ -12,6 +12,7 @@ import { OtpRequestDto } from './dto/otp-request.dto';
 import { ForgotPasswordVerifyDto } from './dto/forgot-password-verify.dto';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { OAuthTokenDto, OAuthProviderDto } from './dto/oauth-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 
@@ -127,6 +128,52 @@ export class AuthController {
       ...result,
       data: {
         user: result.data.user,
+        tokens: { accessToken: tokens.accessToken, expiresIn: tokens.expiresIn },
+      },
+    };
+  }
+
+  @Post('oauth/google')
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  async oauthGoogle(
+    @Body() dto: OAuthTokenDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const result = await this.auth.oauthLogin(OAuthProviderDto.google, dto.idToken, dto.name);
+    const tokens = result.data.tokens;
+
+    if (this.isMobile(req)) return result;
+
+    this.setRefreshCookie(res, tokens.refreshToken);
+    return {
+      ...result,
+      data: {
+        user: result.data.user,
+        provider: result.data.provider,
+        tokens: { accessToken: tokens.accessToken, expiresIn: tokens.expiresIn },
+      },
+    };
+  }
+
+  @Post('oauth/apple')
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  async oauthApple(
+    @Body() dto: OAuthTokenDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const result = await this.auth.oauthLogin(OAuthProviderDto.apple, dto.idToken, dto.name);
+    const tokens = result.data.tokens;
+
+    if (this.isMobile(req)) return result;
+
+    this.setRefreshCookie(res, tokens.refreshToken);
+    return {
+      ...result,
+      data: {
+        user: result.data.user,
+        provider: result.data.provider,
         tokens: { accessToken: tokens.accessToken, expiresIn: tokens.expiresIn },
       },
     };

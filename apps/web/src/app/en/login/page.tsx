@@ -9,6 +9,8 @@ import { getAccessTokenFromCookies } from '../../../lib/auth';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
+import { SocialAuthButtons } from '../../../components/SocialAuthButtons';
+import { extractApiErrorMessage } from '../../../lib/api-error';
 import { isValidE164Phone } from '../../../lib/phone';
 
 function EnLoginPageInner() {
@@ -18,7 +20,9 @@ function EnLoginPageInner() {
   const phoneFromQuery = sp.get('phone') || '';
 
   const [tab, setTab] = useState<'password' | 'otp'>('password');
+  const [passwordMethod, setPasswordMethod] = useState<'phone' | 'email'>('phone');
   const [phone, setPhone] = useState(phoneFromQuery);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const [otpPhone, setOtpPhone] = useState(phoneFromQuery);
@@ -46,6 +50,7 @@ function EnLoginPageInner() {
   }, []);
 
   const phoneOk = useMemo(() => isValidE164Phone(phone.trim()), [phone]);
+  const emailOk = useMemo(() => /.+@.+\..+/.test(email.trim()), [email]);
   const passOk = useMemo(() => password.trim().length >= 8, [password]);
 
   const otpPhoneOk = useMemo(() => isValidE164Phone(otpPhone.trim()), [otpPhone]);
@@ -57,7 +62,7 @@ function EnLoginPageInner() {
   const handleRoleRedirect = (role: string) => {
     const r = String(role || '').toLowerCase();
     if (r === 'merchant') {
-      router.replace('/merchant/login');
+      router.replace('/en/merchant/login');
       return true;
     }
     if (r === 'admin') {
@@ -70,16 +75,24 @@ function EnLoginPageInner() {
   const doPasswordLogin = async () => {
     setMsg(null);
     const p = phone.trim();
+    const e = email.trim();
     const pw = password.trim();
 
-    if (!isValidE164Phone(p)) return setError('Phone must be in valid international format');
+    if (passwordMethod === 'phone' && !isValidE164Phone(p)) {
+      return setError('Phone must be in valid international format');
+    }
+    if (passwordMethod === 'email' && !emailOk) return setError('Invalid email address');
     if (pw.length < 8) return setError('Password must be at least 8 characters');
 
     setLoading(true);
     try {
       const res = await api.post(
         '/auth/login',
-        { phone: p, password: pw },
+        {
+          phone: passwordMethod === 'phone' ? p : undefined,
+          email: passwordMethod === 'email' ? e : undefined,
+          password: pw,
+        },
         { headers: { 'x-client': 'web' } }
       );
       const token = res?.data?.data?.tokens?.accessToken;
@@ -89,7 +102,7 @@ function EnLoginPageInner() {
       setSuccess('Logged in successfully');
       router.replace(next);
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || 'Login failed');
+      setError(extractApiErrorMessage(e, 'Login failed'));
     } finally {
       setLoading(false);
     }
@@ -106,7 +119,7 @@ function EnLoginPageInner() {
       setSuccess('OTP sent');
       setOtpStep('code');
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'Could not send OTP');
+      setError(extractApiErrorMessage(e, 'Could not send OTP'));
     } finally {
       setLoading(false);
     }
@@ -134,7 +147,7 @@ function EnLoginPageInner() {
       setSuccess('Logged in successfully');
       router.replace(next);
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'OTP verification failed');
+      setError(extractApiErrorMessage(e, 'OTP verification failed'));
     } finally {
       setLoading(false);
     }
@@ -174,14 +187,42 @@ function EnLoginPageInner() {
 
         {tab === 'password' ? (
           <div className="mt-5 grid gap-3">
-            <Field label="Phone number">
-              <Input
-                value={phone}
-                onChange={(e: any) => setPhone(e.target.value)}
-                placeholder="+96891234567"
-              />
-              <Hint>International format: +968XXXXXXXX or +1XXXXXXXXXX</Hint>
-            </Field>
+            <div className="grid gap-2">
+              <span className="text-kaffza-text text-sm font-bold">Login method</span>
+              <div className="flex gap-2">
+                <TabButton
+                  active={passwordMethod === 'phone'}
+                  onClick={() => setPasswordMethod('phone')}
+                >
+                  Phone
+                </TabButton>
+                <TabButton
+                  active={passwordMethod === 'email'}
+                  onClick={() => setPasswordMethod('email')}
+                >
+                  Email
+                </TabButton>
+              </div>
+            </div>
+
+            {passwordMethod === 'phone' ? (
+              <Field label="Phone number">
+                <Input
+                  value={phone}
+                  onChange={(e: any) => setPhone(e.target.value)}
+                  placeholder="+96891234567"
+                />
+                <Hint>International format: +968XXXXXXXX or +1XXXXXXXXXX</Hint>
+              </Field>
+            ) : (
+              <Field label="Email">
+                <Input
+                  value={email}
+                  onChange={(e: any) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                />
+              </Field>
+            )}
 
             <Field label="Password">
               <Input
@@ -193,7 +234,10 @@ function EnLoginPageInner() {
               <Hint>At least 8 characters</Hint>
             </Field>
 
-            <Button onClick={doPasswordLogin} disabled={loading || !phoneOk || !passOk}>
+            <Button
+              onClick={doPasswordLogin}
+              disabled={loading || !(passwordMethod === 'phone' ? phoneOk : emailOk) || !passOk}
+            >
               {loading ? 'Logging in...' : 'Login'}
             </Button>
 
@@ -211,6 +255,14 @@ function EnLoginPageInner() {
                 Forgot password?
               </Link>
             </div>
+            <SocialAuthButtons
+              locale="en"
+              onError={setError}
+              onAuthSuccess={(token) => {
+                document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
+                router.replace(next);
+              }}
+            />
           </div>
         ) : (
           <div className="mt-5 grid gap-3">

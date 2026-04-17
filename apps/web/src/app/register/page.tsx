@@ -9,7 +9,9 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { PhoneInput } from '../../components/PhoneInput';
+import { SocialAuthButtons } from '../../components/SocialAuthButtons';
 import { isValidE164Phone } from '../../lib/phone';
+import { extractApiErrorMessage } from '../../lib/api-error';
 
 type RegisterMethod = 'phone' | 'email';
 
@@ -33,7 +35,7 @@ function RegisterPageInner() {
   const canSubmit = useMemo(() => {
     return (
       name.trim().length >= 2 &&
-      isValidE164Phone(phone) &&
+      (method === 'email' || isValidE164Phone(phone)) &&
       (method === 'phone' || !!email.trim()) &&
       emailOk &&
       password.trim().length >= 8
@@ -50,7 +52,7 @@ function RegisterPageInner() {
     const pw = password.trim();
 
     if (n.length < 2) return setMsg('الاسم لازم يكون حرفين على الأقل');
-    if (!isValidE164Phone(p)) return setMsg('رقم الهاتف غير صحيح');
+    if (method === 'phone' && !isValidE164Phone(p)) return setMsg('رقم الهاتف غير صحيح');
     if (method === 'email' && !e) return setMsg('البريد الإلكتروني مطلوب لهذه الطريقة');
     if (!emailOk) return setMsg('البريد الإلكتروني غير صحيح');
     if (pw.length < 8) return setMsg('كلمة المرور لازم تكون 8 أحرف/أرقام على الأقل');
@@ -59,13 +61,21 @@ function RegisterPageInner() {
     try {
       await api.post(
         '/auth/register',
-        { name: n, phone: p, email: e || undefined, password: pw, role: 'customer', locale: 'ar' },
+        {
+          name: n,
+          method,
+          phone: method === 'phone' ? p : undefined,
+          email: method === 'email' ? e : e || undefined,
+          password: pw,
+          role: 'customer',
+          locale: 'ar',
+        },
         { headers: { 'x-client': 'web' } }
       );
       setStep('verify');
       setMsg('تم إرسال OTP، أدخل الرمز لتفعيل الحساب');
     } catch (e: any) {
-      setMsg(e?.response?.data?.message || 'فشل إنشاء الحساب');
+      setMsg(extractApiErrorMessage(e, 'فشل إنشاء الحساب'));
     } finally {
       setLoading(false);
     }
@@ -75,14 +85,20 @@ function RegisterPageInner() {
     setMsg(null);
     const p = phone.trim();
     const code = otp.trim();
-    if (!isValidE164Phone(p)) return setMsg('رقم الهاتف غير صحيح');
+    if (method === 'phone' && !isValidE164Phone(p)) return setMsg('رقم الهاتف غير صحيح');
+    if (method === 'email' && !email.trim()) return setMsg('البريد الإلكتروني غير صحيح');
     if (!/^[0-9]{6}$/.test(code)) return setMsg('الرمز يجب أن يكون 6 أرقام');
 
     setLoading(true);
     try {
       const res = await api.post(
         '/auth/otp/verify',
-        { phone: p, otp: code },
+        {
+          method,
+          phone: method === 'phone' ? p : undefined,
+          email: method === 'email' ? email.trim() : undefined,
+          otp: code,
+        },
         { headers: { 'x-client': 'web' } }
       );
       const token = res?.data?.data?.tokens?.accessToken;
@@ -91,7 +107,7 @@ function RegisterPageInner() {
       document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
       router.replace(next);
     } catch (e: any) {
-      setMsg(e?.response?.data?.message || 'فشل التحقق من الرمز');
+      setMsg(extractApiErrorMessage(e, 'فشل التحقق من الرمز'));
     } finally {
       setLoading(false);
     }
@@ -100,13 +116,15 @@ function RegisterPageInner() {
   const resendOtp = async () => {
     setMsg(null);
     const p = phone.trim();
-    if (!isValidE164Phone(p)) return setMsg('رقم الهاتف غير صحيح');
+    if (method === 'phone' && !isValidE164Phone(p)) return setMsg('رقم الهاتف غير صحيح');
+    if (method === 'email')
+      return setMsg('إعادة إرسال OTP عبر البريد ستكون متاحة في صفحة تسجيل الدخول قريباً');
     setLoading(true);
     try {
       await api.post('/auth/otp/resend', { phone: p }, { headers: { 'x-client': 'web' } });
       setMsg('تمت إعادة إرسال OTP');
     } catch (e: any) {
-      setMsg(e?.response?.data?.message || 'تعذر إعادة إرسال OTP');
+      setMsg(extractApiErrorMessage(e, 'تعذر إعادة إرسال OTP'));
     } finally {
       setLoading(false);
     }
@@ -164,10 +182,12 @@ function RegisterPageInner() {
               </Field>
             ) : null}
 
-            <Field label="رقم الهاتف">
-              <PhoneInput value={phone} onChange={setPhone} />
-              <Hint>اختر الدولة ثم اكتب رقم الهاتف بدون رمز الدولة</Hint>
-            </Field>
+            {method === 'phone' ? (
+              <Field label="رقم الهاتف">
+                <PhoneInput value={phone} onChange={setPhone} />
+                <Hint>اختر الدولة ثم اكتب رقم الهاتف بدون رمز الدولة</Hint>
+              </Field>
+            ) : null}
 
             <Field label="كلمة المرور">
               <Input
@@ -196,11 +216,20 @@ function RegisterPageInner() {
                 تسجيل الدخول
               </Link>
             </div>
+            <SocialAuthButtons
+              locale="ar"
+              onError={(text) => setMsg(text)}
+              onAuthSuccess={(token) => {
+                document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
+                router.replace(next);
+              }}
+            />
           </div>
         ) : (
           <div className="mt-5 grid gap-3">
             <div className="bg-kaffza-bg text-kaffza-text rounded-xl p-3 text-xs">
-              <span className="font-bold">الهاتف:</span> {phone.trim()}
+              <span className="font-bold">{method === 'email' ? 'البريد:' : 'الهاتف:'}</span>{' '}
+              {method === 'email' ? email.trim() : phone.trim()}
             </div>
 
             <Field label="OTP (6 أرقام)">

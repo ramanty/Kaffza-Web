@@ -11,14 +11,18 @@ import { getAccessTokenFromCookies } from '../../../lib/auth';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
+import { SocialAuthButtons } from '../../../components/SocialAuthButtons';
 import { isValidE164Phone } from '../../../lib/phone';
+import { extractApiErrorMessage } from '../../../lib/api-error';
 
 function MerchantLoginPageInner() {
   const sp = useSearchParams();
   const registered = sp.get('registered') === '1';
   const router = useRouter();
 
+  const [method, setMethod] = useState<'phone' | 'email'>('phone');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
@@ -32,15 +36,21 @@ function MerchantLoginPageInner() {
   }, []);
 
   const phoneOk = useMemo(() => isValidE164Phone(phone.trim()), [phone]);
+  const emailOk = useMemo(() => /.+@.+\..+/.test(email.trim()), [email]);
   const passOk = useMemo(() => password.trim().length >= 8, [password]);
 
   const login = async () => {
     setMsg(null);
     const p = phone.trim();
+    const e = email.trim();
     const pw = password.trim();
 
-    if (!isValidE164Phone(p)) {
+    if (method === 'phone' && !isValidE164Phone(p)) {
       setMsg({ type: 'error', text: 'رقم الهاتف يجب أن يكون بصيغة دولية صحيحة' });
+      return;
+    }
+    if (method === 'email' && !emailOk) {
+      setMsg({ type: 'error', text: 'البريد الإلكتروني غير صحيح' });
       return;
     }
     if (pw.length < 8) {
@@ -52,7 +62,11 @@ function MerchantLoginPageInner() {
     try {
       const res = await api.post(
         '/auth/login',
-        { phone: p, password: pw },
+        {
+          phone: method === 'phone' ? p : undefined,
+          email: method === 'email' ? e : undefined,
+          password: pw,
+        },
         { headers: { 'x-client': 'web' } }
       );
       const user = res?.data?.data?.user;
@@ -75,7 +89,7 @@ function MerchantLoginPageInner() {
     } catch (e: any) {
       setMsg({
         type: 'error',
-        text: e?.response?.data?.message || e?.message || 'فشل تسجيل الدخول',
+        text: extractApiErrorMessage(e, 'فشل تسجيل الدخول'),
       });
     } finally {
       setLoading(false);
@@ -116,14 +130,36 @@ function MerchantLoginPageInner() {
         ) : null}
 
         <div className="mt-5 grid gap-3">
-          <Field label="رقم الهاتف">
-            <Input
-              value={phone}
-              onChange={(e: any) => setPhone(e.target.value)}
-              placeholder="+96891234567"
-            />
-            <Hint>صيغة دولية: +968XXXXXXXX أو +1XXXXXXXXXX</Hint>
-          </Field>
+          <div className="grid gap-2">
+            <span className="text-kaffza-text text-sm font-bold">طريقة تسجيل الدخول</span>
+            <div className="flex gap-2">
+              <TabButton active={method === 'phone'} onClick={() => setMethod('phone')}>
+                الهاتف
+              </TabButton>
+              <TabButton active={method === 'email'} onClick={() => setMethod('email')}>
+                البريد
+              </TabButton>
+            </div>
+          </div>
+
+          {method === 'phone' ? (
+            <Field label="رقم الهاتف">
+              <Input
+                value={phone}
+                onChange={(e: any) => setPhone(e.target.value)}
+                placeholder="+96891234567"
+              />
+              <Hint>صيغة دولية: +968XXXXXXXX أو +1XXXXXXXXXX</Hint>
+            </Field>
+          ) : (
+            <Field label="البريد الإلكتروني">
+              <Input
+                value={email}
+                onChange={(e: any) => setEmail(e.target.value)}
+                placeholder="merchant@example.com"
+              />
+            </Field>
+          )}
 
           <Field label="كلمة المرور">
             <Input
@@ -135,7 +171,10 @@ function MerchantLoginPageInner() {
             <Hint>8 أحرف/أرقام على الأقل</Hint>
           </Field>
 
-          <Button onClick={login} disabled={loading || !phoneOk || !passOk}>
+          <Button
+            onClick={login}
+            disabled={loading || !(method === 'phone' ? phoneOk : emailOk) || !passOk}
+          >
             {loading ? 'جارٍ الدخول...' : 'دخول'}
           </Button>
 
@@ -150,6 +189,14 @@ function MerchantLoginPageInner() {
               نسيت كلمة المرور؟
             </Link>
           </div>
+          <SocialAuthButtons
+            locale="ar"
+            onError={(text) => setMsg({ type: 'error', text })}
+            onAuthSuccess={(token) => {
+              document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
+              router.replace('/dashboard');
+            }}
+          />
         </div>
       </Card>
 
@@ -176,6 +223,21 @@ function Field({ label, children }: any) {
 
 function Hint({ children }: any) {
   return <span className="text-kaffza-text/60 text-xs">{children}</span>;
+}
+
+function TabButton({ active, onClick, children }: any) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        'flex-1 rounded-xl px-4 py-2 text-sm font-extrabold transition ' +
+        (active ? 'bg-kaffza-primary text-white' : 'bg-kaffza-bg text-kaffza-text hover:bg-black/5')
+      }
+    >
+      {children}
+    </button>
+  );
 }
 
 export default function MerchantLoginPage() {

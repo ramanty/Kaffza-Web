@@ -9,12 +9,15 @@ import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { PhoneInput } from '../../../components/PhoneInput';
+import { SocialAuthButtons } from '../../../components/SocialAuthButtons';
 import { isValidE164Phone } from '../../../lib/phone';
+import { extractApiErrorMessage } from '../../../lib/api-error';
 
 export default function MerchantRegisterPage() {
   const router = useRouter();
 
   const [name, setName] = useState('');
+  const [method, setMethod] = useState<'phone' | 'email'>('phone');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,12 +32,11 @@ export default function MerchantRegisterPage() {
   const canSubmit = useMemo(() => {
     return (
       name.trim().length >= 2 &&
-      isValidE164Phone(phone) &&
-      emailOk &&
+      (method === 'phone' ? isValidE164Phone(phone) : emailOk) &&
       password.trim().length >= 8 &&
       password.trim() === confirm.trim()
     );
-  }, [name, phone, password, confirm, emailOk]);
+  }, [name, method, phone, password, confirm, emailOk]);
   const canVerify = useMemo(() => /^[0-9]{6}$/.test(otp.trim()), [otp]);
 
   const submit = async () => {
@@ -45,8 +47,12 @@ export default function MerchantRegisterPage() {
     const pw = password.trim();
 
     if (n.length < 2) return setMsg({ type: 'error', text: 'الاسم لازم يكون حرفين على الأقل' });
-    if (!isValidE164Phone(p)) return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
-    if (!emailOk) return setMsg({ type: 'error', text: 'البريد الإلكتروني غير صحيح' });
+    if (method === 'phone' && !isValidE164Phone(p)) {
+      return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
+    }
+    if (method === 'email' && !emailOk) {
+      return setMsg({ type: 'error', text: 'البريد الإلكتروني غير صحيح' });
+    }
     if (pw.length < 8)
       return setMsg({ type: 'error', text: 'كلمة المرور لازم تكون 8 أحرف/أرقام على الأقل' });
     if (pw !== confirm.trim())
@@ -56,14 +62,22 @@ export default function MerchantRegisterPage() {
     try {
       await api.post(
         '/auth/register',
-        { name: n, phone: p, email: e, password: pw, role: 'merchant', locale: 'ar' },
+        {
+          name: n,
+          method,
+          phone: method === 'phone' ? p : undefined,
+          email: method === 'email' ? e : e || undefined,
+          password: pw,
+          role: 'merchant',
+          locale: 'ar',
+        },
         { headers: { 'x-client': 'web' } }
       );
 
       setStep('verify');
       setMsg({ type: 'success', text: 'تم إرسال OTP، أدخل الرمز لتفعيل حساب التاجر' });
     } catch (e: any) {
-      setMsg({ type: 'error', text: e?.response?.data?.message || 'فشل إنشاء الحساب' });
+      setMsg({ type: 'error', text: extractApiErrorMessage(e, 'فشل إنشاء الحساب') });
     } finally {
       setLoading(false);
     }
@@ -73,7 +87,12 @@ export default function MerchantRegisterPage() {
     setMsg(null);
     const p = phone.trim();
     const code = otp.trim();
-    if (!isValidE164Phone(p)) return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
+    if (method === 'phone' && !isValidE164Phone(p)) {
+      return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
+    }
+    if (method === 'email' && !email.trim()) {
+      return setMsg({ type: 'error', text: 'البريد الإلكتروني غير صحيح' });
+    }
     if (!/^[0-9]{6}$/.test(code))
       return setMsg({ type: 'error', text: 'الرمز يجب أن يكون 6 أرقام' });
 
@@ -81,7 +100,12 @@ export default function MerchantRegisterPage() {
     try {
       const res = await api.post(
         '/auth/otp/verify',
-        { phone: p, otp: code },
+        {
+          method,
+          phone: method === 'phone' ? p : undefined,
+          email: method === 'email' ? email.trim() : undefined,
+          otp: code,
+        },
         { headers: { 'x-client': 'web' } }
       );
       const token = res?.data?.data?.tokens?.accessToken;
@@ -89,7 +113,7 @@ export default function MerchantRegisterPage() {
       document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
       router.replace('/onboarding');
     } catch (e: any) {
-      setMsg({ type: 'error', text: e?.response?.data?.message || 'فشل التحقق من الرمز' });
+      setMsg({ type: 'error', text: extractApiErrorMessage(e, 'فشل التحقق من الرمز') });
     } finally {
       setLoading(false);
     }
@@ -98,13 +122,21 @@ export default function MerchantRegisterPage() {
   const resendOtp = async () => {
     setMsg(null);
     const p = phone.trim();
-    if (!isValidE164Phone(p)) return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
+    if (method === 'phone' && !isValidE164Phone(p)) {
+      return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
+    }
+    if (method === 'email') {
+      return setMsg({
+        type: 'error',
+        text: 'إعادة إرسال OTP عبر البريد ستكون متاحة في تسجيل الدخول قريباً',
+      });
+    }
     setLoading(true);
     try {
       await api.post('/auth/otp/resend', { phone: p }, { headers: { 'x-client': 'web' } });
       setMsg({ type: 'success', text: 'تمت إعادة إرسال OTP' });
     } catch (e: any) {
-      setMsg({ type: 'error', text: e?.response?.data?.message || 'تعذر إعادة إرسال OTP' });
+      setMsg({ type: 'error', text: extractApiErrorMessage(e, 'تعذر إعادة إرسال OTP') });
     } finally {
       setLoading(false);
     }
@@ -124,7 +156,7 @@ export default function MerchantRegisterPage() {
 
       <Card className="mt-6 p-6">
         <p className="text-kaffza-text/80 text-sm">
-          لفتح متجر وبدء البيع يجب إدخال البريد الإلكتروني ورقم الهاتف معاً.
+          يمكنك التسجيل عبر البريد أو الهاتف. قبل نشر المنتجات يجب ربط الاثنين معاً.
         </p>
 
         {msg ? (
@@ -142,6 +174,18 @@ export default function MerchantRegisterPage() {
 
         {step === 'register' ? (
           <div className="mt-5 grid gap-3">
+            <div className="grid gap-2">
+              <span className="text-kaffza-text text-sm font-bold">طريقة التسجيل</span>
+              <div className="flex gap-2">
+                <TabButton active={method === 'phone'} onClick={() => setMethod('phone')}>
+                  برقم الهاتف
+                </TabButton>
+                <TabButton active={method === 'email'} onClick={() => setMethod('email')}>
+                  بالبريد الإلكتروني
+                </TabButton>
+              </div>
+            </div>
+
             <Field label="الاسم الكامل">
               <Input
                 value={name}
@@ -150,18 +194,22 @@ export default function MerchantRegisterPage() {
               />
             </Field>
 
-            <Field label="البريد الإلكتروني (مطلوب)">
-              <Input
-                value={email}
-                onChange={(e: any) => setEmail(e.target.value)}
-                placeholder="merchant@example.com"
-              />
-            </Field>
+            {method === 'email' ? (
+              <Field label="البريد الإلكتروني">
+                <Input
+                  value={email}
+                  onChange={(e: any) => setEmail(e.target.value)}
+                  placeholder="merchant@example.com"
+                />
+              </Field>
+            ) : null}
 
-            <Field label="رقم الهاتف (مطلوب)">
-              <PhoneInput value={phone} onChange={setPhone} />
-              <Hint>اختر الدولة ثم اكتب رقم الهاتف بدون رمز الدولة</Hint>
-            </Field>
+            {method === 'phone' ? (
+              <Field label="رقم الهاتف">
+                <PhoneInput value={phone} onChange={setPhone} />
+                <Hint>اختر الدولة ثم اكتب رقم الهاتف بدون رمز الدولة</Hint>
+              </Field>
+            ) : null}
 
             <Field label="كلمة المرور">
               <Input
@@ -196,11 +244,20 @@ export default function MerchantRegisterPage() {
                 تسجيل الدخول
               </Link>
             </div>
+            <SocialAuthButtons
+              locale="ar"
+              onError={(text) => setMsg({ type: 'error', text })}
+              onAuthSuccess={(token) => {
+                document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
+                router.replace('/onboarding');
+              }}
+            />
           </div>
         ) : (
           <div className="mt-5 grid gap-3">
             <div className="bg-kaffza-bg text-kaffza-text rounded-xl p-3 text-xs">
-              <span className="font-bold">الهاتف:</span> {phone.trim()}
+              <span className="font-bold">{method === 'email' ? 'البريد:' : 'الهاتف:'}</span>{' '}
+              {method === 'email' ? email.trim() : phone.trim()}
             </div>
 
             <Field label="OTP (6 أرقام)">
@@ -265,4 +322,19 @@ function Field({ label, children }: any) {
 
 function Hint({ children }: any) {
   return <span className="text-kaffza-text/60 text-xs">{children}</span>;
+}
+
+function TabButton({ active, onClick, children }: any) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        'flex-1 rounded-xl px-4 py-2 text-sm font-extrabold transition ' +
+        (active ? 'bg-kaffza-primary text-white' : 'bg-kaffza-bg text-kaffza-text hover:bg-black/5')
+      }
+    >
+      {children}
+    </button>
+  );
 }

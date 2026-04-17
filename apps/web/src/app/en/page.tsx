@@ -43,7 +43,10 @@ function EnLandingPageInner() {
                 <Link href="/en/contact" className="font-bold text-white/80 hover:text-white">
                   Support
                 </Link>
-                <Link href="/merchant/login" className="font-bold text-white/80 hover:text-white">
+                <Link
+                  href="/en/merchant/login"
+                  className="font-bold text-white/80 hover:text-white"
+                >
                   Merchant Login
                 </Link>
                 <Link href="/en/login" className="font-bold text-white/80 hover:text-white">
@@ -77,7 +80,7 @@ function EnLandingPageInner() {
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
-                <Link href="/merchant/register">
+                <Link href="/en/merchant/register">
                   <Button className="border border-white/60 bg-white !text-[#1B3A6B] shadow-sm hover:bg-slate-100">
                     Register as merchant
                   </Button>

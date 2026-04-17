@@ -2,14 +2,18 @@ import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
-import { randomInt, randomUUID } from 'crypto';
+import { randomInt, randomUUID, createHash } from 'crypto';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from './services/redis.service';
 import { SmsService } from './services/sms.service';
+import { EmailService } from './services/email.service';
 import { MerchantRegisterDto } from './dto/merchant-register.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { LoginDto } from './dto/login.dto';
+import { OAuthProviderDto } from './dto/oauth-token.dto';
+import { RegisterMethodDto } from './dto/register.dto';
 
 const OTP_TTL_MINUTES = 5;
 const OTP_MAX_ATTEMPTS = 5;
@@ -22,20 +26,29 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
     private readonly redis: RedisService,
-    private readonly sms: SmsService
+    private readonly sms: SmsService,
+    private readonly email: EmailService
   ) {}
 
   async register(dto: MerchantRegisterDto) {
-    // Support phone-only customer registration for web.
+    const method = dto.method || (dto.email ? RegisterMethodDto.email : RegisterMethodDto.phone);
+    const phone = dto.phone?.trim();
+    const providedEmail = dto.email?.trim().toLowerCase();
+
+    if (method === RegisterMethodDto.phone && !phone) {
+      throw new BadRequestException('رقم الهاتف مطلوب عند التسجيل عبر الهاتف');
+    }
+    if (method === RegisterMethodDto.email && !providedEmail) {
+      throw new BadRequestException('البريد الإلكتروني مطلوب عند التسجيل عبر البريد');
+    }
+
     const role = dto.role || 'customer';
     const locale = dto.locale || 'ar';
-    if (role === 'merchant' && !dto.email) {
-      throw new BadRequestException('البريد الإلكتروني مطلوب لحساب التاجر');
-    }
-    const email = dto.email || this.syntheticEmail(dto.phone);
+    const email = providedEmail || this.syntheticEmail(phone || '');
+    const resolvedPhone = phone || this.syntheticPhone(email);
     const plainPassword = dto.password || this.syntheticPassword();
 
-    const or: any[] = [{ phone: dto.phone }];
+    const or: any[] = [{ phone: resolvedPhone }];
     if (email) or.push({ email });
 
     const existing = await this.prisma.user.findFirst({ where: { OR: or } });
@@ -43,36 +56,51 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(plainPassword, 10);
     const { otp, otpHash, otpExpiresAt } = await this.newOtp();
 
-    const user = existing
-      ? await this.updateOrRejectExisting(existing.id, existing.isVerified, {
+    if (existing) {
+      await this.updateOrRejectExisting(existing.id, existing.isVerified, {
+        name: dto.name,
+        email,
+        phone: resolvedPhone,
+        passwordHash,
+        role,
+        locale,
+        otpHash,
+        otpExpiresAt,
+      });
+    } else {
+      await this.prisma.user.create({
+        data: {
           name: dto.name,
           email,
-          phone: dto.phone,
+          phone: resolvedPhone,
           passwordHash,
           role,
           locale,
+          isVerified: false,
           otpHash,
           otpExpiresAt,
-        })
-      : await this.prisma.user.create({
-          data: {
-            name: dto.name,
-            email,
-            phone: dto.phone,
-            passwordHash,
-            role,
-            locale,
-            isVerified: false,
-            otpHash,
-            otpExpiresAt,
-          },
-        });
+        },
+      });
+    }
 
-    await this.sms.sendOtp(user.phone, otp);
+    if (method === RegisterMethodDto.email) {
+      await this.email.sendOtp(email, otp);
+    } else {
+      await this.sms.sendOtp(resolvedPhone, otp);
+    }
+
     return {
       success: true,
-      message: 'تم إرسال رمز التحقق (OTP) إلى رقم الهاتف',
-      data: { phone: user.phone, otpExpiresAt },
+      message:
+        method === RegisterMethodDto.email
+          ? 'تم إرسال رمز التحقق (OTP) إلى البريد الإلكتروني'
+          : 'تم إرسال رمز التحقق (OTP) إلى رقم الهاتف',
+      data: {
+        method,
+        phone: method === RegisterMethodDto.phone ? resolvedPhone : undefined,
+        email: method === RegisterMethodDto.email ? email : undefined,
+        otpExpiresAt,
+      },
     };
   }
 
@@ -104,42 +132,77 @@ export class AuthService {
   }
 
   async verifyOtp(dto: VerifyOtpDto) {
-    await this.assertNotOtpBlocked(dto.phone);
-
-    const user = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
+    const { method, key, user } = await this.resolveUserForOtp(dto);
     if (!user) throw new BadRequestException('المستخدم غير موجود');
 
-    await this.assertOtp(dto.phone, user.otpHash, user.otpExpiresAt, dto.otp);
+    await this.assertNotOtpBlocked(key);
+    await this.assertOtp(key, user.otpHash, user.otpExpiresAt, dto.otp);
 
     const updated = await this.prisma.user.update({
       where: { id: user.id },
       data: { isVerified: true, otpHash: null, otpExpiresAt: null },
     });
-    await this.clearOtpFailures(dto.phone);
+    await this.clearOtpFailures(key);
 
     const tokens = await this.issueTokens(updated);
     return {
       success: true,
       message: 'تم التحقق بنجاح',
-      data: { user: this.toSafeUser(updated), tokens },
+      data: { user: this.toSafeUser(updated), tokens, method },
     };
   }
 
   // Verify OTP for reset-password flow WITHOUT consuming OTP or issuing tokens.
   async verifyOtpForReset(dto: VerifyOtpDto) {
-    await this.assertNotOtpBlocked(dto.phone);
-
-    const user = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
+    const { key, user } = await this.resolveUserForOtp(dto);
     if (!user) throw new BadRequestException('المستخدم غير موجود');
 
-    await this.assertOtp(dto.phone, user.otpHash, user.otpExpiresAt, dto.otp);
+    await this.assertNotOtpBlocked(key);
+    await this.assertOtp(key, user.otpHash, user.otpExpiresAt, dto.otp);
     // Do not clear otp here; it will be consumed by forgotPasswordVerify.
-    await this.clearOtpFailures(dto.phone);
+    await this.clearOtpFailures(key);
 
     return {
       success: true,
       message: 'تم التحقق من الرمز',
-      data: { phone: dto.phone, otpExpiresAt: user.otpExpiresAt },
+      data: { phone: user.phone, email: user.email, otpExpiresAt: user.otpExpiresAt },
+    };
+  }
+
+  async oauthLogin(provider: OAuthProviderDto, idToken: string, fallbackName?: string) {
+    const profile =
+      provider === OAuthProviderDto.google
+        ? await this.verifyGoogleIdToken(idToken)
+        : await this.verifyAppleIdToken(idToken);
+
+    const email = (profile.email || '').trim().toLowerCase();
+    if (!email) throw new BadRequestException('تعذر قراءة البريد الإلكتروني من مزود OAuth');
+    if (!profile.emailVerified) {
+      throw new BadRequestException('حساب OAuth غير موثّق بالبريد الإلكتروني');
+    }
+
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+    const user =
+      existing ||
+      (await this.prisma.user.create({
+        data: {
+          name: profile.name || fallbackName || 'OAuth User',
+          email,
+          phone: this.syntheticPhone(email),
+          passwordHash: await bcrypt.hash(this.syntheticPassword(), 10),
+          role: 'customer',
+          locale: 'en',
+          isVerified: true,
+          otpHash: null,
+          otpExpiresAt: null,
+        },
+      }));
+
+    const tokens = await this.issueTokens(user);
+    return {
+      success: true,
+      message: 'تم تسجيل الدخول عبر OAuth',
+      data: { user: this.toSafeUser(user), tokens, provider },
     };
   }
 
@@ -381,6 +444,17 @@ export class AuthService {
     return `${cleaned}@kaffza.local`;
   }
 
+  private syntheticPhone(email: string) {
+    const hash = createHash('sha256')
+      .update(email || randomUUID())
+      .digest('hex');
+    const digits = hash
+      .replace(/[^0-9]/g, '')
+      .slice(0, 10)
+      .padEnd(10, '7');
+    return `+999${digits}`;
+  }
+
   private syntheticPassword() {
     // random password used when registering via phone-only flow (OTP login)
     return `Kf${randomInt(100000, 999999)}${randomInt(100000, 999999)}`;
@@ -404,6 +478,57 @@ export class AuthService {
       isVerified: user.isVerified,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+    };
+  }
+
+  private async resolveUserForOtp(dto: VerifyOtpDto) {
+    const method = dto.method || (dto.email ? RegisterMethodDto.email : RegisterMethodDto.phone);
+    const phone = dto.phone?.trim();
+    const email = dto.email?.trim().toLowerCase();
+
+    if (method === RegisterMethodDto.email) {
+      if (!email) throw new BadRequestException('البريد الإلكتروني مطلوب للتحقق');
+      const user = await this.prisma.user.findUnique({ where: { email } });
+      return { method, key: email, user };
+    }
+
+    if (!phone) throw new BadRequestException('رقم الهاتف مطلوب للتحقق');
+    const user = await this.prisma.user.findUnique({ where: { phone } });
+    return { method, key: phone, user };
+  }
+
+  private async verifyGoogleIdToken(idToken: string) {
+    const url = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new BadRequestException('Google token غير صالح');
+    const data: any = await res.json();
+    const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
+    if (clientId && data.aud !== clientId) {
+      throw new BadRequestException('Google token audience غير صحيح');
+    }
+    return {
+      email: String(data.email || ''),
+      emailVerified: String(data.email_verified || '') === 'true',
+      name: String(data.name || ''),
+    };
+  }
+
+  private async verifyAppleIdToken(idToken: string) {
+    const clientId = process.env.APPLE_OAUTH_CLIENT_ID;
+    if (!clientId) {
+      throw new BadRequestException('APPLE_OAUTH_CLIENT_ID غير مضبوط');
+    }
+    const jwks = createRemoteJWKSet(new URL('https://appleid.apple.com/auth/keys'));
+    const { payload } = await jwtVerify(idToken, jwks, {
+      issuer: 'https://appleid.apple.com',
+      audience: clientId,
+    });
+    return {
+      email: String(payload.email || ''),
+      emailVerified:
+        payload.email_verified === true ||
+        String(payload.email_verified || '').toLowerCase() === 'true',
+      name: '',
     };
   }
 

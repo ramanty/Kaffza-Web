@@ -11,6 +11,11 @@ export enum LocaleDto {
   en = 'en',
 }
 
+export enum RegisterMethodDto {
+  phone = 'phone',
+  email = 'email',
+}
+
 export class RegisterDto {
   @ApiProperty({ example: 'محمد' })
   @IsString()
@@ -23,12 +28,13 @@ export class RegisterDto {
   @IsEmail()
   email?: string;
 
-  @ApiProperty({ example: '+96891234567' })
+  @ApiPropertyOptional({ example: '+96891234567' })
+  @IsOptional()
   @IsString()
   @Matches(/^\+[1-9]\d{7,14}$/, {
     message: 'رقم الهاتف يجب أن يكون بصيغة دولية صحيحة (E.164)',
   })
-  phone: string;
+  phone?: string;
 
   // Optional for phone-only customer registration (web).
   @ApiPropertyOptional({ example: 'StrongPass1' })
@@ -46,4 +52,9 @@ export class RegisterDto {
   @IsOptional()
   @IsEnum(LocaleDto)
   locale?: LocaleDto = LocaleDto.ar;
+
+  @ApiPropertyOptional({ enum: RegisterMethodDto, default: RegisterMethodDto.phone })
+  @IsOptional()
+  @IsEnum(RegisterMethodDto)
+  method?: RegisterMethodDto = RegisterMethodDto.phone;
 }
