@@ -190,7 +190,7 @@ function LandingPageInner() {
               </div>
 
               <ul className="text-kaffza-text/80 mt-5 space-y-2 text-sm">
-                {p.features.map((x) => (
+                {p.notes.map((x) => (
                   <li key={x} className="flex items-start gap-2">
                     <span className="text-kaffza-primary mt-0.5">✓</span>
                     <span>{x}</span>
