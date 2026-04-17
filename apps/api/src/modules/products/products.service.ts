@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from '../../database/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -11,6 +16,7 @@ export class ProductsService {
 
   async create(user: any, storeId: bigint, dto: CreateProductDto) {
     await this.assertStoreOwner(user, storeId);
+    await this.assertMerchantContactInfo(user);
 
     const categoryId = dto.categoryId ? BigInt(dto.categoryId) : undefined;
 
@@ -55,10 +61,14 @@ export class ProductsService {
   async update(user: any, storeId: bigint, productId: bigint, dto: UpdateProductDto) {
     await this.assertStoreOwner(user, storeId);
 
-    const product = await this.prisma.product.findFirst({ where: { id: productId, storeId }, include: { variants: true } });
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, storeId },
+      include: { variants: true },
+    });
     if (!product) throw new NotFoundException('المنتج غير موجود');
 
-    const categoryId = dto.categoryId !== undefined ? (dto.categoryId ? BigInt(dto.categoryId) : null) : undefined;
+    const categoryId =
+      dto.categoryId !== undefined ? (dto.categoryId ? BigInt(dto.categoryId) : null) : undefined;
     if (categoryId && categoryId !== null) {
       const cat = await this.prisma.category.findFirst({ where: { id: categoryId, storeId } });
       if (!cat) throw new BadRequestException('التصنيف غير موجود ضمن هذا المتجر');
@@ -78,11 +88,24 @@ export class ProductsService {
           if (!exists) throw new BadRequestException('Variant غير تابع لهذا المنتج');
           await this.prisma.productVariant.update({
             where: { id: vid },
-            data: { nameAr: v.nameAr, nameEn: v.nameEn, price: v.price as any, stock: v.stock, sku: v.sku },
+            data: {
+              nameAr: v.nameAr,
+              nameEn: v.nameEn,
+              price: v.price as any,
+              stock: v.stock,
+              sku: v.sku,
+            },
           });
         } else {
           await this.prisma.productVariant.create({
-            data: { productId, nameAr: v.nameAr, nameEn: v.nameEn, price: v.price as any, stock: v.stock, sku: v.sku },
+            data: {
+              productId,
+              nameAr: v.nameAr,
+              nameEn: v.nameEn,
+              price: v.price as any,
+              stock: v.stock,
+              sku: v.sku,
+            },
           });
         }
       }
@@ -123,7 +146,10 @@ export class ProductsService {
   }
 
   async getOne(storeId: bigint, productId: bigint) {
-    const product = await this.prisma.product.findFirst({ where: { id: productId, storeId }, include: { variants: true } });
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, storeId },
+      include: { variants: true },
+    });
     if (!product) throw new NotFoundException('المنتج غير موجود');
     return { success: true, data: this.map(product) };
   }
@@ -133,7 +159,10 @@ export class ProductsService {
 
     if (query.categoryId) where.categoryId = BigInt(query.categoryId);
     if (query.minPrice !== undefined || query.maxPrice !== undefined) {
-      where.price = { ...(query.minPrice !== undefined ? { gte: query.minPrice } : {}), ...(query.maxPrice !== undefined ? { lte: query.maxPrice } : {}) };
+      where.price = {
+        ...(query.minPrice !== undefined ? { gte: query.minPrice } : {}),
+        ...(query.maxPrice !== undefined ? { lte: query.maxPrice } : {}),
+      };
     }
 
     if (query.search) {
@@ -149,10 +178,20 @@ export class ProductsService {
 
     const [total, items] = await Promise.all([
       this.prisma.product.count({ where }),
-      this.prisma.product.findMany({ where, include: { variants: true }, orderBy: { createdAt: 'desc' }, skip, take: limit }),
+      this.prisma.product.findMany({
+        where,
+        include: { variants: true },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
     ]);
 
-    return { success: true, data: items.map((p) => this.map(p)), meta: { total, page, limit, totalPages: Math.ceil(total / limit) || 1 } };
+    return {
+      success: true,
+      data: items.map((p) => this.map(p)),
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) || 1 },
+    };
   }
 
   private async assertStoreOwner(user: any, storeId: bigint) {
@@ -160,10 +199,29 @@ export class ProductsService {
     if (user.role === 'admin') return;
     if (user.role !== 'merchant') throw new ForbiddenException('فقط التاجر يمكنه إدارة المنتجات');
 
-    const store = await this.prisma.store.findUnique({ where: { id: storeId }, select: { ownerId: true } });
+    const store = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: { ownerId: true },
+    });
     if (!store) throw new NotFoundException('المتجر غير موجود');
 
-    if (store.ownerId !== BigInt(user.sub)) throw new ForbiddenException('ليس لديك صلاحية على هذا المتجر');
+    if (store.ownerId !== BigInt(user.sub))
+      throw new ForbiddenException('ليس لديك صلاحية على هذا المتجر');
+  }
+
+  private async assertMerchantContactInfo(user: any) {
+    if (!user?.sub || user.role === 'admin') return;
+    if (user.role !== 'merchant') return;
+
+    const merchant = await this.prisma.user.findUnique({
+      where: { id: BigInt(user.sub) },
+      select: { email: true, phone: true },
+    });
+
+    if (!merchant) throw new ForbiddenException('المستخدم غير موجود');
+    if (!merchant.email || !merchant.phone) {
+      throw new BadRequestException('يجب ربط البريد الإلكتروني ورقم الهاتف قبل نشر المنتجات');
+    }
   }
 
   private map(p: any) {
