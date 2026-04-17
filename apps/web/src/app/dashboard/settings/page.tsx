@@ -20,7 +20,31 @@ type Store = {
   bannerUrl?: string;
 };
 
+type PaymentSettings = {
+  cardEnabled: boolean;
+  codEnabled: boolean;
+  walletEnabled: boolean;
+  bnplEnabled: boolean;
+  minOrderAmount: number | null;
+  maxOrderAmount: number | null;
+  codMinOrderAmount: number | null;
+  codMaxOrderAmount: number | null;
+  codMaxWeightKg: number | null;
+};
+
 const THAWANI_KEYS_KEY = 'kaffza_thawani_keys';
+
+const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
+  cardEnabled: true,
+  codEnabled: false,
+  walletEnabled: false,
+  bnplEnabled: false,
+  minOrderAmount: null,
+  maxOrderAmount: null,
+  codMinOrderAmount: null,
+  codMaxOrderAmount: null,
+  codMaxWeightKg: null,
+};
 
 export default function SettingsPage() {
   const { storeId, loading: storesLoading } = useStore();
@@ -48,14 +72,23 @@ export default function SettingsPage() {
   const [paymentSaving, setPaymentSaving] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState<string | null>(null);
 
+  const [paymentRules, setPaymentRules] = useState<PaymentSettings>(DEFAULT_PAYMENT_SETTINGS);
+  const [paymentRulesSaving, setPaymentRulesSaving] = useState(false);
+  const [paymentRulesSuccess, setPaymentRulesSuccess] = useState<string | null>(null);
+
   async function load() {
     if (!storeId) return;
     setLoading(true);
     setError(null);
     setSuccess(null);
     try {
-      const res = await api.get(`/stores/${storeId}`, { headers: { ...authHeader(), 'x-client': 'web' } });
-      const data = res?.data?.data;
+      const [storeRes, paymentRes] = await Promise.all([
+        api.get(`/stores/${storeId}`, { headers: { ...authHeader(), 'x-client': 'web' } }),
+        api.get(`/stores/${storeId}/payment-settings`, {
+          headers: { ...authHeader(), 'x-client': 'web' },
+        }),
+      ]);
+      const data = storeRes?.data?.data;
       const st: Store = {
         id: storeId,
         nameAr: data?.nameAr,
@@ -78,6 +111,8 @@ export default function SettingsPage() {
         logoUrl: st.logoUrl || '',
         bannerUrl: st.bannerUrl || '',
       });
+
+      setPaymentRules({ ...DEFAULT_PAYMENT_SETTINGS, ...(paymentRes?.data?.data || {}) });
     } catch (e: any) {
       setError(e?.response?.data?.message || e?.message || 'حدث خطأ أثناء تحميل إعدادات المتجر');
     } finally {
@@ -91,7 +126,6 @@ export default function SettingsPage() {
       return;
     }
     load();
-    // Load saved Thawani keys from localStorage
     try {
       const saved = localStorage.getItem(`${THAWANI_KEYS_KEY}:${storeId}`);
       if (saved) {
@@ -104,10 +138,13 @@ export default function SettingsPage() {
     } catch {
       // ignore parse errors
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [storeId]);
 
-  const canSave = useMemo(() => !!storeId && form.nameAr.trim().length >= 2 && form.nameEn.trim().length >= 2, [storeId, form.nameAr, form.nameEn]);
+  const canSave = useMemo(
+    () => !!storeId && form.nameAr.trim().length >= 2 && form.nameEn.trim().length >= 2,
+    [storeId, form.nameAr, form.nameEn]
+  );
 
   async function save() {
     if (!storeId) return;
@@ -125,13 +162,41 @@ export default function SettingsPage() {
         bannerUrl: form.bannerUrl.trim() || undefined,
       };
 
-      await api.patch(`/stores/${storeId}`, payload, { headers: { ...authHeader(), 'x-client': 'web' } });
+      await api.patch(`/stores/${storeId}`, payload, {
+        headers: { ...authHeader(), 'x-client': 'web' },
+      });
       setSuccess('تم حفظ الإعدادات بنجاح');
       await load();
     } catch (e: any) {
       setError(e?.response?.data?.message || e?.message || 'فشل حفظ الإعدادات');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function savePaymentRules() {
+    if (!storeId) return;
+    setPaymentRulesSaving(true);
+    setPaymentRulesSuccess(null);
+    setError(null);
+    try {
+      const payload = {
+        ...paymentRules,
+        minOrderAmount: toNullableNumber(paymentRules.minOrderAmount),
+        maxOrderAmount: toNullableNumber(paymentRules.maxOrderAmount),
+        codMinOrderAmount: toNullableNumber(paymentRules.codMinOrderAmount),
+        codMaxOrderAmount: toNullableNumber(paymentRules.codMaxOrderAmount),
+        codMaxWeightKg: toNullableNumber(paymentRules.codMaxWeightKg),
+      };
+      const res = await api.patch(`/stores/${storeId}/payment-settings`, payload, {
+        headers: { ...authHeader(), 'x-client': 'web' },
+      });
+      setPaymentRules({ ...DEFAULT_PAYMENT_SETTINGS, ...(res?.data?.data || payload) });
+      setPaymentRulesSuccess('تم حفظ إعدادات طرق الدفع');
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'فشل حفظ إعدادات الدفع');
+    } finally {
+      setPaymentRulesSaving(false);
     }
   }
 
@@ -145,7 +210,7 @@ export default function SettingsPage() {
         JSON.stringify({
           thawaniSecretKey: paymentForm.thawaniSecretKey.trim(),
           thawaniPublishableKey: paymentForm.thawaniPublishableKey.trim(),
-        }),
+        })
       );
       setPaymentSuccess('تم حفظ مفاتيح الدفع بنجاح');
     } finally {
@@ -156,9 +221,13 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-extrabold text-kaffza-primary">الإعدادات</h1>
-        <p className="mt-1 text-sm text-kaffza-text/80">تحديث بيانات المتجر (اسم، وصف، دومين، شعار...)</p>
-        {!storeId && !storesLoading ? <p className="mt-1 text-xs text-red-700">لا يوجد متجر محدد.</p> : null}
+        <h1 className="text-kaffza-primary text-2xl font-extrabold">الإعدادات</h1>
+        <p className="text-kaffza-text/80 mt-1 text-sm">
+          تحديث بيانات المتجر (اسم، وصف، دومين، شعار...)
+        </p>
+        {!storeId && !storesLoading ? (
+          <p className="mt-1 text-xs text-red-700">لا يوجد متجر محدد.</p>
+        ) : null}
       </header>
 
       {error ? <Alert kind="error" text={error} /> : null}
@@ -167,14 +236,16 @@ export default function SettingsPage() {
       <Card className="p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="text-sm font-extrabold text-kaffza-primary">بيانات المتجر</div>
-            <div className="mt-1 text-xs text-kaffza-text/70">subdomain للعرض فقط (غير قابل للتعديل عبر هذا الـ endpoint).</div>
+            <div className="text-kaffza-primary text-sm font-extrabold">بيانات المتجر</div>
+            <div className="text-kaffza-text/70 mt-1 text-xs">
+              subdomain للعرض فقط (غير قابل للتعديل عبر هذا الـ endpoint).
+            </div>
           </div>
           <div className="flex gap-2">
             <Button variant="secondary" onClick={load}>
               تحديث
             </Button>
-            <Button onClick={save} disabled={!canSave || saving}>
+            <Button onClick={save} disabled={!canSave || saving || loading}>
               {saving ? 'جارٍ الحفظ...' : 'حفظ'}
             </Button>
           </div>
@@ -182,11 +253,17 @@ export default function SettingsPage() {
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <Field label="اسم المتجر (عربي)">
-            <Input value={form.nameAr} onChange={(e: any) => setForm((s) => ({ ...s, nameAr: e.target.value }))} />
+            <Input
+              value={form.nameAr}
+              onChange={(e: any) => setForm((s) => ({ ...s, nameAr: e.target.value }))}
+            />
           </Field>
 
           <Field label="اسم المتجر (English)">
-            <Input value={form.nameEn} onChange={(e: any) => setForm((s) => ({ ...s, nameEn: e.target.value }))} />
+            <Input
+              value={form.nameEn}
+              onChange={(e: any) => setForm((s) => ({ ...s, nameEn: e.target.value }))}
+            />
           </Field>
 
           <Field label="Subdomain">
@@ -194,12 +271,16 @@ export default function SettingsPage() {
           </Field>
 
           <Field label="Custom Domain (اختياري)">
-            <Input value={form.customDomain} onChange={(e: any) => setForm((s) => ({ ...s, customDomain: e.target.value }))} placeholder="example.com" />
+            <Input
+              value={form.customDomain}
+              onChange={(e: any) => setForm((s) => ({ ...s, customDomain: e.target.value }))}
+              placeholder="example.com"
+            />
           </Field>
 
           <Field label="وصف المتجر (عربي)">
             <textarea
-              className="min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
+              className="focus:border-kaffza-primary min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
               value={form.descriptionAr}
               onChange={(e) => setForm((s) => ({ ...s, descriptionAr: e.target.value }))}
               placeholder="اكتب وصفاً مختصراً..."
@@ -208,7 +289,7 @@ export default function SettingsPage() {
 
           <Field label="Store Description (English)">
             <textarea
-              className="min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
+              className="focus:border-kaffza-primary min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
               value={form.descriptionEn}
               onChange={(e) => setForm((s) => ({ ...s, descriptionEn: e.target.value }))}
               placeholder="Write a short description..."
@@ -216,51 +297,134 @@ export default function SettingsPage() {
           </Field>
 
           <Field label="Logo URL (رابط الشعار)">
-            <Input value={form.logoUrl} onChange={(e: any) => setForm((s) => ({ ...s, logoUrl: e.target.value }))} placeholder="https://..." />
+            <Input
+              value={form.logoUrl}
+              onChange={(e: any) => setForm((s) => ({ ...s, logoUrl: e.target.value }))}
+              placeholder="https://..."
+            />
           </Field>
 
           <Field label="Banner URL (رابط البنر)">
-            <Input value={form.bannerUrl} onChange={(e: any) => setForm((s) => ({ ...s, bannerUrl: e.target.value }))} placeholder="https://..." />
+            <Input
+              value={form.bannerUrl}
+              onChange={(e: any) => setForm((s) => ({ ...s, bannerUrl: e.target.value }))}
+              placeholder="https://..."
+            />
           </Field>
-        </div>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="rounded-xl bg-kaffza-bg p-4">
-            <div className="text-sm font-extrabold text-kaffza-primary">معاينة الشعار</div>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="h-16 w-16 overflow-hidden rounded-xl border border-black/10 bg-white">
-                {form.logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={form.logoUrl} alt="logo" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs text-kaffza-text/60">لا يوجد</div>
-                )}
-              </div>
-              <div className="text-xs text-kaffza-text/70">
-                رفع الملف إلى MinIO غير متوفر حالياً لأن المشروع لا يحتوي endpoint رفع جاهز. يمكنك وضع رابط مباشر للشعار.
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-black/5 bg-white p-4">
-            <div className="text-sm font-extrabold text-kaffza-primary">رفع شعار (قريباً)</div>
-            <p className="mt-1 text-xs text-kaffza-text/70">عند إضافة endpoint رفع (MinIO/S3) سنربطه مباشرة هنا.</p>
-            <input disabled type="file" className="mt-3 w-full text-sm" />
-          </div>
         </div>
       </Card>
 
-      {/* Payment Integration */}
       <Card className="p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="text-sm font-extrabold text-kaffza-primary">إعدادات بوابة الدفع (ثواني)</div>
-            <div className="mt-1 text-xs text-kaffza-text/70">
+            <div className="text-kaffza-primary text-sm font-extrabold">
+              طرق الدفع | Payment Methods
+            </div>
+            <div className="text-kaffza-text/70 mt-1 text-xs">
+              تفعيل/تعطيل طرق الدفع ووضع قيود الطلب بأمان.
+            </div>
+          </div>
+          <Button onClick={savePaymentRules} disabled={!storeId || paymentRulesSaving}>
+            {paymentRulesSaving ? 'جارٍ الحفظ...' : 'حفظ إعدادات الدفع'}
+          </Button>
+        </div>
+
+        {paymentRulesSuccess ? <Alert kind="success" text={paymentRulesSuccess} /> : null}
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <Toggle
+            label="بطاقة / Card"
+            checked={paymentRules.cardEnabled}
+            onChange={(v) => setPaymentRules((s) => ({ ...s, cardEnabled: v }))}
+          />
+          <Toggle
+            label="الدفع عند الاستلام / COD"
+            checked={paymentRules.codEnabled}
+            onChange={(v) => setPaymentRules((s) => ({ ...s, codEnabled: v }))}
+          />
+          <Toggle
+            label="المحفظة / Wallet (قريباً)"
+            checked={paymentRules.walletEnabled}
+            onChange={(v) => setPaymentRules((s) => ({ ...s, walletEnabled: v }))}
+          />
+          <Toggle
+            label="BNPL (Placeholder)"
+            checked={paymentRules.bnplEnabled}
+            onChange={(v) => setPaymentRules((s) => ({ ...s, bnplEnabled: v }))}
+          />
+        </div>
+
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <Field label="الحد الأدنى للطلب | Min Order (OMR)">
+            <Input
+              value={toInput(paymentRules.minOrderAmount)}
+              onChange={(e: any) =>
+                setPaymentRules((s) => ({ ...s, minOrderAmount: toNullableNumber(e.target.value) }))
+              }
+              placeholder="فارغ = بدون حد"
+            />
+          </Field>
+          <Field label="الحد الأعلى للطلب | Max Order (OMR)">
+            <Input
+              value={toInput(paymentRules.maxOrderAmount)}
+              onChange={(e: any) =>
+                setPaymentRules((s) => ({ ...s, maxOrderAmount: toNullableNumber(e.target.value) }))
+              }
+              placeholder="فارغ = بدون حد"
+            />
+          </Field>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            يتم تطبيق القيود في مسار Checkout فقط. إذا تركت الحقول فارغة فلن تتغير السلوكيات
+            الحالية.
+          </div>
+          <Field label="COD Min (OMR)">
+            <Input
+              value={toInput(paymentRules.codMinOrderAmount)}
+              onChange={(e: any) =>
+                setPaymentRules((s) => ({
+                  ...s,
+                  codMinOrderAmount: toNullableNumber(e.target.value),
+                }))
+              }
+              placeholder="اختياري"
+            />
+          </Field>
+          <Field label="COD Max (OMR)">
+            <Input
+              value={toInput(paymentRules.codMaxOrderAmount)}
+              onChange={(e: any) =>
+                setPaymentRules((s) => ({
+                  ...s,
+                  codMaxOrderAmount: toNullableNumber(e.target.value),
+                }))
+              }
+              placeholder="اختياري"
+            />
+          </Field>
+          <Field label="COD Max Weight (KG)">
+            <Input
+              value={toInput(paymentRules.codMaxWeightKg)}
+              onChange={(e: any) =>
+                setPaymentRules((s) => ({ ...s, codMaxWeightKg: toNullableNumber(e.target.value) }))
+              }
+              placeholder="اختياري"
+            />
+          </Field>
+        </div>
+      </Card>
+
+      <Card className="p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="text-kaffza-primary text-sm font-extrabold">
+              إعدادات بوابة الدفع (ثواني)
+            </div>
+            <div className="text-kaffza-text/70 mt-1 text-xs">
               أدخل مفاتيح API الخاصة بحسابك في Thawani لاستقبال المدفوعات مباشرةً.
             </div>
           </div>
           <Button onClick={savePaymentSettings} disabled={!storeId || paymentSaving}>
-            {paymentSaving ? 'جارٍ الحفظ...' : 'حفظ الإعدادات'}
+            {paymentSaving ? 'جارٍ الحفظ...' : 'حفظ المفاتيح محلياً'}
           </Button>
         </div>
 
@@ -271,7 +435,9 @@ export default function SettingsPage() {
             <Input
               type="password"
               value={paymentForm.thawaniSecretKey}
-              onChange={(e: any) => setPaymentForm((s) => ({ ...s, thawaniSecretKey: e.target.value }))}
+              onChange={(e: any) =>
+                setPaymentForm((s) => ({ ...s, thawaniSecretKey: e.target.value }))
+              }
               placeholder="sk_..."
             />
           </Field>
@@ -279,30 +445,64 @@ export default function SettingsPage() {
           <Field label="Publishable Key (المفتاح العلني)">
             <Input
               value={paymentForm.thawaniPublishableKey}
-              onChange={(e: any) => setPaymentForm((s) => ({ ...s, thawaniPublishableKey: e.target.value }))}
+              onChange={(e: any) =>
+                setPaymentForm((s) => ({ ...s, thawaniPublishableKey: e.target.value }))
+              }
               placeholder="pk_..."
             />
           </Field>
         </div>
 
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
-          🔒 يتم حفظ المفاتيح محلياً في المتصفح مؤقتاً. سيتم ربطها بالخادم في التحديث القادم لاكتمال بنية SaaS متعددة المستأجرين.
+          🔒 يتم حفظ المفاتيح محلياً في المتصفح مؤقتاً. سيتم ربطها بالخادم في التحديث القادم لاكتمال
+          بنية SaaS متعددة المستأجرين.
         </div>
       </Card>
     </div>
   );
 }
 
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center justify-between rounded-xl border border-black/10 px-3 py-2 text-sm">
+      <span>{label}</span>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+    </label>
+  );
+}
+
 function Field({ label, children }: { label: string; children: any }) {
   return (
     <label className="grid gap-1">
-      <span className="text-sm font-bold text-kaffza-text">{label}</span>
+      <span className="text-kaffza-text text-sm font-bold">{label}</span>
       {children}
     </label>
   );
 }
 
 function Alert({ kind, text }: { kind: 'error' | 'success'; text: string }) {
-  const cls = kind === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700';
+  const cls =
+    kind === 'error'
+      ? 'border-red-200 bg-red-50 text-red-700'
+      : 'border-green-200 bg-green-50 text-green-700';
   return <div className={`rounded-xl border p-4 text-sm ${cls}`}>{text}</div>;
+}
+
+function toNullableNumber(v: unknown): number | null {
+  if (v === '' || v === null || v === undefined) return null;
+  const n = Number(v);
+  if (!Number.isFinite(n)) return null;
+  return n;
+}
+
+function toInput(v: number | null) {
+  return v === null ? '' : String(v);
 }

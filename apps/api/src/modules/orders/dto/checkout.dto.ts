@@ -1,6 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsEnum, IsOptional, IsString, ValidateNested } from 'class-validator';
+
+export enum CheckoutPaymentMethodDto {
+  card = 'card',
+  cod = 'cod',
+  wallet = 'wallet',
+  bnpl = 'bnpl',
+}
 
 export class CartAddressDto {
   @ApiProperty({ example: 'محمد' })
@@ -44,4 +51,9 @@ export class CheckoutDto {
   @IsOptional()
   @IsString()
   customerNotes?: string;
+
+  @ApiPropertyOptional({ enum: CheckoutPaymentMethodDto, default: CheckoutPaymentMethodDto.card })
+  @IsOptional()
+  @IsEnum(CheckoutPaymentMethodDto)
+  paymentMethod?: CheckoutPaymentMethodDto;
 }

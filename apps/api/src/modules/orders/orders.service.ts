@@ -9,6 +9,12 @@ import { PrismaService } from '../../database/prisma.service';
 import { CartService } from '../cart/cart.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CheckoutDto } from './dto/checkout.dto';
+import {
+  PaymentMethod,
+  calculateShippingCost,
+  getEnabledPaymentMethods,
+  normalizePaymentSettings,
+} from '../stores/store-settings.util';
 
 const THAWANI_GATEWAY_FEE_RATE = 0.02;
 
@@ -36,16 +42,29 @@ export class OrdersService {
     if (!items.length) throw new BadRequestException('السلة فارغة');
 
     const subtotal = Number(cartData.data.subtotal);
-    const shippingCost = Number(cartData.data.shippingCost);
+    const weightKg = Number(cartData.data.weightKg || 0);
+    const shippingCost = this.resolveShippingCost(store.shippingSettings, subtotal, weightKg, {
+      state: dto.shippingAddress?.state,
+      city: dto.shippingAddress?.city,
+    });
     const totalAmount = round3(subtotal + shippingCost);
+
+    const paymentMethod = (dto.paymentMethod || 'card') as PaymentMethod;
+    this.assertPaymentRules(store.paymentSettings, paymentMethod, {
+      totalAmount,
+      weightKg,
+    });
 
     // Revenue split: Thawani takes 2% (gateway fee), plan commission is direct
     const commissionRate = Number(store.plan?.commissionRate ?? 0.02);
-    const thawaniFee = round3(totalAmount * THAWANI_GATEWAY_FEE_RATE);
+    const thawaniFee =
+      paymentMethod === 'card' ? round3(totalAmount * THAWANI_GATEWAY_FEE_RATE) : 0;
     const commissionAmount = round3(totalAmount * commissionRate);
     const merchantAmount = round3(totalAmount - thawaniFee - commissionAmount);
 
     const orderNumber = await this.generateOrderNumber();
+
+    const paymentGateway = this.paymentGatewayFromMethod(paymentMethod);
 
     const created = await this.prisma.$transaction(async (tx) => {
       const stockErrors: string[] = [];
@@ -106,7 +125,7 @@ export class OrdersService {
           amount: totalAmount,
           currency: 'OMR',
           status: 'pending',
-          gateway: 'thawani',
+          gateway: paymentGateway,
           escrowStatus: 'held',
         },
       });
@@ -123,13 +142,20 @@ export class OrdersService {
       bodyAr: `طلب جديد رقم ${orderNumber}`,
       bodyEn: `New order ${orderNumber}`,
       type: 'order',
-      data: { orderId: created.id.toString(), storeId: storeId.toString() },
+      data: { orderId: created.id.toString(), storeId: storeId.toString(), paymentMethod },
     });
+
+    const messageByMethod: Record<PaymentMethod, string> = {
+      card: 'تم إنشاء الطلب. انتقل للدفع',
+      cod: 'تم إنشاء الطلب بنجاح والدفع عند الاستلام',
+      wallet: 'تم إنشاء الطلب. دفع المحفظة سيتوفر قريباً',
+      bnpl: 'تم إنشاء الطلب. خدمة اشتر الآن وادفع لاحقاً قادمة قريباً',
+    };
 
     return {
       success: true,
-      message: 'تم إنشاء الطلب. انتقل للدفع',
-      data: { orderId: created.id.toString(), orderNumber },
+      message: messageByMethod[paymentMethod],
+      data: { orderId: created.id.toString(), orderNumber, paymentMethod },
     };
   }
 
@@ -313,6 +339,96 @@ export class OrdersService {
       include: { payment: true },
     });
     return { success: true, data: orders };
+  }
+
+  private assertPaymentRules(
+    rawPaymentSettings: unknown,
+    method: PaymentMethod,
+    context: { totalAmount: number; weightKg: number }
+  ) {
+    const paymentSettings = normalizePaymentSettings(rawPaymentSettings);
+    const enabledMethods = getEnabledPaymentMethods(paymentSettings);
+
+    if (!enabledMethods.length) {
+      throw new BadRequestException('لا توجد وسائل دفع مفعلة لهذا المتجر');
+    }
+
+    if (!enabledMethods.includes(method)) {
+      throw new BadRequestException('طريقة الدفع غير متاحة لهذا المتجر');
+    }
+
+    if (
+      paymentSettings.minOrderAmount !== null &&
+      context.totalAmount < paymentSettings.minOrderAmount
+    ) {
+      throw new BadRequestException(
+        `الحد الأدنى للطلب هو ${paymentSettings.minOrderAmount.toFixed(3)} ر.ع`
+      );
+    }
+
+    if (
+      paymentSettings.maxOrderAmount !== null &&
+      context.totalAmount > paymentSettings.maxOrderAmount
+    ) {
+      throw new BadRequestException(
+        `الحد الأعلى للطلب هو ${paymentSettings.maxOrderAmount.toFixed(3)} ر.ع`
+      );
+    }
+
+    if (method !== 'cod') return;
+
+    if (
+      paymentSettings.codMinOrderAmount !== null &&
+      context.totalAmount < paymentSettings.codMinOrderAmount
+    ) {
+      throw new BadRequestException(
+        `الدفع عند الاستلام متاح لطلبات تبدأ من ${paymentSettings.codMinOrderAmount.toFixed(3)} ر.ع`
+      );
+    }
+
+    if (
+      paymentSettings.codMaxOrderAmount !== null &&
+      context.totalAmount > paymentSettings.codMaxOrderAmount
+    ) {
+      throw new BadRequestException(
+        `الدفع عند الاستلام غير متاح للطلبات الأعلى من ${paymentSettings.codMaxOrderAmount.toFixed(3)} ر.ع`
+      );
+    }
+
+    if (
+      paymentSettings.codMaxWeightKg !== null &&
+      context.weightKg > paymentSettings.codMaxWeightKg
+    ) {
+      throw new BadRequestException(
+        `الدفع عند الاستلام متاح حتى وزن ${paymentSettings.codMaxWeightKg.toFixed(3)} كجم`
+      );
+    }
+  }
+
+  private resolveShippingCost(
+    rawShippingSettings: unknown,
+    subtotal: number,
+    weightKg: number,
+    address: { state?: string; city?: string }
+  ) {
+    const legacyBaseCost = Number(process.env.SHIPPING_BASE_COST || 0);
+    const legacyPerKgCost = Number(process.env.SHIPPING_PER_KG || 0);
+
+    return calculateShippingCost(rawShippingSettings, {
+      subtotal,
+      weightKg,
+      state: address.state,
+      city: address.city,
+      legacyBaseCost,
+      legacyPerKgCost,
+    });
+  }
+
+  private paymentGatewayFromMethod(method: PaymentMethod) {
+    if (method === 'card') return 'thawani';
+    if (method === 'cod') return 'cod';
+    if (method === 'wallet') return 'wallet';
+    return 'bnpl';
   }
 
   private async assertStoreOwner(user: any, storeId: bigint) {

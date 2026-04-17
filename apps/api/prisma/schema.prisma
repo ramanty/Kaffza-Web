@@ -89,6 +89,8 @@ model Store {
   totalOrders     Int        @default(0) @map("total_orders")
   avgRating       Decimal    @default(0) @map("avg_rating") @db.Decimal(3, 2)
   trustLevel      TrustLevel @default(new_merchant) @map("trust_level")
+  paymentSettings Json?      @map("payment_settings")
+  shippingSettings Json?     @map("shipping_settings")
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
 

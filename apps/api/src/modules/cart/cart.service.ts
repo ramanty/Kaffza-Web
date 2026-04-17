@@ -1,7 +1,13 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from '../../database/prisma.service';
 import { CartRedisService } from './cart.redis.service';
+import { calculateShippingCost, normalizeShippingSettings } from '../stores/store-settings.util';
 
 export interface CartLine {
   productId: string;
@@ -11,7 +17,10 @@ export interface CartLine {
 
 @Injectable()
 export class CartService {
-  constructor(private readonly prisma: PrismaService, private readonly redis: CartRedisService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: CartRedisService
+  ) {}
 
   private cartKey(userId: string, storeId: string) {
     return `cart:${userId}:${storeId}`;
@@ -32,7 +41,9 @@ export class CartService {
     const raw = await this.redis.get(key);
     const lines: CartLine[] = raw ? JSON.parse(raw) : [];
 
-    const idx = lines.findIndex((l) => l.productId === line.productId && (l.variantId || null) === (line.variantId || null));
+    const idx = lines.findIndex(
+      (l) => l.productId === line.productId && (l.variantId || null) === (line.variantId || null)
+    );
     if (idx >= 0) lines[idx].quantity += line.quantity;
     else lines.push({ ...line });
 
@@ -49,7 +60,9 @@ export class CartService {
     const raw = await this.redis.get(key);
     const lines: CartLine[] = raw ? JSON.parse(raw) : [];
 
-    const idx = lines.findIndex((l) => l.productId === line.productId && (l.variantId || null) === (line.variantId || null));
+    const idx = lines.findIndex(
+      (l) => l.productId === line.productId && (l.variantId || null) === (line.variantId || null)
+    );
     if (idx < 0) throw new NotFoundException('العنصر غير موجود في السلة');
 
     lines[idx].quantity = line.quantity;
@@ -67,7 +80,9 @@ export class CartService {
     const raw = await this.redis.get(key);
     const lines: CartLine[] = raw ? JSON.parse(raw) : [];
 
-    const filtered = lines.filter((l) => !(l.productId === productId && (l.variantId || null) === (variantId || null)));
+    const filtered = lines.filter(
+      (l) => !(l.productId === productId && (l.variantId || null) === (variantId || null))
+    );
     await this.redis.set(key, JSON.stringify(filtered), 60 * 60 * 24 * 7);
     return this.compute(storeId, filtered);
   }
@@ -84,11 +99,15 @@ export class CartService {
       if (!product.isActive) throw new BadRequestException('منتج غير متاح');
 
       if (l.variantId) {
-        const variant = await this.prisma.productVariant.findFirst({ where: { id: BigInt(l.variantId), productId } });
+        const variant = await this.prisma.productVariant.findFirst({
+          where: { id: BigInt(l.variantId), productId },
+        });
         if (!variant) throw new BadRequestException('النوع (Variant) غير موجود');
-        if (variant.stock < l.quantity) throw new BadRequestException('الكمية المطلوبة غير متوفرة للنوع');
+        if (variant.stock < l.quantity)
+          throw new BadRequestException('الكمية المطلوبة غير متوفرة للنوع');
       } else {
-        if (product.stock < l.quantity) throw new BadRequestException('الكمية المطلوبة غير متوفرة للمنتج');
+        if (product.stock < l.quantity)
+          throw new BadRequestException('الكمية المطلوبة غير متوفرة للمنتج');
       }
     }
   }
@@ -100,7 +119,10 @@ export class CartService {
 
     for (const l of lines) {
       const productId = BigInt(l.productId);
-      const product = await this.prisma.product.findFirst({ where: { id: productId, storeId }, include: { variants: true } });
+      const product = await this.prisma.product.findFirst({
+        where: { id: productId, storeId },
+        include: { variants: true },
+      });
       if (!product) continue;
 
       let unitPrice: any = product.price;
@@ -119,23 +141,53 @@ export class CartService {
         productId: l.productId,
         variantId: l.variantId || null,
         quantity: l.quantity,
-        product: { id: product.id.toString(), nameAr: product.nameAr, nameEn: product.nameEn, images: product.images },
-        variant: variant ? { id: variant.id.toString(), nameAr: variant.nameAr, nameEn: variant.nameEn } : null,
+        product: {
+          id: product.id.toString(),
+          nameAr: product.nameAr,
+          nameEn: product.nameEn,
+          images: product.images,
+        },
+        variant: variant
+          ? { id: variant.id.toString(), nameAr: variant.nameAr, nameEn: variant.nameEn }
+          : null,
         unitPrice,
         lineTotal,
       });
     }
 
-    const shippingCost = this.estimateShipping(weightKg);
-    const total = subtotal + shippingCost;
+    const store = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: { shippingSettings: true },
+    });
 
-    return { success: true, data: { storeId: storeId.toString(), items: detailed, subtotal, shippingCost, total, weightKg, currency: 'OMR' } };
-  }
+    const legacyBaseCost = Number(process.env.SHIPPING_BASE_COST || 0);
+    const legacyPerKgCost = Number(process.env.SHIPPING_PER_KG || 0);
 
-  private estimateShipping(weightKg: number) {
-    const base = Number(process.env.SHIPPING_BASE_COST || 0);
-    const perKg = Number(process.env.SHIPPING_PER_KG || 0);
-    const cost = base + perKg * Math.max(0, weightKg);
-    return Math.round(cost * 1000) / 1000;
+    const shippingCost = calculateShippingCost(store?.shippingSettings, {
+      subtotal,
+      weightKg,
+      legacyBaseCost,
+      legacyPerKgCost,
+    });
+
+    const total = round3(subtotal + shippingCost);
+
+    return {
+      success: true,
+      data: {
+        storeId: storeId.toString(),
+        items: detailed,
+        subtotal: round3(subtotal),
+        shippingCost,
+        total,
+        weightKg: round3(weightKg),
+        currency: 'OMR',
+        shippingSettings: normalizeShippingSettings(store?.shippingSettings),
+      },
+    };
   }
+}
+
+function round3(v: number) {
+  return Math.round(v * 1000) / 1000;
 }

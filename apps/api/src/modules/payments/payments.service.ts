@@ -42,6 +42,9 @@ export class PaymentsService {
     }
     if (!order.payment) throw new BadRequestException('لا يوجد سجل دفع');
     if (order.payment.status === 'paid') throw new BadRequestException('تم الدفع مسبقاً');
+    if (order.payment.gateway !== 'thawani') {
+      throw new BadRequestException('طريقة الدفع الحالية لا تتطلب جلسة Thawani');
+    }
 
     const apiUrl =
       this.config.get<string>('thawani.baseUrl') ||

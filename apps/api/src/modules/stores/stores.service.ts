@@ -10,6 +10,14 @@ import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { UpdateAutomationDto } from './dto/update-automation.dto';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
+import { UpdatePaymentSettingsDto } from './dto/update-payment-settings.dto';
+import { UpdateShippingSettingsDto } from './dto/update-shipping-settings.dto';
+import {
+  normalizePaymentSettings,
+  normalizeShippingSettings,
+  validatePaymentSettings,
+  validateShippingSettings,
+} from './store-settings.util';
 
 const ONBOARDING_STEPS = [
   {
@@ -82,6 +90,8 @@ export class StoresService {
           descriptionAr: dto.descriptionAr,
           descriptionEn: dto.descriptionEn,
           isActive: true,
+          paymentSettings: normalizePaymentSettings(null) as any,
+          shippingSettings: normalizeShippingSettings(null) as any,
           wallet: {
             create: {
               availableBalance: 0,
@@ -173,7 +183,110 @@ export class StoresService {
       throw new ForbiddenException('ليس لديك صلاحية الوصول لهذا المتجر');
     }
 
-    return { success: true, data: store };
+    return {
+      success: true,
+      data: {
+        ...store,
+        paymentSettings: normalizePaymentSettings(store.paymentSettings),
+        shippingSettings: normalizeShippingSettings(store.shippingSettings),
+      },
+    };
+  }
+
+  async getPaymentSettings(user: { sub: string; role: string }, storeId: bigint) {
+    await this.assertStoreOwner(user, storeId);
+    const store = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: { paymentSettings: true },
+    });
+    if (!store) throw new NotFoundException('المتجر غير موجود');
+
+    return { success: true, data: normalizePaymentSettings(store.paymentSettings) };
+  }
+
+  async updatePaymentSettings(
+    user: { sub: string; role: string },
+    storeId: bigint,
+    dto: UpdatePaymentSettingsDto
+  ) {
+    await this.assertStoreOwner(user, storeId);
+
+    const current = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: { paymentSettings: true },
+    });
+    if (!current) throw new NotFoundException('المتجر غير موجود');
+
+    const next = normalizePaymentSettings({
+      ...normalizePaymentSettings(current.paymentSettings),
+      ...dto,
+    });
+
+    try {
+      validatePaymentSettings(next);
+    } catch (e: any) {
+      throw new BadRequestException(e?.message || 'إعدادات الدفع غير صحيحة');
+    }
+
+    const updated = await this.prisma.store.update({
+      where: { id: storeId },
+      data: { paymentSettings: next as any },
+      select: { paymentSettings: true },
+    });
+
+    return {
+      success: true,
+      message: 'تم حفظ إعدادات الدفع',
+      data: normalizePaymentSettings(updated.paymentSettings),
+    };
+  }
+
+  async getShippingSettings(user: { sub: string; role: string }, storeId: bigint) {
+    await this.assertStoreOwner(user, storeId);
+    const store = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: { shippingSettings: true },
+    });
+    if (!store) throw new NotFoundException('المتجر غير موجود');
+
+    return { success: true, data: normalizeShippingSettings(store.shippingSettings) };
+  }
+
+  async updateShippingSettings(
+    user: { sub: string; role: string },
+    storeId: bigint,
+    dto: UpdateShippingSettingsDto
+  ) {
+    await this.assertStoreOwner(user, storeId);
+
+    const current = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: { shippingSettings: true },
+    });
+    if (!current) throw new NotFoundException('المتجر غير موجود');
+
+    const next = normalizeShippingSettings({
+      ...normalizeShippingSettings(current.shippingSettings),
+      ...dto,
+    });
+
+    try {
+      validateShippingSettings(next);
+    } catch (e: any) {
+      throw new BadRequestException(e?.message || 'إعدادات الشحن غير صحيحة');
+    }
+
+    const updated = await this.prisma.store.update({
+      where: { id: storeId },
+      data: { shippingSettings: next as any },
+      select: { shippingSettings: true },
+    });
+
+    return {
+      success: true,
+      message: 'تم حفظ إعدادات الشحن',
+      data: normalizeShippingSettings(updated.shippingSettings),
+    };
   }
 
   async getStoreBySubdomain(subdomain: string) {
@@ -184,7 +297,14 @@ export class StoresService {
     if (!store) throw new NotFoundException('المتجر غير موجود');
     if (!store.isActive) throw new NotFoundException('المتجر غير متاح');
 
-    return { success: true, data: store };
+    return {
+      success: true,
+      data: {
+        ...store,
+        paymentSettings: normalizePaymentSettings(store.paymentSettings),
+        shippingSettings: normalizeShippingSettings(store.shippingSettings),
+      },
+    };
   }
 
   async checkSubdomain(subdomain: string) {

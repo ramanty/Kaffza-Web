@@ -19,6 +19,8 @@ import { UpdateStoreDto } from './dto/update-store.dto';
 import { CompleteOnboardingStepDto } from './dto/complete-onboarding-step.dto';
 import { UpdateAutomationDto } from './dto/update-automation.dto';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
+import { UpdatePaymentSettingsDto } from './dto/update-payment-settings.dto';
+import { UpdateShippingSettingsDto } from './dto/update-shipping-settings.dto';
 
 @ApiTags('Stores')
 @Controller('stores')
@@ -61,6 +63,42 @@ export class StoresController {
   @UseGuards(JwtAuthGuard)
   getById(@CurrentUser() user: any, @Param('id') id: string) {
     return this.stores.getStoreById(user, this.toBigInt(id));
+  }
+
+  @Get(':id/payment-settings')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  getPaymentSettings(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.stores.getPaymentSettings(user, this.toBigInt(id));
+  }
+
+  @Patch(':id/payment-settings')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  updatePaymentSettings(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Body() dto: UpdatePaymentSettingsDto
+  ) {
+    return this.stores.updatePaymentSettings(user, this.toBigInt(id), dto);
+  }
+
+  @Get(':id/shipping-settings')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  getShippingSettings(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.stores.getShippingSettings(user, this.toBigInt(id));
+  }
+
+  @Patch(':id/shipping-settings')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  updateShippingSettings(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Body() dto: UpdateShippingSettingsDto
+  ) {
+    return this.stores.updateShippingSettings(user, this.toBigInt(id), dto);
   }
 
   @Get(':id/onboarding')
