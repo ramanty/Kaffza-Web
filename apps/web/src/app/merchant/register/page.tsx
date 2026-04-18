@@ -10,6 +10,7 @@ import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { PhoneInput } from '../../../components/PhoneInput';
 import { SocialAuthButtons } from '../../../components/SocialAuthButtons';
+import { TurnstileChallenge } from '../../../components/TurnstileChallenge';
 import { isValidE164Phone } from '../../../lib/phone';
 import { extractApiErrorMessage } from '../../../lib/api-error';
 
@@ -24,6 +25,9 @@ export default function MerchantRegisterPage() {
   const [confirm, setConfirm] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'register' | 'verify'>('register');
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
@@ -34,9 +38,21 @@ export default function MerchantRegisterPage() {
       name.trim().length >= 2 &&
       (method === 'phone' ? isValidE164Phone(phone) : emailOk) &&
       password.trim().length >= 8 &&
-      password.trim() === confirm.trim()
+      password.trim() === confirm.trim() &&
+      acceptedPolicies &&
+      (!turnstileEnabled || turnstileToken.trim().length > 0)
     );
-  }, [name, method, phone, password, confirm, emailOk]);
+  }, [
+    name,
+    method,
+    phone,
+    password,
+    confirm,
+    emailOk,
+    acceptedPolicies,
+    turnstileEnabled,
+    turnstileToken,
+  ]);
   const canVerify = useMemo(() => /^[0-9]{6}$/.test(otp.trim()), [otp]);
 
   const submit = async () => {
@@ -57,6 +73,12 @@ export default function MerchantRegisterPage() {
       return setMsg({ type: 'error', text: 'كلمة المرور لازم تكون 8 أحرف/أرقام على الأقل' });
     if (pw !== confirm.trim())
       return setMsg({ type: 'error', text: 'تأكيد كلمة المرور غير مطابق' });
+    if (!acceptedPolicies) {
+      return setMsg({ type: 'error', text: 'لازم توافق على الشروط وسياسة الخصوصية قبل المتابعة' });
+    }
+    if (turnstileEnabled && !turnstileToken.trim()) {
+      return setMsg({ type: 'error', text: 'أكمل تحقق لست روبوت أولاً' });
+    }
 
     setLoading(true);
     try {
@@ -70,6 +92,7 @@ export default function MerchantRegisterPage() {
           password: pw,
           role: 'merchant',
           locale: 'ar',
+          turnstileToken: turnstileEnabled ? turnstileToken : undefined,
         },
         { headers: { 'x-client': 'web' } }
       );
@@ -122,18 +145,24 @@ export default function MerchantRegisterPage() {
   const resendOtp = async () => {
     setMsg(null);
     const p = phone.trim();
+    const e = email.trim();
     if (method === 'phone' && !isValidE164Phone(p)) {
       return setMsg({ type: 'error', text: 'رقم الهاتف غير صحيح' });
     }
-    if (method === 'email') {
-      return setMsg({
-        type: 'error',
-        text: 'إعادة إرسال OTP عبر البريد ستكون متاحة في تسجيل الدخول قريباً',
-      });
+    if (method === 'email' && !e) {
+      return setMsg({ type: 'error', text: 'البريد الإلكتروني غير صحيح' });
     }
     setLoading(true);
     try {
-      await api.post('/auth/otp/resend', { phone: p }, { headers: { 'x-client': 'web' } });
+      await api.post(
+        '/auth/otp/resend',
+        {
+          method,
+          phone: method === 'phone' ? p : undefined,
+          email: method === 'email' ? e : undefined,
+        },
+        { headers: { 'x-client': 'web' } }
+      );
       setMsg({ type: 'success', text: 'تمت إعادة إرسال OTP' });
     } catch (e: any) {
       setMsg({ type: 'error', text: extractApiErrorMessage(e, 'تعذر إعادة إرسال OTP') });
@@ -229,6 +258,32 @@ export default function MerchantRegisterPage() {
                 placeholder="********"
               />
             </Field>
+
+            <label className="flex items-start gap-2 rounded-xl border border-black/10 bg-white p-3 text-sm">
+              <input
+                type="checkbox"
+                checked={acceptedPolicies}
+                onChange={(e) => setAcceptedPolicies(e.target.checked)}
+                className="mt-1 h-4 w-4"
+              />
+              <span className="text-kaffza-text/85">
+                أوافق على{' '}
+                <Link className="text-kaffza-primary font-bold underline" href="/legal/terms">
+                  الشروط والأحكام
+                </Link>{' '}
+                و{' '}
+                <Link className="text-kaffza-primary font-bold underline" href="/legal/privacy">
+                  سياسة الخصوصية
+                </Link>
+                .
+              </span>
+            </label>
+
+            {turnstileEnabled ? (
+              <div className="rounded-xl border border-black/10 bg-white p-3">
+                <TurnstileChallenge onToken={setTurnstileToken} />
+              </div>
+            ) : null}
 
             <Button
               className="w-full !text-white"
@@ -331,7 +386,7 @@ function TabButton({ active, onClick, children }: any) {
       onClick={onClick}
       className={
         'flex-1 rounded-xl px-4 py-2 text-sm font-extrabold transition ' +
-        (active ? 'bg-kaffza-primary text-white' : 'bg-kaffza-bg text-kaffza-text hover:bg-black/5')
+        (active ? 'bg-[#16A34A] text-white' : 'bg-[#1B3A6B] text-white hover:bg-[#17345F]')
       }
     >
       {children}

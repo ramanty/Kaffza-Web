@@ -120,6 +120,44 @@ function AnalyticsPageInner() {
   }, [storeId, days, isEn]);
 
   const maxDaily = Math.max(...(data?.dailySales.map((x) => x.total) || [0]), 1);
+  const hasAnyData =
+    !!data &&
+    ((data.dailySales && data.dailySales.length > 0) ||
+      (data.topProducts && data.topProducts.length > 0) ||
+      Number(data.kpis.ordersCount) > 0);
+  const actionInsights = useMemo(() => {
+    if (!data) return [];
+    const tips: string[] = [];
+    if (data.kpis.cancellationRate >= 10) {
+      tips.push(
+        isEn
+          ? 'Cancellation is high — review shipping windows and COD constraints.'
+          : 'معدل الإلغاء مرتفع — راجع مواعيد الشحن وقيود الدفع عند الاستلام.'
+      );
+    }
+    if (data.kpis.checkoutCompletionProxyRate < 60) {
+      tips.push(
+        isEn
+          ? 'Checkout completion is low — simplify payment/shipping options in settings.'
+          : 'مؤشر إكمال الشراء منخفض — بسّط خيارات الدفع والشحن في الإعدادات.'
+      );
+    }
+    if (data.kpis.repeatCustomerRate < 20) {
+      tips.push(
+        isEn
+          ? 'Repeat rate is low — enable welcome and abandoned-cart automations.'
+          : 'معدل العملاء العائدين منخفض — فعّل رسائل الترحيب واسترجاع السلة.'
+      );
+    }
+    if (tips.length === 0) {
+      tips.push(
+        isEn
+          ? 'Healthy signals detected. Keep monitoring top products and fulfillment speed.'
+          : 'المؤشرات جيدة. استمر بمتابعة المنتجات الأعلى مبيعاً وسرعة التنفيذ.'
+      );
+    }
+    return tips.slice(0, 3);
+  }, [data, isEn]);
 
   return (
     <div className="space-y-6">
@@ -150,7 +188,29 @@ function AnalyticsPageInner() {
       {error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => load(days)}
+              className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs font-bold text-red-700"
+            >
+              {isEn ? 'Retry' : 'إعادة المحاولة'}
+            </button>
+          </div>
         </div>
+      ) : null}
+
+      {!loading && !error && !hasAnyData ? (
+        <Card className="border-black/10 p-5 text-sm">
+          <div className="text-kaffza-primary font-extrabold">
+            {isEn ? 'No analytics yet' : 'لا توجد تحليلات بعد'}
+          </div>
+          <p className="text-kaffza-text/70 mt-1">
+            {isEn
+              ? 'Complete onboarding, add products, and share your store link to start collecting insights.'
+              : 'أكمل الإعداد، أضف المنتجات، وشارك رابط المتجر لبدء جمع التحليلات.'}
+          </p>
+        </Card>
       ) : null}
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -177,6 +237,17 @@ function AnalyticsPageInner() {
       </section>
 
       <Card className="p-5">
+        <h2 className="text-kaffza-primary text-sm font-extrabold">
+          {isEn ? 'Actionable recommendations' : 'توصيات قابلة للتنفيذ'}
+        </h2>
+        <ul className="text-kaffza-text mt-3 list-disc space-y-1 px-4 text-sm">
+          {actionInsights.map((tip) => (
+            <li key={tip}>{tip}</li>
+          ))}
+        </ul>
+      </Card>
+
+      <Card className="p-5">
         <h2 className="text-kaffza-primary text-sm font-extrabold">{t.dailySales}</h2>
         <div className="lg:grid-cols-14 mt-4 grid grid-cols-7 gap-2 sm:grid-cols-10">
           {(data?.dailySales || []).map((d) => (
@@ -192,6 +263,9 @@ function AnalyticsPageInner() {
             </div>
           ))}
         </div>
+        {!loading && (!data?.dailySales || data.dailySales.length === 0) ? (
+          <div className="text-kaffza-text/60 mt-3 text-xs">{t.noData}</div>
+        ) : null}
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -271,7 +345,11 @@ function AnalyticsPageInner() {
         </div>
       </Card>
 
-      {loading ? <div className="text-kaffza-text/60 text-sm">{t.loading}</div> : null}
+      {loading ? (
+        <Card className="border-black/10 p-4 text-sm">
+          <div className="text-kaffza-text/60">{t.loading}</div>
+        </Card>
+      ) : null}
     </div>
   );
 }

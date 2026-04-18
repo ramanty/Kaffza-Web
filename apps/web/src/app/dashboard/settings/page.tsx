@@ -75,6 +75,8 @@ export default function SettingsPage() {
   const [paymentRules, setPaymentRules] = useState<PaymentSettings>(DEFAULT_PAYMENT_SETTINGS);
   const [paymentRulesSaving, setPaymentRulesSaving] = useState(false);
   const [paymentRulesSuccess, setPaymentRulesSuccess] = useState<string | null>(null);
+  const [paymentRulesError, setPaymentRulesError] = useState<string | null>(null);
+  const [paymentLocalError, setPaymentLocalError] = useState<string | null>(null);
 
   async function load() {
     if (!storeId) return;
@@ -138,7 +140,6 @@ export default function SettingsPage() {
     } catch {
       // ignore parse errors
     }
-     
   }, [storeId]);
 
   const canSave = useMemo(
@@ -176,6 +177,33 @@ export default function SettingsPage() {
 
   async function savePaymentRules() {
     if (!storeId) return;
+    const enabledMethods = [
+      paymentRules.cardEnabled,
+      paymentRules.codEnabled,
+      paymentRules.walletEnabled,
+      paymentRules.bnplEnabled,
+    ].filter(Boolean).length;
+    if (enabledMethods === 0) {
+      setPaymentRulesError('يجب تفعيل طريقة دفع واحدة على الأقل.');
+      return;
+    }
+    if (
+      paymentRules.minOrderAmount !== null &&
+      paymentRules.maxOrderAmount !== null &&
+      paymentRules.minOrderAmount > paymentRules.maxOrderAmount
+    ) {
+      setPaymentRulesError('الحد الأدنى للطلب يجب أن يكون أصغر من الحد الأعلى.');
+      return;
+    }
+    if (
+      paymentRules.codMinOrderAmount !== null &&
+      paymentRules.codMaxOrderAmount !== null &&
+      paymentRules.codMinOrderAmount > paymentRules.codMaxOrderAmount
+    ) {
+      setPaymentRulesError('حدود COD غير صحيحة: الحد الأدنى أكبر من الحد الأعلى.');
+      return;
+    }
+    setPaymentRulesError(null);
     setPaymentRulesSaving(true);
     setPaymentRulesSuccess(null);
     setError(null);
@@ -202,6 +230,11 @@ export default function SettingsPage() {
 
   function savePaymentSettings() {
     if (!storeId) return;
+    if (!paymentForm.thawaniSecretKey.trim() || !paymentForm.thawaniPublishableKey.trim()) {
+      setPaymentLocalError('يرجى إدخال المفتاحين قبل الحفظ.');
+      return;
+    }
+    setPaymentLocalError(null);
     setPaymentSaving(true);
     setPaymentSuccess(null);
     try {
@@ -353,6 +386,7 @@ export default function SettingsPage() {
             onChange={(v) => setPaymentRules((s) => ({ ...s, bnplEnabled: v }))}
           />
         </div>
+        {paymentRulesError ? <Alert kind="error" text={paymentRulesError} /> : null}
 
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           <Field label="الحد الأدنى للطلب | Min Order (OMR)">
@@ -429,6 +463,7 @@ export default function SettingsPage() {
         </div>
 
         {paymentSuccess ? <Alert kind="success" text={paymentSuccess} /> : null}
+        {paymentLocalError ? <Alert kind="error" text={paymentLocalError} /> : null}
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <Field label="Secret Key (المفتاح السري)">

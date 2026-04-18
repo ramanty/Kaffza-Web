@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { Card } from '../../../components/Card';
 import { PlanCardActions } from '../../../components/PlanCardActions';
-import { PLAN_CATALOG } from '../../../lib/plan-catalog';
+import { PLAN_CATALOG, getPlanNotes, getPlanSubtitle } from '../../../lib/plan-catalog';
 
 export default function EnPlansPage() {
   return (
@@ -37,9 +37,10 @@ export default function EnPlansPage() {
             <div className="text-kaffza-info mt-3 text-2xl font-extrabold">
               {plan.priceOmr} OMR / month
             </div>
+            <div className="text-kaffza-text/70 mt-1 text-xs">{getPlanSubtitle(plan, true)}</div>
             <div className="text-kaffza-text/80 mt-1 text-sm">Commission: {plan.commission}</div>
             <ul className="text-kaffza-text/80 mt-4 space-y-2 text-sm">
-              {plan.notes.map((n) => (
+              {getPlanNotes(plan, true).map((n) => (
                 <li key={n}>• {n}</li>
               ))}
             </ul>

@@ -1,7 +1,12 @@
 import Link from 'next/link';
 
 import { Card } from '../../../components/Card';
-import { TRUST_CATALOG } from '../../../lib/trust-catalog';
+import {
+  TRUST_CATALOG,
+  getTrustPoints,
+  getTrustSummary,
+  getTrustTitle,
+} from '../../../lib/trust-catalog';
 
 export default function EnTrustPage() {
   return (
@@ -24,12 +29,18 @@ export default function EnTrustPage() {
         {TRUST_CATALOG.map((item) => (
           <Link key={item.slug} href={`/en/trust/${item.slug}`}>
             <Card className="h-full border-black/10 p-6 transition hover:-translate-y-0.5 hover:shadow-md">
-              <div className="text-kaffza-primary text-lg font-extrabold">{item.title}</div>
-              <p className="text-kaffza-text/80 mt-2 text-sm leading-6">{item.summary}</p>
+              <div className="text-kaffza-primary text-lg font-extrabold">
+                {getTrustTitle(item, true)}
+              </div>
+              <p className="text-kaffza-text/80 mt-2 text-sm leading-6">
+                {getTrustSummary(item, true)}
+              </p>
               <ul className="text-kaffza-text/70 mt-3 space-y-1 text-xs">
-                {item.points.slice(0, 2).map((point) => (
-                  <li key={point}>• {point}</li>
-                ))}
+                {getTrustPoints(item, true)
+                  .slice(0, 2)
+                  .map((point) => (
+                    <li key={point}>• {point}</li>
+                  ))}
               </ul>
             </Card>
           </Link>

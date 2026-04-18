@@ -65,6 +65,7 @@ export default function DashboardShippingPage() {
   const [settings, setSettings] = useState<ShippingSettings>(DEFAULT_SHIPPING_SETTINGS);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsMsg, setSettingsMsg] = useState<string | null>(null);
+  const [settingsValidationError, setSettingsValidationError] = useState<string | null>(null);
 
   const load = async () => {
     if (!storeId) return;
@@ -91,7 +92,6 @@ export default function DashboardShippingPage() {
 
   useEffect(() => {
     load();
-     
   }, [storeId, page]);
 
   const updateStatus = async (shipmentId: string, status: string) => {
@@ -115,6 +115,36 @@ export default function DashboardShippingPage() {
 
   const saveShippingSettings = async () => {
     if (!storeId) return;
+    if (settings.strategy === 'flat' && Number(settings.flatRate || 0) < 0) {
+      setSettingsValidationError('سعر الشحن الثابت لا يمكن أن يكون أقل من 0.');
+      return;
+    }
+    if (settings.freeShippingThreshold !== null && Number(settings.freeShippingThreshold) < 0) {
+      setSettingsValidationError('حد الشحن المجاني يجب أن يكون رقماً موجباً.');
+      return;
+    }
+    const hasInvalidZone = settings.zones.some(
+      (z) => z.enabled && (!z.code.trim() || !z.nameAr.trim() || !z.nameEn.trim())
+    );
+    if (hasInvalidZone) {
+      setSettingsValidationError('كل منطقة مفعّلة تحتاج رمزاً واسمين عربي/إنجليزي.');
+      return;
+    }
+    const hasInvalidTier = settings.weightTiers.some(
+      (t) =>
+        Number(t.minWeightKg) < 0 ||
+        (t.maxWeightKg !== null && Number(t.maxWeightKg) < Number(t.minWeightKg)) ||
+        Number(t.cost) < 0
+    );
+    if (hasInvalidTier) {
+      setSettingsValidationError('تحقق من شرائح الوزن: الحد الأعلى أكبر من الأدنى والقيم موجبة.');
+      return;
+    }
+    if (settings.strategy === 'weight_tier' && settings.weightTiers.length === 0) {
+      setSettingsValidationError('أضف شريحة وزن واحدة على الأقل عند اختيار Weight Tiers.');
+      return;
+    }
+    setSettingsValidationError(null);
     setSettingsSaving(true);
     setSettingsMsg(null);
     setMsg(null);
@@ -156,6 +186,9 @@ export default function DashboardShippingPage() {
         <div>
           <h1 className="text-kaffza-primary text-2xl font-extrabold">الشحن</h1>
           <p className="text-kaffza-text/80 mt-1 text-sm">إدارة قواعد الشحن والشحنات.</p>
+          {!storeId ? (
+            <p className="mt-1 text-xs text-red-700">لا يوجد متجر محدد. اختر متجراً من الأعلى.</p>
+          ) : null}
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={load} disabled={loading}>
@@ -165,6 +198,7 @@ export default function DashboardShippingPage() {
       </div>
 
       {msg ? <Alert kind={msg.type} text={msg.text} /> : null}
+      {settingsValidationError ? <Alert kind="error" text={settingsValidationError} /> : null}
 
       <Card className="space-y-4 p-6">
         <div className="flex items-start justify-between gap-3">

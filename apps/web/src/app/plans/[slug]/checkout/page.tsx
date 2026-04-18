@@ -8,7 +8,7 @@ import { Button } from '../../../../components/Button';
 import { Card } from '../../../../components/Card';
 import { RequireAuthModal } from '../../../../components/RequireAuthModal';
 import { getAccessTokenFromCookies } from '../../../../lib/auth';
-import { getPlanBySlug } from '../../../../lib/plan-catalog';
+import { getPlanBySlug, getPlanSubtitle } from '../../../../lib/plan-catalog';
 
 export default function PlanCheckoutPage() {
   const router = useRouter();
@@ -52,7 +52,7 @@ export default function PlanCheckoutPage() {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-kaffza-primary font-extrabold">
-              {plan.name} ({plan.subtitle})
+              {plan.name} ({getPlanSubtitle(plan)})
             </div>
             <div className="text-kaffza-text/70 mt-1 text-sm">اشتراك شهري</div>
           </div>

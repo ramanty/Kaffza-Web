@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -55,7 +55,7 @@ type Order = {
   totalAmount: number;
   items: any[];
   store: { id: string; subdomain: string };
-  payment?: { gateway?: string };
+  payment?: { gateway?: string; status?: string };
 };
 
 const METHOD_LABELS: Record<PaymentMethod, { ar: string; en: string }> = {
@@ -69,6 +69,9 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
   const router = useRouter();
   const sp = useSearchParams();
   const subdomain = params.subdomain;
+  const isEn = sp.get('lang') === 'en';
+  const withLang = (path: string) =>
+    isEn ? `${path}${path.includes('?') ? '&' : '?'}lang=en` : path;
 
   const retryOrderId = sp.get('orderId');
 
@@ -78,6 +81,9 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
 
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [msgKind, setMsgKind] = useState<'error' | 'info'>('error');
+  const [retryPaymentOrderId, setRetryPaymentOrderId] = useState<string | null>(null);
+  const submitLockRef = useRef(false);
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -109,12 +115,12 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
     }
     return (cart?.items || []).map((it) => ({
       key: `${it.productId}:${it.variantId || 'no'}`,
-      title: `${it.product?.nameAr || it.product?.nameEn}${it.variant ? ` - ${it.variant.nameAr || it.variant.nameEn}` : ''}`,
+      title: `${isEn ? it.product?.nameEn || it.product?.nameAr : it.product?.nameAr || it.product?.nameEn}${it.variant ? ` - ${isEn ? it.variant.nameEn || it.variant.nameAr : it.variant.nameAr || it.variant.nameEn}` : ''}`,
       qty: it.quantity,
       unitPrice: Number(it.unitPrice),
       lineTotal: Number(it.lineTotal),
     }));
-  }, [cart, order]);
+  }, [cart, isEn, order]);
 
   const totals = useMemo(() => {
     if (order) {
@@ -134,6 +140,7 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
   const load = async () => {
     setLoading(true);
     setMsg(null);
+    setRetryPaymentOrderId(null);
     try {
       const s = await api.get(`/stores/subdomain/${subdomain}`);
       const st = s.data.data;
@@ -157,6 +164,14 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
         else if (loadedOrder?.payment?.gateway === 'wallet') setPaymentMethod('wallet');
         else if (loadedOrder?.payment?.gateway === 'bnpl') setPaymentMethod('bnpl');
         else setPaymentMethod('card');
+        if (loadedOrder?.payment?.status === 'paid') {
+          setMsgKind('info');
+          setMsg(
+            isEn
+              ? 'This order is already paid. You can track it from My Account.'
+              : 'هذا الطلب مدفوع بالفعل. يمكنك متابعته من صفحة حسابي.'
+          );
+        }
         return;
       }
 
@@ -168,10 +183,16 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
     } catch (e: any) {
       const status = e?.response?.status;
       if (status === 401) {
-        router.replace(`/login?next=${encodeURIComponent(`/store/${subdomain}/checkout`)}`);
+        const loginPath = isEn ? '/en/login' : '/login';
+        router.replace(
+          `${loginPath}?next=${encodeURIComponent(withLang(`/store/${subdomain}/checkout`))}`
+        );
         return;
       }
-      setMsg(e?.response?.data?.message || 'فشل تحميل بيانات الدفع');
+      setMsgKind('error');
+      setMsg(
+        readApiError(e, isEn ? 'Failed to load checkout data' : 'فشل تحميل بيانات الدفع', isEn)
+      );
     } finally {
       setLoading(false);
     }
@@ -180,12 +201,14 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
   useEffect(() => {
     const token = getAccessTokenFromCookies();
     if (!token) {
-      router.replace(`/login?next=${encodeURIComponent(`/store/${subdomain}/checkout`)}`);
+      const loginPath = isEn ? '/en/login' : '/login';
+      router.replace(
+        `${loginPath}?next=${encodeURIComponent(withLang(`/store/${subdomain}/checkout`))}`
+      );
       return;
     }
     load();
-     
-  }, [subdomain, retryOrderId]);
+  }, [isEn, subdomain, retryOrderId]);
 
   useEffect(() => {
     if (!availableMethods.includes(paymentMethod)) {
@@ -201,33 +224,52 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
     );
     const paymentUrl = res?.data?.data?.paymentUrl;
     const sessionId = res?.data?.data?.sessionId;
-    if (!paymentUrl || !sessionId) throw new Error('فشل إنشاء جلسة الدفع');
+    if (!paymentUrl || !sessionId)
+      throw new Error(isEn ? 'Failed to create payment session' : 'فشل إنشاء جلسة الدفع');
     return { paymentUrl, sessionId };
   }
 
   const placeOrder = async () => {
-    if (!store) return;
+    if (!store || submitLockRef.current) return;
 
     const isRetry = !!retryOrderId;
     if (!isRetry) {
-      if (!fullName.trim() || !phone.trim() || !state.trim() || !addressLine1.trim()) {
-        setMsg('يرجى تعبئة اسم المستلم والهاتف والمحافظة والعنوان.');
-        return;
-      }
-      if (!cart?.items?.length) {
-        setMsg('السلة فارغة.');
+      const validationErrors = validateCheckoutInput({
+        fullName,
+        phone,
+        state,
+        addressLine1,
+        hasItems: !!cart?.items?.length,
+        isEn,
+      });
+      if (validationErrors.length) {
+        setMsgKind('error');
+        setMsg(validationErrors.join(' '));
         return;
       }
     }
 
+    submitLockRef.current = true;
     setLoading(true);
     setMsg(null);
+    setRetryPaymentOrderId(null);
 
     try {
       let orderId = retryOrderId;
       const activeMethod = isRetry
         ? paymentMethodFromGateway(order?.payment?.gateway)
         : paymentMethod;
+
+      if (isRetry && activeMethod !== 'card') {
+        setMsgKind('info');
+        setMsg(
+          isEn
+            ? 'This order does not require online payment retry. Open order details to track it.'
+            : 'هذا الطلب لا يحتاج إعادة محاولة دفع إلكتروني. افتح تفاصيل الطلب لمتابعته.'
+        );
+        router.push(withLang(`/account/orders/${retryOrderId}`));
+        return;
+      }
 
       if (!orderId) {
         const cityValue = city.trim() || state.trim();
@@ -249,94 +291,165 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
         );
 
         orderId = resOrder?.data?.data?.orderId;
-        if (!orderId) throw new Error('تعذر إنشاء الطلب');
+        if (!orderId) throw new Error(isEn ? 'Could not create order' : 'تعذر إنشاء الطلب');
       }
 
       if (activeMethod === 'card') {
-        const { paymentUrl } = await createThawaniSession(store.id, String(orderId));
-        window.location.href = paymentUrl;
+        try {
+          const { paymentUrl } = await createThawaniSession(store.id, String(orderId));
+          window.location.href = paymentUrl;
+        } catch {
+          setRetryPaymentOrderId(String(orderId));
+          setMsgKind('error');
+          setMsg(
+            isEn
+              ? `Order was created, but payment session could not be created. You can retry payment for order #${orderId}.`
+              : `تم إنشاء الطلب، لكن تعذر إنشاء جلسة الدفع. يمكنك إعادة المحاولة للطلب رقم ${orderId}.`
+          );
+        }
         return;
       }
 
-      setMsg('تم إنشاء الطلب بنجاح. يمكنك متابعة الطلب من صفحة حسابي.');
-      router.push(`/account/orders/${orderId}`);
+      setMsgKind('info');
+      setMsg(
+        isEn
+          ? 'Order placed successfully. We will now take you to order tracking.'
+          : 'تم إنشاء الطلب بنجاح. سيتم تحويلك الآن إلى صفحة متابعة الطلب.'
+      );
+      router.push(withLang(`/account/orders/${orderId}`));
     } catch (e: any) {
-      setMsg(e?.response?.data?.message || e?.message || 'تعذر إكمال الطلب');
+      setMsgKind('error');
+      setMsg(readApiError(e, isEn ? 'Could not complete order' : 'تعذر إكمال الطلب', isEn));
     } finally {
       setLoading(false);
+      submitLockRef.current = false;
     }
   };
 
   return (
-    <main dir="rtl" className="mx-auto max-w-6xl px-6 py-10">
+    <main dir={isEn ? 'ltr' : 'rtl'} className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="text-kaffza-primary text-2xl font-extrabold">إتمام الشراء</div>
-          <div className="text-kaffza-text/80 mt-1 text-sm">
-            {retryOrderId ? 'إعادة محاولة الدفع للطلب السابق.' : 'أدخل عنوان الشحن ثم أكمل الطلب.'}
+          <div className="text-kaffza-primary text-2xl font-extrabold">
+            {isEn ? 'Checkout' : 'إتمام الشراء'}
           </div>
-          {msg ? <div className="mt-3 text-sm text-red-700">{msg}</div> : null}
+          <div className="text-kaffza-text/80 mt-1 text-sm">
+            {retryOrderId
+              ? isEn
+                ? 'Retry payment for your existing order.'
+                : 'إعادة محاولة الدفع للطلب السابق.'
+              : isEn
+                ? 'Enter shipping details to complete your order.'
+                : 'أدخل عنوان الشحن ثم أكمل الطلب.'}
+          </div>
+          {!retryOrderId ? (
+            <div className="text-kaffza-text/70 mt-2 text-xs">
+              {isEn
+                ? 'Step 2 of 2: confirm delivery details, choose payment, and place your order.'
+                : 'الخطوة 2 من 2: أكد بيانات التوصيل، اختر طريقة الدفع، ثم أكد الطلب.'}
+            </div>
+          ) : null}
+          {msg ? (
+            <div
+              className={`mt-3 rounded-xl border p-3 text-sm ${msgKind === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-kaffza-primary/20 bg-kaffza-primary/5 text-kaffza-primary'}`}
+            >
+              {msg}
+            </div>
+          ) : null}
+          {retryPaymentOrderId ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                href={withLang(
+                  `/store/${subdomain}/checkout?orderId=${encodeURIComponent(retryPaymentOrderId)}`
+                )}
+              >
+                <Button>{isEn ? 'Retry payment session' : 'إعادة محاولة جلسة الدفع'}</Button>
+              </Link>
+              <Link href={withLang(`/account/orders/${retryPaymentOrderId}`)}>
+                <Button variant="secondary">
+                  {isEn ? 'Open order details' : 'فتح تفاصيل الطلب'}
+                </Button>
+              </Link>
+            </div>
+          ) : null}
         </div>
 
         <div className="flex gap-2">
-          <Link href={`/store/${subdomain}/cart`}>
-            <Button variant="secondary">رجوع للسلة</Button>
+          <Link href={withLang(`/store/${subdomain}/cart`)}>
+            <Button variant="secondary">{isEn ? 'Back to cart' : 'رجوع للسلة'}</Button>
           </Link>
           <Button variant="secondary" onClick={load} disabled={loading}>
-            تحديث
+            {isEn ? 'Refresh' : 'تحديث'}
           </Button>
         </div>
       </div>
 
       <div className="mt-8 grid gap-5 lg:grid-cols-3">
         <Card className="p-6 lg:col-span-2">
-          <div className="text-kaffza-primary text-sm font-extrabold">عنوان الشحن</div>
+          <div className="text-kaffza-primary text-sm font-extrabold">
+            {isEn ? 'Shipping address' : 'عنوان الشحن'}
+          </div>
           {retryOrderId ? (
             <div className="bg-kaffza-bg text-kaffza-text mt-3 rounded-xl p-4 text-sm">
-              هذا الطلب تم إنشاؤه مسبقاً. يمكنك إعادة المحاولة إذا كانت طريقة الدفع بطاقة.
+              {isEn
+                ? 'This order already exists. You can retry if payment method is card.'
+                : 'هذا الطلب تم إنشاؤه مسبقاً. يمكنك إعادة المحاولة إذا كانت طريقة الدفع بطاقة.'}
             </div>
           ) : (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <Field label="الاسم الكامل">
+              <Field label={isEn ? 'Full name' : 'الاسم الكامل'}>
                 <Input
                   value={fullName}
                   onChange={(e: any) => setFullName(e.target.value)}
-                  placeholder="محمد"
+                  placeholder={isEn ? 'John Doe' : 'محمد'}
                 />
+                <Hint>
+                  {isEn ? 'Name shown to courier on delivery' : 'الاسم الذي يظهر لمندوب التوصيل'}
+                </Hint>
               </Field>
-              <Field label="رقم الهاتف">
+              <Field label={isEn ? 'Phone number' : 'رقم الهاتف'}>
                 <Input
                   value={phone}
                   onChange={(e: any) => setPhone(e.target.value)}
                   placeholder="+9689xxxxxxx"
                 />
+                <Hint>
+                  {isEn
+                    ? 'Use reachable number in international format for delivery updates'
+                    : 'استخدم رقماً متاحاً بصيغة دولية لتحديثات التوصيل'}
+                </Hint>
               </Field>
-              <Field label="المحافظة">
+              <Field label={isEn ? 'State' : 'المحافظة'}>
                 <Input
                   value={state}
                   onChange={(e: any) => setState(e.target.value)}
-                  placeholder="مسقط"
+                  placeholder={isEn ? 'Muscat' : 'مسقط'}
                 />
               </Field>
-              <Field label="الولاية / المدينة (اختياري)">
+              <Field label={isEn ? 'City (optional)' : 'الولاية / المدينة (اختياري)'}>
                 <Input
                   value={city}
                   onChange={(e: any) => setCity(e.target.value)}
-                  placeholder="السيب"
+                  placeholder={isEn ? 'Seeb' : 'السيب'}
                 />
               </Field>
-              <Field label="العنوان">
+              <Field label={isEn ? 'Address' : 'العنوان'}>
                 <Input
                   value={addressLine1}
                   onChange={(e: any) => setAddressLine1(e.target.value)}
-                  placeholder="شارع ...، مبنى ..."
+                  placeholder={isEn ? 'Street, building...' : 'شارع ...، مبنى ...'}
                 />
+                <Hint>
+                  {isEn
+                    ? 'Add street + building/landmark for faster delivery'
+                    : 'أضف الشارع + المبنى أو أقرب معلم لتوصيل أسرع'}
+                </Hint>
               </Field>
-              <Field label="ملاحظات (اختياري)">
+              <Field label={isEn ? 'Notes (optional)' : 'ملاحظات (اختياري)'}>
                 <Input
                   value={notes}
                   onChange={(e: any) => setNotes(e.target.value)}
-                  placeholder="اتصل قبل التوصيل"
+                  placeholder={isEn ? 'Call before delivery' : 'اتصل قبل التوصيل'}
                 />
               </Field>
             </div>
@@ -345,17 +458,19 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
           {!retryOrderId ? (
             <div className="mt-5 space-y-2">
               <div className="text-kaffza-primary text-sm font-extrabold">
-                طريقة الدفع | Payment Method
+                {isEn ? 'Payment method' : 'طريقة الدفع'}
               </div>
               <div className="grid gap-2">
                 {availableMethods.map((method) => (
                   <label
                     key={method}
-                    className="flex cursor-pointer items-center justify-between rounded-xl border border-black/10 px-3 py-2 text-sm"
+                    className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 text-sm ${
+                      paymentMethod === method
+                        ? 'border-kaffza-primary bg-kaffza-primary/5'
+                        : 'border-black/10 bg-white'
+                    }`}
                   >
-                    <span>
-                      {METHOD_LABELS[method].ar} — {METHOD_LABELS[method].en}
-                    </span>
+                    <span>{isEn ? METHOD_LABELS[method].en : METHOD_LABELS[method].ar}</span>
                     <input
                       type="radio"
                       checked={paymentMethod === method}
@@ -374,31 +489,60 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
               disabled={loading || items.length === 0}
             >
               {loading
-                ? 'جارٍ التحضير...'
+                ? isEn
+                  ? 'Preparing...'
+                  : 'جارٍ التحضير...'
                 : paymentMethod === 'card'
-                  ? 'ادفع الآن عبر Thawani'
-                  : 'تأكيد الطلب'}
+                  ? isEn
+                    ? 'Pay securely with Thawani'
+                    : 'ادفع الآن بأمان عبر Thawani'
+                  : isEn
+                    ? 'Place order'
+                    : 'تأكيد الطلب'}
             </Button>
             <div className="text-kaffza-text/70 mt-2 text-xs">
               {paymentMethod === 'card'
-                ? 'سيتم إنشاء جلسة دفع في وضع الاختبار (Sandbox) ثم تحويلك لصفحة Thawani.'
-                : 'ستتم متابعة الطلب بدون جلسة Thawani.'}
+                ? isEn
+                  ? 'You will be redirected to Thawani to complete payment securely.'
+                  : 'سيتم تحويلك إلى Thawani لإكمال الدفع بشكل آمن.'
+                : isEn
+                  ? 'Order will be created immediately after confirmation.'
+                  : 'سيتم إنشاء الطلب مباشرة بعد التأكيد.'}
+            </div>
+            <div className="border-kaffza-primary/20 bg-kaffza-primary/5 text-kaffza-text/80 mt-3 rounded-xl border p-3 text-xs">
+              {isEn
+                ? 'Trust cues: encrypted payment handoff • order tracking in My Account'
+                : 'مؤشرات الثقة: تحويل دفع مشفّر • متابعة الطلب من صفحة حسابي'}
             </div>
           </div>
         </Card>
 
         <Card className="p-6 lg:col-span-1">
-          <div className="text-kaffza-primary text-sm font-extrabold">ملخص الطلب</div>
+          <div className="text-kaffza-primary text-sm font-extrabold">
+            {isEn ? 'Order summary' : 'ملخص الطلب'}
+          </div>
           <div className="text-kaffza-text/70 mt-1 text-xs">
-            {store ? `متجر: ${store.nameAr || store.nameEn || store.subdomain}` : ''}
-            {retryOrderId ? <span className="mr-2">• رقم الطلب: {retryOrderId}</span> : null}
+            {store
+              ? isEn
+                ? `Store: ${store.nameEn || store.nameAr || store.subdomain}`
+                : `متجر: ${store.nameAr || store.nameEn || store.subdomain}`
+              : ''}
+            {retryOrderId ? (
+              <span className={isEn ? 'ml-2' : 'mr-2'}>
+                • {isEn ? 'Order ID' : 'رقم الطلب'}: {retryOrderId}
+              </span>
+            ) : null}
           </div>
 
           <div className="mt-4 space-y-2">
             {loading && items.length === 0 ? (
-              <div className="text-kaffza-text/70 text-sm">جاري التحميل...</div>
+              <div className="text-kaffza-text/70 text-sm">
+                {isEn ? 'Loading...' : 'جاري التحميل...'}
+              </div>
             ) : items.length === 0 ? (
-              <div className="text-kaffza-text/70 text-sm">لا يوجد عناصر.</div>
+              <div className="text-kaffza-text/70 text-sm">
+                {isEn ? 'No items.' : 'لا يوجد عناصر.'}
+              </div>
             ) : (
               items.map((it) => (
                 <div
@@ -408,11 +552,11 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
                   <div className="min-w-0">
                     <div className="text-kaffza-text truncate text-xs font-bold">{it.title}</div>
                     <div className="text-kaffza-text/70 mt-0.5 text-[11px]">
-                      {it.qty} × {formatOMR(it.unitPrice)}
+                      {it.qty} × {formatOMR(it.unitPrice, isEn)}
                     </div>
                   </div>
                   <div className="text-kaffza-primary shrink-0 text-xs font-extrabold">
-                    {formatOMR(it.lineTotal)}
+                    {formatOMR(it.lineTotal, isEn)}
                   </div>
                 </div>
               ))
@@ -420,10 +564,17 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
           </div>
 
           <div className="mt-5 space-y-2 text-sm">
-            <Row label="المجموع الفرعي" value={formatOMR(totals.subtotal)} />
-            <Row label="الشحن" value={formatOMR(totals.shipping)} />
+            <Row
+              label={isEn ? 'Subtotal' : 'المجموع الفرعي'}
+              value={formatOMR(totals.subtotal, isEn)}
+            />
+            <Row label={isEn ? 'Shipping' : 'الشحن'} value={formatOMR(totals.shipping, isEn)} />
             <div className="border-t border-black/10 pt-3">
-              <Row label="الإجمالي" value={formatOMR(totals.total)} strong />
+              <Row
+                label={isEn ? 'Total' : 'الإجمالي'}
+                value={formatOMR(totals.total, isEn)}
+                strong
+              />
             </div>
           </div>
         </Card>
@@ -439,6 +590,65 @@ function paymentMethodFromGateway(gateway?: string): PaymentMethod {
   return 'card';
 }
 
+function validateCheckoutInput(input: {
+  fullName: string;
+  phone: string;
+  state: string;
+  addressLine1: string;
+  hasItems: boolean;
+  isEn: boolean;
+}) {
+  const errors: string[] = [];
+  if (input.fullName.trim().length < 2) {
+    errors.push(
+      input.isEn
+        ? 'Recipient name is required (at least 2 characters).'
+        : 'اسم المستلم مطلوب (حرفان على الأقل).'
+    );
+  }
+  if (!/^\+?[0-9]{8,15}$/.test(input.phone.trim())) {
+    errors.push(
+      input.isEn
+        ? 'Enter a valid phone in international format (8–15 digits).'
+        : 'أدخل رقم هاتف صحيح بصيغة دولية (8 إلى 15 رقم).'
+    );
+  }
+  if (input.state.trim().length < 2) {
+    errors.push(input.isEn ? 'State/region is required.' : 'المحافظة / المنطقة مطلوبة.');
+  }
+  if (input.addressLine1.trim().length < 5) {
+    errors.push(input.isEn ? 'Address should be more detailed.' : 'يرجى كتابة عنوان أكثر تفصيلاً.');
+  }
+  if (!input.hasItems) {
+    errors.push(input.isEn ? 'Your cart is empty.' : 'السلة فارغة.');
+  }
+  return errors;
+}
+
+function readApiError(err: any, fallback: string, isEn: boolean) {
+  const raw = err?.response?.data?.message;
+  const text = Array.isArray(raw) ? raw.join(' ') : raw || err?.message || fallback;
+  if (!isEn || typeof text !== 'string') return text;
+
+  if (text.includes('السلة فارغة'))
+    return 'Your cart is empty. Please return to cart and add items.';
+  if (text.includes('طريقة الدفع غير متاحة'))
+    return 'Selected payment method is not available for this store.';
+  if (text.includes('إعدادات Thawani ناقصة'))
+    return 'Payment gateway is temporarily unavailable. Please retry shortly or choose another method.';
+  if (text.includes('غير متوفر بالكمية المطلوبة'))
+    return 'Some items are no longer available in requested quantity. Update cart and try again.';
+  if (text.includes('الحد الأدنى للطلب'))
+    return 'Order amount is below the minimum allowed for this store.';
+  if (text.includes('الحد الأعلى للطلب'))
+    return 'Order amount exceeds the maximum allowed for this store.';
+  if (text.includes('تم الدفع مسبقاً')) return 'This order has already been paid.';
+  if (text.includes('رقم الهاتف')) return 'Please check the phone number format and try again.';
+  if (text.includes('العنوان'))
+    return 'Delivery address is incomplete. Add more details and retry.';
+  return text;
+}
+
 function Field({ label, children }: { label: string; children: any }) {
   return (
     <label className="grid gap-1">
@@ -446,6 +656,10 @@ function Field({ label, children }: { label: string; children: any }) {
       {children}
     </label>
   );
+}
+
+function Hint({ children }: { children: any }) {
+  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
 }
 
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
@@ -461,9 +675,9 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
   );
 }
 
-function formatOMR(v: number) {
+function formatOMR(v: number, isEn = false) {
   const n = Number.isFinite(v) ? v : 0;
-  return `${n.toFixed(3)} ر.ع`;
+  return isEn ? `OMR ${n.toFixed(3)}` : `${n.toFixed(3)} ر.ع`;
 }
 
 export default function StoreCheckout({ params }: { params: { subdomain: string } }) {

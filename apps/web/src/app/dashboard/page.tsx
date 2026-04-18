@@ -12,6 +12,7 @@ import {
   Rocket,
   Megaphone,
   LifeBuoy,
+  ArrowRight,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { authHeader } from '../../lib/auth';
@@ -132,6 +133,46 @@ function DashboardPageInner() {
   const totalSales = useMemo(() => Number(wallet?.totalEarned ?? 0), [wallet]);
   const walletBalance = useMemo(() => Number(wallet?.availableBalance ?? 0), [wallet]);
   const hasNoStore = !storesLoading && !storeLabel;
+  const nextActions = useMemo(() => {
+    const actions: Array<{ title: string; hint: string; href: string }> = [];
+    if (pendingOrdersCount > 0) {
+      actions.push({
+        title: isEn ? 'Follow pending orders' : 'تابع الطلبات المعلقة',
+        hint: isEn
+          ? `${pendingOrdersCount} orders need status updates today.`
+          : `${pendingOrdersCount} طلبات تحتاج تحديث الحالة اليوم.`,
+        href: '/dashboard/orders',
+      });
+    }
+    if (ordersCount === 0) {
+      actions.push({
+        title: isEn ? 'Get your first order' : 'احصل على أول طلب',
+        hint: isEn
+          ? 'Add a product and share the storefront link in WhatsApp/Instagram.'
+          : 'أضف منتجاً وشارك رابط المتجر عبر واتساب/إنستغرام.',
+        href: '/dashboard/products/new',
+      });
+    }
+    if (walletBalance > 0) {
+      actions.push({
+        title: isEn ? 'Review withdrawal readiness' : 'راجع جاهزية السحب',
+        hint: isEn
+          ? `${formatOMR(walletBalance)} is ready in your wallet.`
+          : `${formatOMR(walletBalance)} متاح حالياً في محفظتك.`,
+        href: '/dashboard/wallet',
+      });
+    }
+    if (!error) {
+      actions.push({
+        title: isEn ? 'Improve conversion this week' : 'حسّن التحويل هذا الأسبوع',
+        hint: isEn
+          ? 'Use Growth Hub automations to recover abandoned carts.'
+          : 'استخدم أتمتة مركز النمو لاسترجاع السلات المتروكة.',
+        href: '/dashboard/growth',
+      });
+    }
+    return actions.slice(0, 3);
+  }, [error, isEn, ordersCount, pendingOrdersCount, walletBalance]);
 
   return (
     <div className="space-y-6">
@@ -233,8 +274,47 @@ function DashboardPageInner() {
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs font-bold text-red-700"
+            >
+              {isEn ? 'Retry loading' : 'إعادة المحاولة'}
+            </button>
+          </div>
         </div>
       )}
+
+      {!hasNoStore && nextActions.length > 0 ? (
+        <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+          <div className="mb-3">
+            <h2 className="text-kaffza-primary text-base font-extrabold">
+              {isEn ? 'Recommended next actions' : 'إجراءات مقترحة الآن'}
+            </h2>
+            <p className="text-kaffza-text/70 mt-1 text-xs">
+              {isEn
+                ? 'Focused tasks to keep your store moving this week.'
+                : 'مهام عملية تساعدك على تحريك متجرك هذا الأسبوع.'}
+            </p>
+          </div>
+          <div className="space-y-2">
+            {nextActions.map((action) => (
+              <Link
+                key={action.title}
+                href={withLang(action.href, isEn)}
+                className="hover:bg-kaffza-bg flex items-center justify-between rounded-xl border border-black/10 px-4 py-3"
+              >
+                <div>
+                  <div className="text-kaffza-primary text-sm font-bold">{action.title}</div>
+                  <div className="text-kaffza-text/70 mt-0.5 text-xs">{action.hint}</div>
+                </div>
+                <ArrowRight className="text-kaffza-text/60 h-4 w-4" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard

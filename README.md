@@ -195,6 +195,20 @@ _No registration fees._
 
 For the complete architecture design, database diagrams, and workflow documentation, see the [Architecture Document](./docs/ARCHITECTURE.md).
 
+## Production Deployment (Env Source of Truth)
+
+Production deployment reads environment variables from `production/.env`.
+
+```bash
+cp .env.production.example production/.env
+# edit production/.env with real production values
+bash deploy_kaffza.sh
+```
+
+- `deploy_kaffza.sh` uses `--env-file production/.env` and `production/docker-compose.yml`.
+- `production/docker-compose.yml` also loads `./.env` (resolved as `production/.env`) for container runtime vars.
+- Root `.env` / `.env.production` are for local workflows and are not the server deployment source of truth.
+
 ## SSL / Domain Routing
 
 The default deployment uses **single-domain routing (Option A)** on `kaffza.me` (no wildcard DNS cert required).  

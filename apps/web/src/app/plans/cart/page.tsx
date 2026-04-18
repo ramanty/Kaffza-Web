@@ -8,7 +8,7 @@ import { Button } from '../../../components/Button';
 import { Card } from '../../../components/Card';
 import { RequireAuthModal } from '../../../components/RequireAuthModal';
 import { getAccessTokenFromCookies } from '../../../lib/auth';
-import { PLAN_CATALOG } from '../../../lib/plan-catalog';
+import { PLAN_CATALOG, getPlanSubtitle } from '../../../lib/plan-catalog';
 import { clearPlanCart, readPlanCart, removePlanFromCart } from '../../../lib/plan-cart';
 
 export default function PlanCartPage() {
@@ -42,6 +42,7 @@ export default function PlanCartPage() {
   }, [items]);
 
   const total = rows.reduce((sum, row) => sum + row.amount, 0);
+  const totalItems = rows.reduce((sum, row) => sum + row.quantity, 0);
 
   const checkout = () => {
     if (rows.length === 0) return;
@@ -53,7 +54,7 @@ export default function PlanCartPage() {
   };
 
   return (
-    <main dir="rtl" className="mx-auto max-w-4xl px-6 py-12">
+    <main dir="rtl" className="mx-auto max-w-5xl px-6 py-12">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-kaffza-primary text-3xl font-extrabold">سلة الخطط</h1>
         <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/plans">
@@ -71,37 +72,49 @@ export default function PlanCartPage() {
           </div>
         </Card>
       ) : (
-        <div className="mt-8 grid gap-4">
-          {rows.map((row) => (
-            <Card key={row.slug} className="p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-kaffza-primary font-extrabold">
-                    {row.plan.name} ({row.plan.subtitle})
+        <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
+          <div className="grid gap-4">
+            {rows.map((row) => (
+              <Card key={row.slug} className="border-black/10 p-5 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-kaffza-primary font-extrabold">
+                      {row.plan.name} ({getPlanSubtitle(row.plan)})
+                    </div>
+                    <div className="text-kaffza-text/70 mt-2 text-xs">
+                      {row.quantity} × {row.plan.priceOmr} ر.ع
+                    </div>
+                    <div className="text-kaffza-text/75 mt-2 inline-flex rounded-full border border-black/10 px-2 py-1 text-[11px] font-bold">
+                      اشتراك شهري
+                    </div>
                   </div>
-                  <div className="text-kaffza-text/70 mt-1 text-xs">
-                    {row.quantity} × {row.plan.priceOmr} ر.ع
+                  <div className="text-left">
+                    <div className="text-kaffza-info text-lg font-extrabold">{row.amount} ر.ع</div>
+                    <button
+                      className="mt-2 text-xs font-bold text-red-600 underline"
+                      onClick={() => removePlanFromCart(row.slug)}
+                      type="button"
+                    >
+                      إزالة
+                    </button>
                   </div>
                 </div>
-                <div className="text-left">
-                  <div className="text-kaffza-info font-extrabold">{row.amount} ر.ع</div>
-                  <button
-                    className="text-xs font-bold text-red-600 underline"
-                    onClick={() => removePlanFromCart(row.slug)}
-                    type="button"
-                  >
-                    إزالة
-                  </button>
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ))}
+          </div>
 
-          <Card className="p-5">
+          <Card className="border-black/10 p-5 shadow-sm lg:sticky lg:top-20">
             <div className="flex items-center justify-between">
-              <span className="text-kaffza-primary font-extrabold">الإجمالي</span>
-              <span className="text-kaffza-info text-xl font-extrabold">{total} ر.ع</span>
+              <span className="text-kaffza-text/70 text-sm">عدد العناصر</span>
+              <span className="text-kaffza-primary font-extrabold">{totalItems}</span>
             </div>
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-kaffza-primary font-extrabold">الإجمالي</span>
+              <span className="text-kaffza-info text-2xl font-extrabold">{total} ر.ع</span>
+            </div>
+            <p className="text-kaffza-text/70 mt-3 text-xs">
+              بعد الدفع يتم تفعيل الخطة مباشرة على حسابك.
+            </p>
             <div className="mt-4 grid gap-2">
               <Button className="w-full" onClick={checkout}>
                 متابعة الدفع

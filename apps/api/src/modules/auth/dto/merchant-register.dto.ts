@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsOptional } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 
 import { LocaleDto, RegisterDto, UserRoleDto } from './register.dto';
 
@@ -18,4 +18,9 @@ export class MerchantRegisterDto extends RegisterDto {
   @IsOptional()
   @IsEnum(LocaleDto)
   declare locale?: LocaleDto;
+
+  @ApiPropertyOptional({ example: 'cf-turnstile-token' })
+  @IsOptional()
+  @IsString()
+  turnstileToken?: string;
 }

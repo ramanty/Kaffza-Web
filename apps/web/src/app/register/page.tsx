@@ -10,10 +10,25 @@ import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { PhoneInput } from '../../components/PhoneInput';
 import { SocialAuthButtons } from '../../components/SocialAuthButtons';
+import { TurnstileChallenge } from '../../components/TurnstileChallenge';
 import { isValidE164Phone } from '../../lib/phone';
 import { extractApiErrorMessage } from '../../lib/api-error';
 
 type RegisterMethod = 'phone' | 'email';
+
+function normalizeRegisterError(text: string) {
+  const raw = String(text || '');
+  if (raw.includes('already exists') || raw.includes('مستخدم موجود')) {
+    return 'يوجد حساب بهذه البيانات بالفعل. جرّب تسجيل الدخول أو استعادة كلمة المرور.';
+  }
+  if (raw.includes('Too many requests') || raw.includes('محاولات كثيرة')) {
+    return 'محاولات كثيرة خلال وقت قصير. انتظر دقيقة ثم أعد المحاولة.';
+  }
+  if (raw.includes('OTP') && raw.includes('expired')) {
+    return 'انتهت صلاحية الرمز. اطلب OTP جديداً لإكمال التفعيل.';
+  }
+  return raw;
+}
 
 function RegisterPageInner() {
   const router = useRouter();
@@ -27,8 +42,12 @@ function RegisterPageInner() {
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'register' | 'verify'>('register');
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [msgType, setMsgType] = useState<'error' | 'success'>('error');
 
   const emailOk = useMemo(() => !email.trim() || /.+@.+\..+/.test(email.trim()), [email]);
 
@@ -38,14 +57,27 @@ function RegisterPageInner() {
       (method === 'email' || isValidE164Phone(phone)) &&
       (method === 'phone' || !!email.trim()) &&
       emailOk &&
-      password.trim().length >= 8
+      password.trim().length >= 8 &&
+      acceptedPolicies &&
+      (!turnstileEnabled || turnstileToken.trim().length > 0)
     );
-  }, [name, phone, email, emailOk, method, password]);
+  }, [
+    name,
+    phone,
+    email,
+    emailOk,
+    method,
+    password,
+    acceptedPolicies,
+    turnstileEnabled,
+    turnstileToken,
+  ]);
 
   const canVerify = useMemo(() => /^[0-9]{6}$/.test(otp.trim()), [otp]);
 
   const submit = async () => {
     setMsg(null);
+    setMsgType('error');
     const n = name.trim();
     const p = phone.trim();
     const e = email.trim();
@@ -56,6 +88,8 @@ function RegisterPageInner() {
     if (method === 'email' && !e) return setMsg('البريد الإلكتروني مطلوب لهذه الطريقة');
     if (!emailOk) return setMsg('البريد الإلكتروني غير صحيح');
     if (pw.length < 8) return setMsg('كلمة المرور لازم تكون 8 أحرف/أرقام على الأقل');
+    if (!acceptedPolicies) return setMsg('لازم توافق على الشروط وسياسة الخصوصية قبل المتابعة');
+    if (turnstileEnabled && !turnstileToken.trim()) return setMsg('أكمل تحقق لست روبوت أولاً');
 
     setLoading(true);
     try {
@@ -69,13 +103,19 @@ function RegisterPageInner() {
           password: pw,
           role: 'customer',
           locale: 'ar',
+          turnstileToken: turnstileEnabled ? turnstileToken : undefined,
         },
         { headers: { 'x-client': 'web' } }
       );
       setStep('verify');
-      setMsg('تم إرسال OTP، أدخل الرمز لتفعيل الحساب');
+      setMsgType('success');
+      setMsg(
+        method === 'email'
+          ? 'تم إرسال OTP للبريد الإلكتروني. أدخل الرمز خلال دقائق لتفعيل الحساب.'
+          : 'تم إرسال OTP للهاتف. أدخل الرمز خلال دقائق لتفعيل الحساب.'
+      );
     } catch (e: any) {
-      setMsg(extractApiErrorMessage(e, 'فشل إنشاء الحساب'));
+      setMsg(normalizeRegisterError(extractApiErrorMessage(e, 'فشل إنشاء الحساب. حاول مجدداً.')));
     } finally {
       setLoading(false);
     }
@@ -83,6 +123,7 @@ function RegisterPageInner() {
 
   const verifyOtp = async () => {
     setMsg(null);
+    setMsgType('error');
     const p = phone.trim();
     const code = otp.trim();
     if (method === 'phone' && !isValidE164Phone(p)) return setMsg('رقم الهاتف غير صحيح');
@@ -107,7 +148,11 @@ function RegisterPageInner() {
       document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
       router.replace(next);
     } catch (e: any) {
-      setMsg(extractApiErrorMessage(e, 'فشل التحقق من الرمز'));
+      setMsg(
+        normalizeRegisterError(
+          extractApiErrorMessage(e, 'فشل التحقق من الرمز. تحقق من الرمز ثم حاول مجدداً.')
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -115,16 +160,28 @@ function RegisterPageInner() {
 
   const resendOtp = async () => {
     setMsg(null);
+    setMsgType('error');
     const p = phone.trim();
+    const e = email.trim();
     if (method === 'phone' && !isValidE164Phone(p)) return setMsg('رقم الهاتف غير صحيح');
-    if (method === 'email')
-      return setMsg('إعادة إرسال OTP عبر البريد ستكون متاحة في صفحة تسجيل الدخول قريباً');
+    if (method === 'email' && !e) return setMsg('البريد الإلكتروني غير صحيح');
     setLoading(true);
     try {
-      await api.post('/auth/otp/resend', { phone: p }, { headers: { 'x-client': 'web' } });
-      setMsg('تمت إعادة إرسال OTP');
+      await api.post(
+        '/auth/otp/resend',
+        {
+          method,
+          phone: method === 'phone' ? p : undefined,
+          email: method === 'email' ? e : undefined,
+        },
+        { headers: { 'x-client': 'web' } }
+      );
+      setMsgType('success');
+      setMsg('تمت إعادة إرسال OTP. أدخل آخر رمز وصل لك لإكمال التفعيل.');
     } catch (e: any) {
-      setMsg(extractApiErrorMessage(e, 'تعذر إعادة إرسال OTP'));
+      setMsg(
+        normalizeRegisterError(extractApiErrorMessage(e, 'تعذر إعادة إرسال OTP. حاول مرة أخرى.'))
+      );
     } finally {
       setLoading(false);
     }
@@ -140,12 +197,23 @@ function RegisterPageInner() {
       </div>
 
       <Card className="mt-6 p-6">
+        <div className="border-kaffza-primary/20 bg-kaffza-primary/5 text-kaffza-text/80 mb-4 rounded-xl border p-3 text-xs">
+          <span className="text-kaffza-primary font-bold">تسجيل سريع وآمن:</span> لن نستخدم بياناتك
+          إلا لإدارة حسابك وطلباتك.
+        </div>
         <div className="text-kaffza-text/80 text-sm">
-          اختر طريقة التسجيل المناسبة. سيتم إرسال OTP للهاتف لتفعيل الحساب.
+          اختر طريقة التسجيل المناسبة. سيتم إرسال OTP حسب الطريقة التي تختارها.
         </div>
 
         {msg ? (
-          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div
+            className={
+              'mt-4 rounded-xl border p-3 text-sm ' +
+              (msgType === 'success'
+                ? 'border-green-200 bg-green-50 text-green-700'
+                : 'border-red-200 bg-red-50 text-red-700')
+            }
+          >
             {msg}
           </div>
         ) : null}
@@ -170,6 +238,7 @@ function RegisterPageInner() {
                 onChange={(e: any) => setName(e.target.value)}
                 placeholder="محمد"
               />
+              <Hint>كما سيظهر في فاتورة الطلب</Hint>
             </Field>
 
             {method === 'email' ? (
@@ -179,6 +248,7 @@ function RegisterPageInner() {
                   onChange={(e: any) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                 />
+                <Hint>سنرسل رمز التفعيل إلى هذا البريد</Hint>
               </Field>
             ) : null}
 
@@ -199,12 +269,38 @@ function RegisterPageInner() {
               <Hint>8 أحرف/أرقام على الأقل</Hint>
             </Field>
 
+            <label className="flex items-start gap-2 rounded-xl border border-black/10 bg-white p-3 text-sm">
+              <input
+                type="checkbox"
+                checked={acceptedPolicies}
+                onChange={(e) => setAcceptedPolicies(e.target.checked)}
+                className="mt-1 h-4 w-4"
+              />
+              <span className="text-kaffza-text/85">
+                أوافق على{' '}
+                <Link className="text-kaffza-primary font-bold underline" href="/legal/terms">
+                  الشروط والأحكام
+                </Link>{' '}
+                و{' '}
+                <Link className="text-kaffza-primary font-bold underline" href="/legal/privacy">
+                  سياسة الخصوصية
+                </Link>
+                .
+              </span>
+            </label>
+
+            {turnstileEnabled ? (
+              <div className="rounded-xl border border-black/10 bg-white p-3">
+                <TurnstileChallenge onToken={setTurnstileToken} />
+              </div>
+            ) : null}
+
             <Button
               className="w-full !text-white"
               onClick={submit}
               disabled={!canSubmit || loading}
             >
-              {loading ? 'جارٍ الإنشاء...' : 'إنشاء حساب'}
+              {loading ? 'جارٍ الإنشاء...' : 'إنشاء حساب وتأكيد الهوية'}
             </Button>
 
             <div className="text-sm">
@@ -246,7 +342,7 @@ function RegisterPageInner() {
               onClick={verifyOtp}
               disabled={!canVerify || loading}
             >
-              {loading ? 'جارٍ التحقق...' : 'تأكيد وتفعيل الحساب'}
+              {loading ? 'جارٍ التحقق...' : 'تأكيد الرمز وتفعيل الحساب'}
             </Button>
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Suspense, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { api } from '../../../../lib/api';
 import { getAccessTokenFromCookies } from '../../../../lib/auth';
@@ -14,6 +14,8 @@ import { isValidE164Phone } from '../../../../lib/phone';
 import { extractApiErrorMessage } from '../../../../lib/api-error';
 
 function EnMerchantLoginInner() {
+  const sp = useSearchParams();
+  const registered = sp.get('registered') === '1';
   const router = useRouter();
   const [method, setMethod] = useState<'phone' | 'email'>('phone');
   const [phone, setPhone] = useState('');
@@ -83,10 +85,19 @@ function EnMerchantLoginInner() {
       </div>
 
       <Card className="mt-6 p-6">
+        {registered ? (
+          <div className="mb-4 rounded-xl border border-green-200 bg-green-50 p-3 text-sm font-bold text-green-700">
+            Registration complete. Please login now.
+          </div>
+        ) : null}
+        <p className="text-kaffza-text/80 text-sm">
+          Enter your details to access merchant dashboard.
+        </p>
+
         {msg ? (
           <div
             className={
-              'mb-4 rounded-xl border p-3 text-sm ' +
+              'mt-4 rounded-xl border p-3 text-sm ' +
               (msg.type === 'success'
                 ? 'border-green-200 bg-green-50 text-green-700'
                 : 'border-red-200 bg-red-50 text-red-700')
@@ -116,6 +127,7 @@ function EnMerchantLoginInner() {
                 onChange={(e: any) => setPhone(e.target.value)}
                 placeholder="+96891234567"
               />
+              <Hint>International format: +968XXXXXXXX or +1XXXXXXXXXX</Hint>
             </Field>
           ) : (
             <Field label="Email">
@@ -134,6 +146,7 @@ function EnMerchantLoginInner() {
               type="password"
               placeholder="********"
             />
+            <Hint>At least 8 characters</Hint>
           </Field>
 
           <Button
@@ -143,10 +156,15 @@ function EnMerchantLoginInner() {
             {loading ? 'Logging in...' : 'Login'}
           </Button>
 
-          <div className="text-sm">
-            No account yet?{' '}
+          <div className="flex items-center justify-between text-sm">
             <Link className="text-kaffza-primary font-bold underline" href="/en/merchant/register">
-              Register as merchant
+              No account yet? Register as merchant
+            </Link>
+            <Link
+              className="text-kaffza-text/70 text-xs font-bold underline"
+              href="/en/forgot-password"
+            >
+              Forgot password?
             </Link>
           </div>
 
@@ -160,6 +178,15 @@ function EnMerchantLoginInner() {
           />
         </div>
       </Card>
+
+      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
+        <Link className="underline" href="/en/legal/terms">
+          Terms
+        </Link>
+        <Link className="underline" href="/en/legal/privacy">
+          Privacy
+        </Link>
+      </div>
     </main>
   );
 }
@@ -188,6 +215,10 @@ function TabButton({ active, onClick, children }: any) {
       {children}
     </button>
   );
+}
+
+function Hint({ children }: any) {
+  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
 }
 
 export default function EnMerchantLoginPage() {

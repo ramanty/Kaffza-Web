@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { Card } from '../../../components/Card';
 import { PlanCardActions } from '../../../components/PlanCardActions';
-import { PLAN_CATALOG } from '../../../lib/plan-catalog';
+import { PLAN_CATALOG, getPlanNotes, getPlanSubtitle } from '../../../lib/plan-catalog';
 
 export default function EnPricingPage() {
   return (
@@ -35,7 +35,9 @@ export default function EnPricingPage() {
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="text-kaffza-primary text-lg font-extrabold">{plan.name}</div>
-                <div className="text-kaffza-text/60 mt-1 text-xs">{plan.subtitle}</div>
+                <div className="text-kaffza-text/60 mt-1 text-xs">
+                  {getPlanSubtitle(plan, true)}
+                </div>
               </div>
               {plan.popular ? (
                 <span className="bg-kaffza-premium text-kaffza-dark-blue rounded-full px-3 py-1 text-xs font-extrabold">
@@ -48,7 +50,7 @@ export default function EnPricingPage() {
             </div>
             <div className="text-kaffza-text/80 mt-1 text-sm">Commission: {plan.commission}</div>
             <ul className="text-kaffza-text/80 mt-4 flex-1 space-y-2 text-sm">
-              {plan.notes.map((n) => (
+              {getPlanNotes(plan, true).map((n) => (
                 <li key={n} className="flex items-start gap-2">
                   <span className="text-kaffza-primary mt-0.5">✓</span>
                   <span>{n}</span>

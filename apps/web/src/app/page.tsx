@@ -7,8 +7,13 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '../components/Button';
 import { PlanCardActions } from '../components/PlanCardActions';
 import { FEATURE_CATALOG } from '../lib/feature-catalog';
-import { PLAN_CATALOG } from '../lib/plan-catalog';
-import { TRUST_CATALOG } from '../lib/trust-catalog';
+import { PLAN_CATALOG, getPlanNotes, getPlanSubtitle } from '../lib/plan-catalog';
+import {
+  TRUST_CATALOG,
+  getTrustPoints,
+  getTrustSummary,
+  getTrustTitle,
+} from '../lib/trust-catalog';
 
 const PAIN_POINTS = ['إرسال رقم حساب', 'طلبات ضائعة', 'عدم ثقة'];
 const LANDING_FEATURES = FEATURE_CATALOG.slice(0, 6);
@@ -110,7 +115,7 @@ function LandingPageInner() {
                     href={`/trust/${item.slug}`}
                     className="rounded-full bg-white/10 px-3 py-1 hover:bg-white/20"
                   >
-                    {item.title}
+                    {getTrustTitle(item)}
                   </Link>
                 ))}
               </div>
@@ -204,7 +209,7 @@ function LandingPageInner() {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="text-kaffza-primary text-sm font-extrabold">{p.name}</div>
-                  <div className="text-kaffza-text/60 mt-1 text-xs">{p.subtitle}</div>
+                  <div className="text-kaffza-text/60 mt-1 text-xs">{getPlanSubtitle(p)}</div>
                 </div>
                 {p.popular ? (
                   <span className="rounded-full bg-[#F5A623] px-3 py-1 text-[11px] font-extrabold text-white">
@@ -219,7 +224,7 @@ function LandingPageInner() {
               <div className="text-kaffza-text/70 mt-1 text-xs">العمولة: {p.commission}</div>
 
               <ul className="text-kaffza-text/80 mt-5 flex-1 space-y-2 text-sm">
-                {p.notes.map((x) => (
+                {getPlanNotes(p).map((x) => (
                   <li key={x} className="flex items-start gap-2">
                     <span className="text-kaffza-primary mt-0.5">✓</span>
                     <span>{x}</span>
@@ -248,12 +253,18 @@ function LandingPageInner() {
                 href={`/trust/${item.slug}`}
                 className="rounded-2xl border border-black/10 bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className="text-kaffza-primary text-sm font-extrabold">{item.title}</div>
-                <div className="text-kaffza-text/80 mt-2 text-sm leading-6">{item.summary}</div>
+                <div className="text-kaffza-primary text-sm font-extrabold">
+                  {getTrustTitle(item)}
+                </div>
+                <div className="text-kaffza-text/80 mt-2 text-sm leading-6">
+                  {getTrustSummary(item)}
+                </div>
                 <ul className="text-kaffza-text/70 mt-3 space-y-1 text-xs">
-                  {item.points.slice(0, 2).map((point) => (
-                    <li key={point}>• {point}</li>
-                  ))}
+                  {getTrustPoints(item)
+                    .slice(0, 2)
+                    .map((point) => (
+                      <li key={point}>• {point}</li>
+                    ))}
                 </ul>
               </Link>
             ))}

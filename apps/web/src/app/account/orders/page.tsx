@@ -14,13 +14,27 @@ type Order = any;
 
 type Meta = { page: number; limit: number; total: number; hasPrev: boolean; hasNext: boolean };
 
+function extractErrorMessage(error: any, fallback: string) {
+  const raw = error?.response?.data?.message;
+  if (Array.isArray(raw)) return raw.join(' ');
+  if (typeof raw === 'string' && raw.trim().length > 0) return raw;
+  if (typeof error?.message === 'string' && error.message.trim().length > 0) return error.message;
+  return fallback;
+}
+
 function AccountOrdersPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const page = Math.max(1, Number(sp.get('page') || '1') || 1);
 
   const [orders, setOrders] = useState<Order[]>([]);
-  const [meta, setMeta] = useState<Meta>({ page, limit: 10, total: 0, hasPrev: false, hasNext: false });
+  const [meta, setMeta] = useState<Meta>({
+    page,
+    limit: 10,
+    total: 0,
+    hasPrev: false,
+    hasNext: false,
+  });
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -39,7 +53,9 @@ function AccountOrdersPageInner() {
     setMsg(null);
 
     try {
-      const res = await api.get(`/orders?page=${page}&limit=10`, { headers: { ...authHeader(), 'x-client': 'web' } });
+      const res = await api.get(`/orders?page=${page}&limit=10`, {
+        headers: { ...authHeader(), 'x-client': 'web' },
+      });
       setOrders(res?.data?.data || []);
       setMeta(res?.data?.meta || { page, limit: 10, total: 0, hasPrev: false, hasNext: false });
     } catch (e: any) {
@@ -47,7 +63,7 @@ function AccountOrdersPageInner() {
         router.replace(`/login?next=${encodeURIComponent(`/account/orders?page=${page}`)}`);
         return;
       }
-      setMsg(e?.response?.data?.message || 'تعذر تحميل الطلبات');
+      setMsg(extractErrorMessage(e, 'تعذر تحميل الطلبات حالياً. حاول مرة أخرى.'));
     } finally {
       setLoading(false);
     }
@@ -55,7 +71,7 @@ function AccountOrdersPageInner() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [page]);
 
   const empty = useMemo(() => !loading && orders.length === 0, [loading, orders.length]);
@@ -67,8 +83,10 @@ function AccountOrdersPageInner() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-kaffza-primary">سجل الطلبات</h1>
-          <p className="mt-1 text-sm text-kaffza-text/80">تابع طلباتك وحالاتها.</p>
+          <h1 className="text-kaffza-primary text-2xl font-extrabold">سجل الطلبات</h1>
+          <p className="text-kaffza-text/80 mt-1 text-sm">
+            تابع كل طلب من التأكيد حتى التسليم من مكان واحد.
+          </p>
         </div>
         <Button variant="secondary" onClick={load} disabled={loading}>
           تحديث
@@ -79,7 +97,10 @@ function AccountOrdersPageInner() {
 
       {empty ? (
         <Card className="p-6">
-          <div className="text-sm text-kaffza-text/70">ما عندك طلبات بعد.</div>
+          <div className="text-kaffza-primary text-sm font-bold">لا توجد طلبات حتى الآن</div>
+          <div className="text-kaffza-text/70 mt-1 text-sm">
+            ابدأ التسوق الآن، وستظهر طلباتك هنا مع كل تحديث للحالة.
+          </div>
           <div className="mt-4">
             <Link href="/store">
               <Button>تسوق الآن</Button>
@@ -89,25 +110,38 @@ function AccountOrdersPageInner() {
       ) : (
         <div className="grid gap-4">
           {loading ? (
-            <Card className="p-6">
-              <div className="text-sm text-kaffza-text/70">جاري التحميل...</div>
-            </Card>
+            <>
+              {[1, 2].map((key) => (
+                <Card key={key} className="p-6">
+                  <div className="space-y-3">
+                    <div className="h-4 w-32 animate-pulse rounded bg-black/10" />
+                    <div className="h-3 w-52 animate-pulse rounded bg-black/10" />
+                    <div className="h-3 w-20 animate-pulse rounded bg-black/10" />
+                  </div>
+                </Card>
+              ))}
+            </>
           ) : (
             orders.map((o) => (
               <Card key={String(o.id)} className="p-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <div className="text-sm text-kaffza-text/70">رقم الطلب</div>
-                    <div className="text-lg font-extrabold text-kaffza-primary">{o.orderNumber}</div>
-                    <div className="mt-1 text-xs text-kaffza-text/70">
-                      {formatDate(o.createdAt)} • متجر: {o.store?.nameAr || o.store?.nameEn || o.store?.subdomain}
+                    <div className="text-kaffza-text/70 text-sm">رقم الطلب</div>
+                    <div className="text-kaffza-primary text-lg font-extrabold">
+                      {o.orderNumber}
+                    </div>
+                    <div className="text-kaffza-text/70 mt-1 text-xs">
+                      {formatDate(o.createdAt)} • متجر:{' '}
+                      {o.store?.nameAr || o.store?.nameEn || o.store?.subdomain}
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="text-xs text-kaffza-text/70">الإجمالي</div>
-                      <div className="text-sm font-extrabold text-kaffza-primary">{formatOMR(Number(o.totalAmount))}</div>
+                      <div className="text-kaffza-text/70 text-xs">الإجمالي</div>
+                      <div className="text-kaffza-primary text-sm font-extrabold">
+                        {formatOMR(Number(o.totalAmount))}
+                      </div>
                     </div>
 
                     <StatusBadge status={o.status} />
@@ -125,15 +159,23 @@ function AccountOrdersPageInner() {
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
-        <Link href={prevHref} aria-disabled={!meta.hasPrev} className={!meta.hasPrev ? 'pointer-events-none opacity-50' : ''}>
+        <Link
+          href={prevHref}
+          aria-disabled={!meta.hasPrev || loading}
+          className={!meta.hasPrev || loading ? 'pointer-events-none opacity-50' : ''}
+        >
           <Button variant="secondary">السابق</Button>
         </Link>
 
-        <div className="text-xs text-kaffza-text/70">
+        <div className="text-kaffza-text/70 text-xs">
           صفحة {meta.page} • {meta.total} طلب
         </div>
 
-        <Link href={nextHref} aria-disabled={!meta.hasNext} className={!meta.hasNext ? 'pointer-events-none opacity-50' : ''}>
+        <Link
+          href={nextHref}
+          aria-disabled={!meta.hasNext || loading}
+          className={!meta.hasNext || loading ? 'pointer-events-none opacity-50' : ''}
+        >
           <Button variant="secondary">التالي</Button>
         </Link>
       </div>
@@ -142,7 +184,10 @@ function AccountOrdersPageInner() {
 }
 
 function Alert({ kind, text }: { kind: 'error' | 'success'; text: string }) {
-  const cls = kind === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700';
+  const cls =
+    kind === 'error'
+      ? 'border-red-200 bg-red-50 text-red-700'
+      : 'border-green-200 bg-green-50 text-green-700';
   return <div className={`rounded-xl border p-4 text-sm ${cls}`}>{text}</div>;
 }
 
@@ -151,8 +196,10 @@ function StatusBadge({ status }: { status: string }) {
   const base = 'inline-flex rounded-full px-3 py-1 text-xs font-extrabold';
   if (s === 'pending') return <span className={`${base} bg-yellow-50 text-yellow-700`}>معلق</span>;
   if (s === 'confirmed') return <span className={`${base} bg-blue-50 text-blue-700`}>مؤكد</span>;
-  if (s === 'shipped') return <span className={`${base} bg-orange-50 text-orange-700`}>تم الشحن</span>;
-  if (s === 'delivered') return <span className={`${base} bg-green-50 text-green-700`}>تم التسليم</span>;
+  if (s === 'shipped')
+    return <span className={`${base} bg-orange-50 text-orange-700`}>تم الشحن</span>;
+  if (s === 'delivered')
+    return <span className={`${base} bg-green-50 text-green-700`}>تم التسليم</span>;
   if (s === 'cancelled') return <span className={`${base} bg-red-50 text-red-700`}>ملغي</span>;
   return <span className={`${base} bg-gray-100 text-gray-700`}>{status}</span>;
 }
@@ -171,4 +218,10 @@ function formatOMR(v: number) {
   return `${n.toFixed(3)} ر.ع`;
 }
 
-export default function AccountOrdersPage() { return <Suspense><AccountOrdersPageInner /></Suspense>; }
+export default function AccountOrdersPage() {
+  return (
+    <Suspense>
+      <AccountOrdersPageInner />
+    </Suspense>
+  );
+}

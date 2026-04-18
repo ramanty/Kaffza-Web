@@ -1,7 +1,7 @@
 # Kaffza — Production Docker Compose (Hardened)
-# Usage:
-#   cp ../.env.production.example ../.env.production
-#   docker compose -f production/docker-compose.yml up -d --build
+# Usage (single source of truth for production vars is production/.env):
+#   cp .env.production.example production/.env
+#   docker compose --env-file production/.env -f production/docker-compose.yml up -d --build
 
 services:
   postgres:
@@ -58,7 +58,7 @@ services:
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped
     env_file:
-      - ../.env.production
+      - ./.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -85,9 +85,16 @@ services:
     build:
       context: ..
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+        NEXT_PUBLIC_APPLE_CLIENT_ID: ${NEXT_PUBLIC_APPLE_CLIENT_ID}
+        NEXT_PUBLIC_APPLE_REDIRECT_URI: ${NEXT_PUBLIC_APPLE_REDIRECT_URI}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
     restart: unless-stopped
     env_file:
-      - ../.env.production
+      - ./.env
     depends_on:
       api:
         condition: service_healthy

@@ -38,6 +38,32 @@ function OnboardingPageInner() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<OnboardingData | null>(null);
 
+  const stepHint = (route: string) => {
+    if (route.includes('/products')) {
+      return isEn
+        ? 'Aim for at least 3 products with clear images and prices.'
+        : 'استهدف إضافة 3 منتجات على الأقل مع صور وأسعار واضحة.';
+    }
+    if (route.includes('/shipping')) {
+      return isEn
+        ? 'Set zones and rates now to avoid checkout drop-offs later.'
+        : 'حدّد المناطق والأسعار الآن لتجنب إلغاء الشراء لاحقاً.';
+    }
+    if (route.includes('/settings')) {
+      return isEn
+        ? 'Complete store identity to build trust before first purchase.'
+        : 'أكمل هوية المتجر لرفع الثقة قبل أول عملية شراء.';
+    }
+    if (route.includes('/payments')) {
+      return isEn
+        ? 'Enable suitable methods so customers can finish checkout.'
+        : 'فعّل طرق الدفع المناسبة لإكمال العملاء لعملية الشراء.';
+    }
+    return isEn
+      ? 'Complete this step to improve launch readiness.'
+      : 'إكمال هذه الخطوة يعزز جاهزية الإطلاق.';
+  };
+
   const title = useMemo(() => {
     if (!data) return isEn ? 'Launch checklist' : 'خطة الانطلاقة';
     return isEn
@@ -105,7 +131,25 @@ function OnboardingPageInner() {
       {error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
+          <div className="mt-3">
+            <Button variant="secondary" onClick={load}>
+              {isEn ? 'Retry checklist' : 'إعادة تحميل الخطة'}
+            </Button>
+          </div>
         </div>
+      ) : null}
+
+      {!storeId ? (
+        <Card className="border-black/10 p-6 text-sm">
+          <div className="text-kaffza-primary text-base font-extrabold">
+            {isEn ? 'Select a store first' : 'اختر متجراً أولاً'}
+          </div>
+          <p className="text-kaffza-text/70 mt-1">
+            {isEn
+              ? 'Checklist appears after selecting or creating a merchant store.'
+              : 'ستظهر الخطة بعد اختيار متجر التاجر أو إنشاء متجر جديد.'}
+          </p>
+        </Card>
       ) : null}
 
       {data ? (
@@ -162,9 +206,7 @@ function OnboardingPageInner() {
                 <h2 className="text-kaffza-primary text-base font-extrabold">
                   {isEn ? step.labelEn : step.labelAr}
                 </h2>
-                <p className="text-kaffza-text/70 mt-1 text-xs">
-                  {isEn ? step.labelAr : step.labelEn}
-                </p>
+                <p className="text-kaffza-text/70 mt-1 text-xs">{stepHint(step.route)}</p>
               </div>
               <span
                 className={
@@ -203,7 +245,11 @@ function OnboardingPageInner() {
       </div>
 
       {loading ? (
-        <div className="text-kaffza-text/60 text-sm">{isEn ? 'Loading...' : 'جارٍ التحميل...'}</div>
+        <Card className="border-black/10 p-4 text-sm">
+          <div className="text-kaffza-text/60">
+            {isEn ? 'Loading checklist...' : 'جارٍ تحميل الخطة...'}
+          </div>
+        </Card>
       ) : null}
     </div>
   );

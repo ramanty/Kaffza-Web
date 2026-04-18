@@ -30,6 +30,25 @@ export class AuthService {
     private readonly email: EmailService
   ) {}
 
+  async verifyTurnstileOrThrow(token?: string, remoteIp?: string) {
+    const secret = this.config.get<string>('TURNSTILE_SECRET_KEY');
+    if (!secret) return;
+    if (!token) throw new BadRequestException('يرجى إكمال تحقق لست روبوت');
+
+    const form = new URLSearchParams({ secret, response: token });
+    if (remoteIp) form.set('remoteip', remoteIp);
+
+    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: form.toString(),
+    });
+
+    if (!res.ok) throw new BadRequestException('فشل التحقق الأمني. حاول مرة أخرى');
+    const data = (await res.json().catch(() => null)) as { success?: boolean } | null;
+    if (!data?.success) throw new BadRequestException('تحقق لست روبوت غير صالح');
+  }
+
   async register(dto: MerchantRegisterDto) {
     const method = dto.method || (dto.email ? RegisterMethodDto.email : RegisterMethodDto.phone);
     const phone = dto.phone?.trim();
@@ -105,29 +124,80 @@ export class AuthService {
   }
 
   // OTP login: send OTP for existing users (verified or not)
-  async requestOtp(phone: string) {
-    const user = await this.prisma.user.findUnique({ where: { phone } });
+  async requestOtp(dto: { phone?: string; email?: string; method?: RegisterMethodDto }) {
+    const method = dto.method || (dto.email ? RegisterMethodDto.email : RegisterMethodDto.phone);
+    const phone = dto.phone?.trim();
+    const email = dto.email?.trim().toLowerCase();
+
+    if (method === RegisterMethodDto.email && !email) {
+      throw new BadRequestException('البريد الإلكتروني مطلوب');
+    }
+    if (method === RegisterMethodDto.phone && !phone) {
+      throw new BadRequestException('رقم الهاتف مطلوب');
+    }
+
+    const user =
+      method === RegisterMethodDto.email
+        ? await this.prisma.user.findUnique({ where: { email: email! } })
+        : await this.prisma.user.findUnique({ where: { phone: phone! } });
     if (!user) throw new BadRequestException('المستخدم غير موجود');
 
     const { otp, otpHash, otpExpiresAt } = await this.newOtp();
     await this.prisma.user.update({ where: { id: user.id }, data: { otpHash, otpExpiresAt } });
-    await this.sms.sendOtp(phone, otp);
+    if (method === RegisterMethodDto.email) await this.email.sendOtp(email!, otp);
+    else await this.sms.sendOtp(phone!, otp);
 
-    return { success: true, message: 'تم إرسال رمز التحقق (OTP)', data: { phone, otpExpiresAt } };
+    return {
+      success: true,
+      message:
+        method === RegisterMethodDto.email
+          ? 'تم إرسال رمز التحقق (OTP) إلى البريد الإلكتروني'
+          : 'تم إرسال رمز التحقق (OTP) إلى رقم الهاتف',
+      data: {
+        method,
+        phone: method === RegisterMethodDto.phone ? phone : undefined,
+        email: method === RegisterMethodDto.email ? email : undefined,
+        otpExpiresAt,
+      },
+    };
   }
-  async resendOtp(phone: string) {
-    const user = await this.prisma.user.findUnique({ where: { phone } });
+
+  async resendOtp(dto: { phone?: string; email?: string; method?: RegisterMethodDto }) {
+    const method = dto.method || (dto.email ? RegisterMethodDto.email : RegisterMethodDto.phone);
+    const phone = dto.phone?.trim();
+    const email = dto.email?.trim().toLowerCase();
+
+    if (method === RegisterMethodDto.email && !email) {
+      throw new BadRequestException('البريد الإلكتروني مطلوب');
+    }
+    if (method === RegisterMethodDto.phone && !phone) {
+      throw new BadRequestException('رقم الهاتف مطلوب');
+    }
+
+    const user =
+      method === RegisterMethodDto.email
+        ? await this.prisma.user.findUnique({ where: { email: email! } })
+        : await this.prisma.user.findUnique({ where: { phone: phone! } });
     if (!user) throw new BadRequestException('المستخدم غير موجود');
     if (user.isVerified) throw new BadRequestException('الحساب مُفعّل بالفعل');
 
     const { otp, otpHash, otpExpiresAt } = await this.newOtp();
     await this.prisma.user.update({ where: { id: user.id }, data: { otpHash, otpExpiresAt } });
-    await this.sms.sendOtp(phone, otp);
+    if (method === RegisterMethodDto.email) await this.email.sendOtp(email!, otp);
+    else await this.sms.sendOtp(phone!, otp);
 
     return {
       success: true,
-      message: 'تم إعادة إرسال رمز التحقق (OTP)',
-      data: { phone, otpExpiresAt },
+      message:
+        method === RegisterMethodDto.email
+          ? 'تمت إعادة إرسال رمز التحقق (OTP) إلى البريد الإلكتروني'
+          : 'تمت إعادة إرسال رمز التحقق (OTP) إلى رقم الهاتف',
+      data: {
+        method,
+        phone: method === RegisterMethodDto.phone ? phone : undefined,
+        email: method === RegisterMethodDto.email ? email : undefined,
+        otpExpiresAt,
+      },
     };
   }
 
@@ -208,8 +278,8 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     // Allow login by email+password OR phone+password
-    const email = (dto as any).email;
-    const phone = (dto as any).phone;
+    const email = (dto as any).email?.trim().toLowerCase();
+    const phone = (dto as any).phone?.trim();
 
     if (!email && !phone) throw new UnauthorizedException('بيانات الدخول غير صحيحة');
 

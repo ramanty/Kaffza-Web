@@ -9,9 +9,24 @@ import { getAccessTokenFromCookies } from '../../lib/auth';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
+import { PhoneInput } from '../../components/PhoneInput';
 import { SocialAuthButtons } from '../../components/SocialAuthButtons';
 import { extractApiErrorMessage } from '../../lib/api-error';
 import { isValidE164Phone } from '../../lib/phone';
+
+function normalizeLoginError(text: string) {
+  const raw = String(text || '');
+  if (raw.includes('Invalid credentials') || raw.includes('بيانات الدخول غير صحيحة')) {
+    return 'بيانات الدخول غير صحيحة. تأكد من الرقم/البريد وكلمة المرور ثم أعد المحاولة.';
+  }
+  if (raw.includes('Too many requests') || raw.includes('محاولات كثيرة')) {
+    return 'محاولات كثيرة خلال وقت قصير. انتظر دقيقة ثم أعد المحاولة.';
+  }
+  if (raw.includes('OTP') && raw.includes('expired')) {
+    return 'انتهت صلاحية رمز OTP. اطلب رمزاً جديداً ثم أكمل.';
+  }
+  return raw;
+}
 
 function LoginPageInner() {
   const router = useRouter();
@@ -105,7 +120,7 @@ function LoginPageInner() {
       setSuccess('تم تسجيل الدخول بنجاح');
       router.replace(next);
     } catch (e: any) {
-      setError(extractApiErrorMessage(e, 'فشل تسجيل الدخول'));
+      setError(normalizeLoginError(extractApiErrorMessage(e, 'فشل تسجيل الدخول. جرّب مرة أخرى.')));
     } finally {
       setLoading(false);
     }
@@ -119,10 +134,10 @@ function LoginPageInner() {
     setLoading(true);
     try {
       await api.post('/auth/otp/request', { phone: p }, { headers: { 'x-client': 'web' } });
-      setSuccess('تم إرسال OTP');
+      setSuccess('تم إرسال OTP. أدخل الرمز خلال دقائق لإكمال الدخول.');
       setOtpStep('code');
     } catch (e: any) {
-      setError(extractApiErrorMessage(e, 'تعذر إرسال OTP'));
+      setError(normalizeLoginError(extractApiErrorMessage(e, 'تعذر إرسال OTP. حاول مجدداً.')));
     } finally {
       setLoading(false);
     }
@@ -150,7 +165,11 @@ function LoginPageInner() {
       setSuccess('تم تسجيل الدخول بنجاح');
       router.replace(next);
     } catch (e: any) {
-      setError(extractApiErrorMessage(e, 'فشل التحقق من الرمز'));
+      setError(
+        normalizeLoginError(
+          extractApiErrorMessage(e, 'فشل التحقق من الرمز. تحقق من الرمز ثم حاول مرة أخرى.')
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -166,6 +185,10 @@ function LoginPageInner() {
       </div>
 
       <Card className="mt-6 p-6">
+        <div className="border-kaffza-primary/20 bg-kaffza-primary/5 text-kaffza-text/80 mb-4 rounded-xl border p-3 text-xs">
+          <span className="text-kaffza-primary font-bold">دخول آمن:</span> حسابك محمي، ويمكنك إكمال
+          الطلب ومتابعته من صفحة حسابك.
+        </div>
         <div className="flex gap-2">
           <TabButton active={tab === 'password'} onClick={() => setTab('password')}>
             كلمة مرور
@@ -210,11 +233,7 @@ function LoginPageInner() {
 
             {passwordMethod === 'phone' ? (
               <Field label="رقم الهاتف">
-                <Input
-                  value={phone}
-                  onChange={(e: any) => setPhone(e.target.value)}
-                  placeholder="+96891234567"
-                />
+                <PhoneInput value={phone} onChange={setPhone} />
                 <Hint>صيغة دولية: +968XXXXXXXX أو +1XXXXXXXXXX</Hint>
               </Field>
             ) : (
@@ -224,6 +243,7 @@ function LoginPageInner() {
                   onChange={(e: any) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                 />
+                <Hint>استخدم نفس البريد المسجل بالحساب</Hint>
               </Field>
             )}
 
@@ -272,11 +292,7 @@ function LoginPageInner() {
             {otpStep === 'phone' ? (
               <>
                 <Field label="رقم الهاتف">
-                  <Input
-                    value={otpPhone}
-                    onChange={(e: any) => setOtpPhone(e.target.value)}
-                    placeholder="+96891234567"
-                  />
+                  <PhoneInput value={otpPhone} onChange={setOtpPhone} />
                   <Hint>صيغة دولية: +968XXXXXXXX أو +1XXXXXXXXXX</Hint>
                 </Field>
 
@@ -310,7 +326,7 @@ function LoginPageInner() {
                 </Field>
 
                 <Button onClick={verifyOtp} disabled={loading || !otpOk}>
-                  {loading ? 'جارٍ التحقق...' : 'تأكيد'}
+                  {loading ? 'جارٍ التحقق...' : 'تأكيد الدخول'}
                 </Button>
 
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm">

@@ -9,9 +9,24 @@ import { getAccessTokenFromCookies } from '../../../lib/auth';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
+import { PhoneInput } from '../../../components/PhoneInput';
 import { SocialAuthButtons } from '../../../components/SocialAuthButtons';
 import { extractApiErrorMessage } from '../../../lib/api-error';
 import { isValidE164Phone } from '../../../lib/phone';
+
+function normalizeLoginError(text: string) {
+  const raw = String(text || '');
+  if (raw.includes('بيانات الدخول غير صحيحة') || raw.includes('Invalid credentials')) {
+    return 'Your login details are incorrect. Check your phone/email and password, then try again.';
+  }
+  if (raw.includes('محاولات كثيرة') || raw.includes('Too many requests')) {
+    return 'Too many attempts in a short time. Please wait a minute, then try again.';
+  }
+  if (raw.includes('OTP') && raw.includes('expired')) {
+    return 'This OTP has expired. Request a new code to continue.';
+  }
+  return raw;
+}
 
 function EnLoginPageInner() {
   const router = useRouter();
@@ -102,7 +117,7 @@ function EnLoginPageInner() {
       setSuccess('Logged in successfully');
       router.replace(next);
     } catch (e: any) {
-      setError(extractApiErrorMessage(e, 'Login failed'));
+      setError(normalizeLoginError(extractApiErrorMessage(e, 'Login failed. Please try again.')));
     } finally {
       setLoading(false);
     }
@@ -116,10 +131,10 @@ function EnLoginPageInner() {
     setLoading(true);
     try {
       await api.post('/auth/otp/request', { phone: p }, { headers: { 'x-client': 'web' } });
-      setSuccess('OTP sent');
+      setSuccess('OTP sent. Enter it within a few minutes to complete login.');
       setOtpStep('code');
     } catch (e: any) {
-      setError(extractApiErrorMessage(e, 'Could not send OTP'));
+      setError(normalizeLoginError(extractApiErrorMessage(e, 'Could not send OTP. Please retry.')));
     } finally {
       setLoading(false);
     }
@@ -147,7 +162,11 @@ function EnLoginPageInner() {
       setSuccess('Logged in successfully');
       router.replace(next);
     } catch (e: any) {
-      setError(extractApiErrorMessage(e, 'OTP verification failed'));
+      setError(
+        normalizeLoginError(
+          extractApiErrorMessage(e, 'OTP verification failed. Check code and retry.')
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -163,6 +182,10 @@ function EnLoginPageInner() {
       </div>
 
       <Card className="mt-6 p-6">
+        <div className="border-kaffza-primary/20 bg-kaffza-primary/5 text-kaffza-text/80 mb-4 rounded-xl border p-3 text-xs">
+          <span className="text-kaffza-primary font-bold">Secure login:</span> your account is
+          protected, and you can track orders from your account page after checkout.
+        </div>
         <div className="flex gap-2">
           <TabButton active={tab === 'password'} onClick={() => setTab('password')}>
             Password
@@ -207,11 +230,7 @@ function EnLoginPageInner() {
 
             {passwordMethod === 'phone' ? (
               <Field label="Phone number">
-                <Input
-                  value={phone}
-                  onChange={(e: any) => setPhone(e.target.value)}
-                  placeholder="+96891234567"
-                />
+                <PhoneInput value={phone} onChange={setPhone} />
                 <Hint>International format: +968XXXXXXXX or +1XXXXXXXXXX</Hint>
               </Field>
             ) : (
@@ -221,6 +240,7 @@ function EnLoginPageInner() {
                   onChange={(e: any) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                 />
+                <Hint>Use the same email linked to your account</Hint>
               </Field>
             )}
 
@@ -269,11 +289,7 @@ function EnLoginPageInner() {
             {otpStep === 'phone' ? (
               <>
                 <Field label="Phone number">
-                  <Input
-                    value={otpPhone}
-                    onChange={(e: any) => setOtpPhone(e.target.value)}
-                    placeholder="+96891234567"
-                  />
+                  <PhoneInput value={otpPhone} onChange={setOtpPhone} />
                   <Hint>International format: +968XXXXXXXX or +1XXXXXXXXXX</Hint>
                 </Field>
 
@@ -307,7 +323,7 @@ function EnLoginPageInner() {
                 </Field>
 
                 <Button onClick={verifyOtp} disabled={loading || !otpOk}>
-                  {loading ? 'Verifying...' : 'Confirm'}
+                  {loading ? 'Verifying...' : 'Confirm login'}
                 </Button>
 
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm">

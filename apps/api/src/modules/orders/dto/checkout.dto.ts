@@ -1,6 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
 
 export enum CheckoutPaymentMethodDto {
   card = 'card',
@@ -11,27 +19,51 @@ export enum CheckoutPaymentMethodDto {
 
 export class CartAddressDto {
   @ApiProperty({ example: 'محمد' })
+  @IsString()
+  @IsNotEmpty()
+  @Length(2, 100)
   fullName: string;
 
   @ApiProperty({ example: '+96891234567' })
+  @IsString()
+  @IsNotEmpty()
+  @Length(8, 20)
   phone: string;
 
   @ApiProperty({ example: 'شارع ...' })
+  @IsString()
+  @IsNotEmpty()
+  @Length(5, 250)
   addressLine1: string;
 
   @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(250)
   addressLine2?: string;
 
   @ApiProperty({ example: 'السيب' })
+  @IsString()
+  @IsNotEmpty()
+  @Length(2, 100)
   city: string;
 
   @ApiProperty({ example: 'مسقط' })
+  @IsString()
+  @IsNotEmpty()
+  @Length(2, 100)
   state: string;
 
   @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
   postalCode?: string;
 
   @ApiProperty({ example: 'OM' })
+  @IsString()
+  @IsNotEmpty()
+  @Length(2, 2)
   country: string = 'OM';
 }
 

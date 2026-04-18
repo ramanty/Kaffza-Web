@@ -28,6 +28,7 @@ function GrowthPageInner() {
   const isEn = sp.get('lang') === 'en';
   const { storeId } = useStore();
   const [loading, setLoading] = useState(true);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -54,6 +55,8 @@ function GrowthPageInner() {
             loadError: 'Failed to load growth settings',
             saveError: 'Failed to save settings',
             saveSuccess: 'Automation settings saved successfully',
+            loading: 'Loading growth settings...',
+            retry: 'Retry',
             abandonToggle: 'Enable abandoned cart recovery',
             delayLabel: 'First reminder delay (minutes)',
             delayHint: 'Example: first reminder 60 minutes after cart abandonment.',
@@ -77,6 +80,11 @@ function GrowthPageInner() {
               scheduled: 'Scheduled by default',
             },
             campaignsCta: 'Open campaign manager',
+            validationChannels: 'Select at least one reminder channel.',
+            validationDiscount: 'Discount must be between 1% and 90%.',
+            validationTimezone: 'Timezone is required when scheduling campaigns.',
+            readyTitle: 'Current growth posture',
+            readyState: (count: number) => `${count}/4 automations enabled`,
           }
         : {
             title: 'مركز النمو والأتمتة',
@@ -85,6 +93,8 @@ function GrowthPageInner() {
             loadError: 'تعذر تحميل إعدادات النمو',
             saveError: 'تعذر حفظ الإعدادات',
             saveSuccess: 'تم حفظ إعدادات الأتمتة بنجاح',
+            loading: 'جارٍ تحميل إعدادات النمو...',
+            retry: 'إعادة المحاولة',
             abandonToggle: 'تفعيل استرجاع السلات المتروكة',
             delayLabel: 'تأخير التذكير الأول (بالدقائق)',
             delayHint: 'مثال: إرسال أول تذكير بعد 60 دقيقة من ترك السلة.',
@@ -108,12 +118,42 @@ function GrowthPageInner() {
               scheduled: 'مجدول افتراضياً',
             },
             campaignsCta: 'فتح مدير الحملات',
+            validationChannels: 'اختر قناة تذكير واحدة على الأقل.',
+            validationDiscount: 'قيمة الخصم يجب أن تكون بين 1% و 90%.',
+            validationTimezone: 'المنطقة الزمنية مطلوبة عند تفعيل الجدولة.',
+            readyTitle: 'جاهزية النمو الحالية',
+            readyState: (count: number) => `تم تفعيل ${count}/4 من الأتمتة`,
           },
     [isEn]
   );
+  const enabledAutomations = [
+    form.abandonedCartEnabled,
+    form.abandonedCartDiscountEnabled,
+    form.welcomeAutomationEnabled,
+    form.lowStockAlertEnabled,
+  ].filter(Boolean).length;
+  const validationError = useMemo(() => {
+    if (form.abandonedCartEnabled && form.abandonedCartChannels.length === 0) {
+      return t.validationChannels;
+    }
+    if (
+      form.abandonedCartDiscountEnabled &&
+      (form.abandonedCartDiscountPercent < 1 || form.abandonedCartDiscountPercent > 90)
+    ) {
+      return t.validationDiscount;
+    }
+    if (form.campaignScheduleMode === 'scheduled' && !form.campaignTimezone.trim()) {
+      return t.validationTimezone;
+    }
+    return null;
+  }, [form, t]);
 
   async function load() {
-    if (!storeId) return;
+    if (!storeId) {
+      setLoading(false);
+      setInitialLoadDone(true);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -128,6 +168,7 @@ function GrowthPageInner() {
       setError(e?.response?.data?.message || e?.message || t.loadError);
     } finally {
       setLoading(false);
+      setInitialLoadDone(true);
     }
   }
 
@@ -181,6 +222,11 @@ function GrowthPageInner() {
       {error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
+          <div className="mt-3">
+            <Button variant="secondary" onClick={load} disabled={loading}>
+              {t.retry}
+            </Button>
+          </div>
         </div>
       ) : null}
       {success ? (
@@ -188,144 +234,168 @@ function GrowthPageInner() {
           {success}
         </div>
       ) : null}
-
-      <Card className="space-y-5 p-6">
-        <SwitchRow
-          label={t.abandonToggle}
-          checked={form.abandonedCartEnabled}
-          onChange={(checked) => setForm((s) => ({ ...s, abandonedCartEnabled: checked }))}
-        />
-
-        <div className="grid gap-2">
-          <label className="text-kaffza-text text-sm font-bold">{t.delayLabel}</label>
-          <Input
-            type="number"
-            min={5}
-            max={10080}
-            value={String(form.abandonedCartDelayMin)}
-            onChange={(e: any) =>
-              setForm((s) => ({ ...s, abandonedCartDelayMin: Number(e.target.value || 60) }))
-            }
-          />
-          <p className="text-kaffza-text/60 text-xs">{t.delayHint}</p>
+      {validationError ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          {validationError}
         </div>
+      ) : null}
 
-        <div>
-          <div className="text-kaffza-text text-sm font-bold">{t.channels}</div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {['sms', 'whatsapp', 'email'].map((ch) => {
-              const active = form.abandonedCartChannels.includes(ch);
-              return (
-                <button
-                  key={ch}
-                  type="button"
-                  onClick={() => toggleChannel(ch)}
-                  className={
-                    'rounded-lg border px-3 py-2 text-sm font-semibold ' +
-                    (active
-                      ? 'border-kaffza-primary bg-kaffza-primary text-white'
-                      : 'text-kaffza-text border-slate-200 bg-white')
+      {loading && !initialLoadDone ? (
+        <Card className="space-y-3 border-black/10 p-6">
+          <div className="text-kaffza-primary text-sm font-bold">{t.loading}</div>
+          <div className="h-3 w-48 animate-pulse rounded bg-black/10" />
+          <div className="h-3 w-64 animate-pulse rounded bg-black/10" />
+        </Card>
+      ) : (
+        <>
+          <Card className="border-black/10 p-4">
+            <div className="text-kaffza-primary text-sm font-extrabold">{t.readyTitle}</div>
+            <p className="text-kaffza-text/70 mt-1 text-sm">{t.readyState(enabledAutomations)}</p>
+          </Card>
+
+          <Card className="space-y-5 p-6">
+            <SwitchRow
+              label={t.abandonToggle}
+              checked={form.abandonedCartEnabled}
+              onChange={(checked) => setForm((s) => ({ ...s, abandonedCartEnabled: checked }))}
+            />
+
+            <div className="grid gap-2">
+              <label className="text-kaffza-text text-sm font-bold">{t.delayLabel}</label>
+              <Input
+                type="number"
+                min={5}
+                max={10080}
+                value={String(form.abandonedCartDelayMin)}
+                onChange={(e: any) =>
+                  setForm((s) => ({ ...s, abandonedCartDelayMin: Number(e.target.value || 60) }))
+                }
+              />
+              <p className="text-kaffza-text/60 text-xs">{t.delayHint}</p>
+            </div>
+
+            <div>
+              <div className="text-kaffza-text text-sm font-bold">{t.channels}</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {['sms', 'whatsapp', 'email'].map((ch) => {
+                  const active = form.abandonedCartChannels.includes(ch);
+                  return (
+                    <button
+                      key={ch}
+                      type="button"
+                      onClick={() => toggleChannel(ch)}
+                      className={
+                        'rounded-lg border px-3 py-2 text-sm font-semibold ' +
+                        (active
+                          ? 'border-kaffza-primary bg-kaffza-primary text-white'
+                          : 'text-kaffza-text border-slate-200 bg-white')
+                      }
+                    >
+                      {ch.toUpperCase()}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <SwitchRow
+              label={t.discountToggle}
+              checked={form.abandonedCartDiscountEnabled}
+              onChange={(checked) =>
+                setForm((s) => ({ ...s, abandonedCartDiscountEnabled: checked }))
+              }
+            />
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <label className="text-kaffza-text text-sm font-bold">{t.discountLabel}</label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={90}
+                  value={String(form.abandonedCartDiscountPercent)}
+                  onChange={(e: any) =>
+                    setForm((s) => ({
+                      ...s,
+                      abandonedCartDiscountPercent: Number(e.target.value || 10),
+                    }))
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <label className="text-kaffza-text text-sm font-bold">{t.timezoneLabel}</label>
+                <Input
+                  value={form.campaignTimezone || ''}
+                  onChange={(e: any) =>
+                    setForm((s) => ({ ...s, campaignTimezone: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <label className="text-kaffza-text text-sm font-bold">{t.cadenceLabel}</label>
+                <select
+                  className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold"
+                  value={form.reminderCadencePreset}
+                  onChange={(e) =>
+                    setForm((s) => ({
+                      ...s,
+                      reminderCadencePreset: e.target.value as Automation['reminderCadencePreset'],
+                    }))
                   }
                 >
-                  {ch.toUpperCase()}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+                  <option value="gentle">{t.presets.gentle}</option>
+                  <option value="standard">{t.presets.standard}</option>
+                  <option value="aggressive">{t.presets.aggressive}</option>
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <label className="text-kaffza-text text-sm font-bold">{t.scheduleLabel}</label>
+                <select
+                  className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold"
+                  value={form.campaignScheduleMode}
+                  onChange={(e) =>
+                    setForm((s) => ({
+                      ...s,
+                      campaignScheduleMode: e.target.value as Automation['campaignScheduleMode'],
+                    }))
+                  }
+                >
+                  <option value="manual">{t.scheduleModes.manual}</option>
+                  <option value="scheduled">{t.scheduleModes.scheduled}</option>
+                </select>
+              </div>
+            </div>
 
-        <SwitchRow
-          label={t.discountToggle}
-          checked={form.abandonedCartDiscountEnabled}
-          onChange={(checked) => setForm((s) => ({ ...s, abandonedCartDiscountEnabled: checked }))}
-        />
-
-        <div className="grid gap-2 sm:grid-cols-2">
-          <div className="grid gap-2">
-            <label className="text-kaffza-text text-sm font-bold">{t.discountLabel}</label>
-            <Input
-              type="number"
-              min={1}
-              max={90}
-              value={String(form.abandonedCartDiscountPercent)}
-              onChange={(e: any) =>
-                setForm((s) => ({
-                  ...s,
-                  abandonedCartDiscountPercent: Number(e.target.value || 10),
-                }))
-              }
+            <SwitchRow
+              label={t.welcomeToggle}
+              checked={form.welcomeAutomationEnabled}
+              onChange={(checked) => setForm((s) => ({ ...s, welcomeAutomationEnabled: checked }))}
             />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-kaffza-text text-sm font-bold">{t.timezoneLabel}</label>
-            <Input
-              value={form.campaignTimezone || ''}
-              onChange={(e: any) => setForm((s) => ({ ...s, campaignTimezone: e.target.value }))}
+
+            <SwitchRow
+              label={t.stockToggle}
+              checked={form.lowStockAlertEnabled}
+              onChange={(checked) => setForm((s) => ({ ...s, lowStockAlertEnabled: checked }))}
             />
-          </div>
-        </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="grid gap-2">
-            <label className="text-kaffza-text text-sm font-bold">{t.cadenceLabel}</label>
-            <select
-              className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold"
-              value={form.reminderCadencePreset}
-              onChange={(e) =>
-                setForm((s) => ({
-                  ...s,
-                  reminderCadencePreset: e.target.value as Automation['reminderCadencePreset'],
-                }))
-              }
-            >
-              <option value="gentle">{t.presets.gentle}</option>
-              <option value="standard">{t.presets.standard}</option>
-              <option value="aggressive">{t.presets.aggressive}</option>
-            </select>
-          </div>
-          <div className="grid gap-2">
-            <label className="text-kaffza-text text-sm font-bold">{t.scheduleLabel}</label>
-            <select
-              className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold"
-              value={form.campaignScheduleMode}
-              onChange={(e) =>
-                setForm((s) => ({
-                  ...s,
-                  campaignScheduleMode: e.target.value as Automation['campaignScheduleMode'],
-                }))
-              }
-            >
-              <option value="manual">{t.scheduleModes.manual}</option>
-              <option value="scheduled">{t.scheduleModes.scheduled}</option>
-            </select>
-          </div>
-        </div>
-
-        <SwitchRow
-          label={t.welcomeToggle}
-          checked={form.welcomeAutomationEnabled}
-          onChange={(checked) => setForm((s) => ({ ...s, welcomeAutomationEnabled: checked }))}
-        />
-
-        <SwitchRow
-          label={t.stockToggle}
-          checked={form.lowStockAlertEnabled}
-          onChange={(checked) => setForm((s) => ({ ...s, lowStockAlertEnabled: checked }))}
-        />
-
-        <div>
-          <Button onClick={save} disabled={saving || loading}>
-            {saving ? t.saving : t.save}
-          </Button>
-        </div>
-      </Card>
+            <div>
+              <Button onClick={save} disabled={saving || loading || !!validationError}>
+                {saving ? t.saving : t.save}
+              </Button>
+            </div>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
 
 export default function GrowthPage() {
   return (
-    <Suspense fallback={<div className="text-kaffza-text/60 text-sm">...</div>}>
+    <Suspense fallback={<div className="text-kaffza-text/60 text-sm">Loading...</div>}>
       <GrowthPageInner />
     </Suspense>
   );

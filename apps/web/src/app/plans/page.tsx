@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import { Card } from '../../components/Card';
-import { PLAN_CATALOG } from '../../lib/plan-catalog';
+import { PLAN_CATALOG, getPlanNotes, getPlanSubtitle } from '../../lib/plan-catalog';
 import { PlanCardActions } from '../../components/PlanCardActions';
 
 export default function PlansPage() {
@@ -28,7 +28,7 @@ export default function PlansPage() {
           >
             <div className="flex items-center justify-between gap-2">
               <div className="text-kaffza-primary text-lg font-extrabold">
-                {plan.name} ({plan.subtitle})
+                {plan.name} ({getPlanSubtitle(plan)})
               </div>
               {plan.popular ? (
                 <span className="bg-kaffza-premium text-kaffza-dark-blue rounded-full px-3 py-1 text-xs font-extrabold">
@@ -41,7 +41,7 @@ export default function PlansPage() {
             </div>
             <div className="text-kaffza-text/80 mt-1 text-sm">العمولة: {plan.commission}</div>
             <ul className="text-kaffza-text/80 mt-4 space-y-2 text-sm">
-              {plan.notes.map((n) => (
+              {getPlanNotes(plan).map((n) => (
                 <li key={n}>• {n}</li>
               ))}
             </ul>

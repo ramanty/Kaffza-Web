@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
@@ -44,20 +54,23 @@ export class AuthController {
 
   @Post('register')
   @Throttle({ default: { limit: 5, ttl: 60000 } })
-  register(@Body() dto: MerchantRegisterDto) {
+  async register(@Body() dto: MerchantRegisterDto, @Req() req: Request) {
+    const forwarded = (req.headers['x-forwarded-for'] || '').toString().split(',')[0]?.trim();
+    const remoteIp = forwarded || req.ip || undefined;
+    await this.auth.verifyTurnstileOrThrow(dto.turnstileToken, remoteIp);
     return this.auth.register(dto);
   }
 
   @Post('otp/request')
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   otpRequest(@Body() dto: OtpRequestDto) {
-    return this.auth.requestOtp(dto.phone);
+    return this.auth.requestOtp(dto);
   }
 
   @Post('otp/resend')
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   resendOtp(@Body() dto: OtpRequestDto) {
-    return this.auth.resendOtp(dto.phone);
+    return this.auth.resendOtp(dto);
   }
 
   @Post('otp/verify')
@@ -221,6 +234,7 @@ export class AuthController {
   @Post('forgot-password/request')
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   forgotPasswordRequest(@Body() dto: OtpRequestDto) {
+    if (!dto.phone) throw new BadRequestException('رقم الهاتف مطلوب');
     return this.auth.forgotPasswordRequest(dto.phone);
   }
 

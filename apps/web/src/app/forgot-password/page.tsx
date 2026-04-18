@@ -37,7 +37,11 @@ function ForgotPasswordPageInner() {
 
     setLoading(true);
     try {
-      await api.post('/auth/otp/request', { phone: p }, { headers: { 'x-client': 'web' } });
+      await api.post(
+        '/auth/forgot-password/request',
+        { phone: p },
+        { headers: { 'x-client': 'web' } }
+      );
       setSuccess('تم إرسال رمز التحقق');
       setStep(2);
     } catch (e: any) {

@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
 COMPOSE_FILE="production/docker-compose.yml"
-ENV_FILE=".env.production"
+ENV_FILE="production/.env"
 USE_DOCKER_NGINX="${USE_DOCKER_NGINX:-0}"
 
 if ! command -v docker >/dev/null 2>&1; then
@@ -19,8 +19,8 @@ if ! docker compose version >/dev/null 2>&1; then
 fi
 
 if [[ ! -f "$ENV_FILE" ]]; then
-  echo "❌ $ENV_FILE is missing."
-  echo "Create it first: cp .env.production.example .env.production"
+  echo "❌ Missing production env file."
+  echo "Create it first: cp .env.production.example production/.env"
   exit 1
 fi
 
@@ -45,10 +45,10 @@ if [[ "$USE_DOCKER_NGINX" == "1" ]]; then
     echo "DOMAIN=kaffza.me EMAIL=your-email@domain.com bash ssl_one_shot.sh"
     exit 1
   fi
-  docker compose -f "$COMPOSE_FILE" up -d --build --remove-orphans
+  docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d --build --remove-orphans
   echo "✅ Deployment started with Docker Nginx."
 else
-  docker compose -f "$COMPOSE_FILE" up -d --build --remove-orphans postgres redis minio api web
+  docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d --build --remove-orphans postgres redis minio api web
   if command -v nginx >/dev/null 2>&1; then
     if [[ "${EUID}" -eq 0 ]]; then
       nginx -t

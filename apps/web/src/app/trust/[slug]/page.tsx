@@ -2,7 +2,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { Card } from '../../../components/Card';
-import { TRUST_CATALOG, getTrustBySlug } from '../../../lib/trust-catalog';
+import {
+  TRUST_CATALOG,
+  getTrustBySlug,
+  getTrustPoints,
+  getTrustSummary,
+  getTrustTitle,
+} from '../../../lib/trust-catalog';
 
 export function generateStaticParams() {
   return TRUST_CATALOG.map((item) => ({ slug: item.slug }));
@@ -15,17 +21,17 @@ export default function TrustDetailsPage({ params }: { params: { slug: string } 
   return (
     <main dir="rtl" className="mx-auto max-w-4xl px-6 py-12">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-kaffza-primary text-3xl font-extrabold">{item.title}</h1>
+        <h1 className="text-kaffza-primary text-3xl font-extrabold">{getTrustTitle(item)}</h1>
         <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/trust">
           العودة للثقة والأمان
         </Link>
       </div>
 
-      <p className="text-kaffza-text/80 mt-3 text-sm">{item.summary}</p>
+      <p className="text-kaffza-text/80 mt-3 text-sm">{getTrustSummary(item)}</p>
 
       <Card className="mt-8 p-6">
         <ul className="text-kaffza-text/85 space-y-3 text-sm">
-          {item.points.map((point) => (
+          {getTrustPoints(item).map((point) => (
             <li key={point} className="flex items-start gap-2">
               <span className="text-kaffza-primary mt-0.5">•</span>
               <span>{point}</span>

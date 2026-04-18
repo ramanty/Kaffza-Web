@@ -10,6 +10,7 @@ import { Button } from '../../../../components/Button';
 import { Input } from '../../../../components/Input';
 import { PhoneInput } from '../../../../components/PhoneInput';
 import { SocialAuthButtons } from '../../../../components/SocialAuthButtons';
+import { TurnstileChallenge } from '../../../../components/TurnstileChallenge';
 import { isValidE164Phone } from '../../../../lib/phone';
 import { extractApiErrorMessage } from '../../../../lib/api-error';
 
@@ -23,6 +24,9 @@ export default function EnMerchantRegisterPage() {
   const [confirm, setConfirm] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'register' | 'verify'>('register');
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
@@ -32,8 +36,20 @@ export default function EnMerchantRegisterPage() {
       name.trim().length >= 2 &&
       (method === 'phone' ? isValidE164Phone(phone) : emailOk) &&
       password.trim().length >= 8 &&
-      password.trim() === confirm.trim(),
-    [name, method, phone, emailOk, password, confirm]
+      password.trim() === confirm.trim() &&
+      acceptedPolicies &&
+      (!turnstileEnabled || turnstileToken.trim().length > 0),
+    [
+      name,
+      method,
+      phone,
+      emailOk,
+      password,
+      confirm,
+      acceptedPolicies,
+      turnstileEnabled,
+      turnstileToken,
+    ]
   );
   const canVerify = useMemo(() => /^[0-9]{6}$/.test(otp.trim()), [otp]);
 
@@ -43,6 +59,7 @@ export default function EnMerchantRegisterPage() {
     const p = phone.trim();
     const e = email.trim();
     const pw = password.trim();
+    if (n.length < 2) return setMsg({ type: 'error', text: 'Name must be at least 2 characters' });
     if (method === 'phone' && !isValidE164Phone(p))
       return setMsg({ type: 'error', text: 'Invalid phone number' });
     if (method === 'email' && !emailOk)
@@ -51,6 +68,13 @@ export default function EnMerchantRegisterPage() {
       return setMsg({ type: 'error', text: 'Password must be at least 8 characters' });
     if (pw !== confirm.trim())
       return setMsg({ type: 'error', text: 'Password confirmation does not match' });
+    if (!acceptedPolicies)
+      return setMsg({
+        type: 'error',
+        text: 'You must accept Terms and Privacy before continuing.',
+      });
+    if (turnstileEnabled && !turnstileToken.trim())
+      return setMsg({ type: 'error', text: 'Please complete the anti-bot verification first.' });
 
     setLoading(true);
     try {
@@ -64,6 +88,7 @@ export default function EnMerchantRegisterPage() {
           password: pw,
           role: 'merchant',
           locale: 'en',
+          turnstileToken: turnstileEnabled ? turnstileToken : undefined,
         },
         { headers: { 'x-client': 'web' } }
       );
@@ -78,7 +103,12 @@ export default function EnMerchantRegisterPage() {
 
   async function verifyOtp() {
     setMsg(null);
+    const p = phone.trim();
+    const e = email.trim();
     const code = otp.trim();
+    if (method === 'phone' && !isValidE164Phone(p))
+      return setMsg({ type: 'error', text: 'Invalid phone number' });
+    if (method === 'email' && !e) return setMsg({ type: 'error', text: 'Invalid email address' });
     if (!/^[0-9]{6}$/.test(code)) return setMsg({ type: 'error', text: 'Code must be 6 digits' });
     setLoading(true);
     try {
@@ -86,8 +116,8 @@ export default function EnMerchantRegisterPage() {
         '/auth/otp/verify',
         {
           method,
-          phone: method === 'phone' ? phone.trim() : undefined,
-          email: method === 'email' ? email.trim() : undefined,
+          phone: method === 'phone' ? p : undefined,
+          email: method === 'email' ? e : undefined,
           otp: code,
         },
         { headers: { 'x-client': 'web' } }
@@ -98,6 +128,32 @@ export default function EnMerchantRegisterPage() {
       router.replace('/onboarding?lang=en');
     } catch (e: any) {
       setMsg({ type: 'error', text: extractApiErrorMessage(e, 'OTP verification failed') });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resendOtp() {
+    setMsg(null);
+    const p = phone.trim();
+    const e = email.trim();
+    if (method === 'phone' && !isValidE164Phone(p))
+      return setMsg({ type: 'error', text: 'Invalid phone number' });
+    if (method === 'email' && !e) return setMsg({ type: 'error', text: 'Invalid email address' });
+    setLoading(true);
+    try {
+      await api.post(
+        '/auth/otp/resend',
+        {
+          method,
+          phone: method === 'phone' ? p : undefined,
+          email: method === 'email' ? e : undefined,
+        },
+        { headers: { 'x-client': 'web' } }
+      );
+      setMsg({ type: 'success', text: 'OTP re-sent' });
+    } catch (err: any) {
+      setMsg({ type: 'error', text: extractApiErrorMessage(err, 'Could not resend OTP') });
     } finally {
       setLoading(false);
     }
@@ -166,6 +222,7 @@ export default function EnMerchantRegisterPage() {
             ) : (
               <Field label="Phone">
                 <PhoneInput value={phone} onChange={setPhone} />
+                <Hint>Select country then enter phone without country code.</Hint>
               </Field>
             )}
 
@@ -176,6 +233,7 @@ export default function EnMerchantRegisterPage() {
                 type="password"
                 placeholder="********"
               />
+              <Hint>At least 8 characters</Hint>
             </Field>
             <Field label="Confirm password">
               <Input
@@ -185,6 +243,32 @@ export default function EnMerchantRegisterPage() {
                 placeholder="********"
               />
             </Field>
+
+            <label className="flex items-start gap-2 rounded-xl border border-black/10 bg-white p-3 text-sm">
+              <input
+                type="checkbox"
+                checked={acceptedPolicies}
+                onChange={(e) => setAcceptedPolicies(e.target.checked)}
+                className="mt-1 h-4 w-4"
+              />
+              <span className="text-kaffza-text/85">
+                I agree to the{' '}
+                <Link className="text-kaffza-primary font-bold underline" href="/en/legal/terms">
+                  Terms & Conditions
+                </Link>{' '}
+                and{' '}
+                <Link className="text-kaffza-primary font-bold underline" href="/en/legal/privacy">
+                  Privacy Policy
+                </Link>
+                .
+              </span>
+            </label>
+
+            {turnstileEnabled ? (
+              <div className="rounded-xl border border-black/10 bg-white p-3">
+                <TurnstileChallenge onToken={setTurnstileToken} isEn />
+              </div>
+            ) : null}
 
             <Button
               className="w-full !text-white"
@@ -231,9 +315,37 @@ export default function EnMerchantRegisterPage() {
             >
               {loading ? 'Verifying...' : 'Verify and activate'}
             </Button>
+
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+              <button
+                className="text-kaffza-primary font-bold underline disabled:opacity-50"
+                onClick={resendOtp}
+                disabled={loading}
+              >
+                Resend OTP
+              </button>
+              <button
+                className="text-kaffza-text/70 text-xs font-bold underline"
+                onClick={() => {
+                  setStep('register');
+                  setOtp('');
+                }}
+              >
+                Edit details
+              </button>
+            </div>
           </div>
         )}
       </Card>
+
+      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
+        <Link className="underline" href="/en/legal/terms">
+          Terms
+        </Link>
+        <Link className="underline" href="/en/legal/privacy">
+          Privacy
+        </Link>
+      </div>
     </main>
   );
 }
@@ -254,12 +366,14 @@ function TabButton({ active, onClick, children }: any) {
       onClick={onClick}
       className={
         'flex-1 rounded-xl px-4 py-2 text-sm font-extrabold transition ' +
-        (active
-          ? 'bg-[#1B3A6B] text-white'
-          : 'bg-kaffza-bg text-kaffza-text border border-black/10 hover:bg-black/5')
+        (active ? 'bg-[#16A34A] text-white' : 'bg-[#1B3A6B] text-white hover:bg-[#17345F]')
       }
     >
       {children}
     </button>
   );
+}
+
+function Hint({ children }: any) {
+  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
 }
