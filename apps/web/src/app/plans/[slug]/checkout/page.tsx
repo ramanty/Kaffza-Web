@@ -36,6 +36,10 @@ export default function PlanCheckoutPage() {
       setShowAuthModal(true);
       return;
     }
+    if (plan.priceOmr === 0) {
+      router.push('/onboarding');
+      return;
+    }
     router.push('/pay/success');
   };
 
@@ -54,18 +58,22 @@ export default function PlanCheckoutPage() {
             <div className="text-kaffza-primary font-extrabold">
               {plan.name} ({getPlanSubtitle(plan)})
             </div>
-            <div className="text-kaffza-text/70 mt-1 text-sm">اشتراك شهري</div>
+            <div className="text-kaffza-text/70 mt-1 text-sm">
+              {plan.priceOmr === 0 ? 'تفعيل مجاني' : 'اشتراك شهري'}
+            </div>
           </div>
           <div className="text-kaffza-info text-2xl font-extrabold">{plan.priceOmr} ر.ع</div>
         </div>
 
         <div className="bg-kaffza-bg text-kaffza-text/85 mt-6 rounded-xl border border-black/10 p-4 text-sm">
-          بعد تأكيد الدفع سيتم تفعيل اشتراك الخطة على حسابك.
+          {plan.priceOmr === 0
+            ? 'هذه الخطة مجانية. بعد التأكيد سيتم نقلك لإعداد المتجر مباشرة.'
+            : 'بعد تأكيد الدفع سيتم تفعيل اشتراك الخطة على حسابك.'}
         </div>
 
         <div className="mt-6 grid gap-2">
           <Button className="w-full" onClick={pay}>
-            تأكيد والدفع الآن
+            {plan.priceOmr === 0 ? 'تأكيد وتفعيل مجاناً' : 'تأكيد والدفع الآن'}
           </Button>
           <Link href={`/plans/${plan.slug}`}>
             <Button variant="secondary" className="w-full">

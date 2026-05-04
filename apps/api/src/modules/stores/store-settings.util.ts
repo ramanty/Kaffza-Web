@@ -40,9 +40,9 @@ export interface ShippingSettings {
 
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
   cardEnabled: true,
-  codEnabled: false,
-  walletEnabled: false,
-  bnplEnabled: false,
+  codEnabled: true,
+  walletEnabled: true,
+  bnplEnabled: true,
   minOrderAmount: null,
   maxOrderAmount: null,
   codMinOrderAmount: null,

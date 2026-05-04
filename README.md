@@ -21,7 +21,7 @@ _أول منصة تجارة إلكترونية عُمانية SaaS_
 
 ## About the Project
 
-**Kaffza (قفزة)** is a fully integrated SaaS e-commerce platform built for Omani merchants. It empowers businesses to launch and manage their online stores with ease. The platform is bilingual (Arabic & English with full RTL support), operates exclusively in Omani Rial (OMR), and integrates natively with **Thawani Pay** (payment gateway) and **Jina'com** (shipping service).
+**Kaffza (قفزة)** is a fully integrated SaaS e-commerce platform built for Omani merchants. It empowers businesses to launch and manage their online stores with ease. The platform is bilingual (Arabic & English with full RTL support), operates exclusively in Omani Rial (OMR), and integrates natively with **Thawani Pay** as the primary gateway, with additional checkout methods (COD, Wallet, BNPL), plus **Jina'com** shipping integration.
 
 ---
 
@@ -46,6 +46,7 @@ _أول منصة تجارة إلكترونية عُمانية SaaS_
 | **Multi-tenant SaaS** | Every merchant gets their own store with a dedicated subdomain        |
 | **Bilingual (RTL)**   | Full Arabic & English support with automatic text-direction switching |
 | **Thawani Pay**       | Native integration with the local Omani payment gateway               |
+| **Flexible Checkout** | Thawani + COD + Wallet + BNPL options                                 |
 | **Jina'com**          | Native integration with the local Omani shipping service              |
 | **Escrow System**     | Smart financial protection that adapts to merchant trust levels       |
 | **Dispute System**    | Merchant-to-customer dispute resolution mechanism                     |
@@ -183,6 +184,7 @@ These hooks are installed automatically when you run `pnpm install` (via the `pr
 
 | Plan              | Monthly Price | Commission |
 | :---------------- | :------------ | :--------- |
+| Free (مجانية)     | 0 OMR         | 3%         |
 | Starter (البداية) | 5 OMR         | 2%         |
 | Growth (النمو)    | 8 ر.ع         | 1%         |
 | Pro (المحترف)     | 35 ر.ع        | 0.5%       |
@@ -213,6 +215,8 @@ bash deploy_kaffza.sh
 
 The default deployment uses **single-domain routing (Option A)** on `kaffza.me` (no wildcard DNS cert required).  
 Storefronts are served by path routing: `/store/[subdomain]`.
+
+Current production hosting model is compatible with **AWS runtime infrastructure** behind `kaffza.me`, with DNS/proxy and edge controls managed through **Cloudflare**.
 
 Wildcard certificates (`*.kaffza.me`) are **not** handled by `ssl_one_shot.sh` because it uses HTTP-01 challenge.
 

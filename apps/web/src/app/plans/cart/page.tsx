@@ -113,11 +113,13 @@ export default function PlanCartPage() {
               <span className="text-kaffza-info text-2xl font-extrabold">{total} ر.ع</span>
             </div>
             <p className="text-kaffza-text/70 mt-3 text-xs">
-              بعد الدفع يتم تفعيل الخطة مباشرة على حسابك.
+              {total === 0
+                ? 'هذه خطة مجانية، ويمكن تفعيلها مباشرة بدون دفع.'
+                : 'بعد الدفع يتم تفعيل الخطة مباشرة على حسابك.'}
             </p>
             <div className="mt-4 grid gap-2">
               <Button className="w-full" onClick={checkout}>
-                متابعة الدفع
+                {total === 0 ? 'متابعة التفعيل المجاني' : 'متابعة الدفع'}
               </Button>
               <Button variant="secondary" className="w-full" onClick={clearPlanCart}>
                 تفريغ السلة

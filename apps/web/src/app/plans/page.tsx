@@ -18,7 +18,7 @@ export default function PlansPage() {
         اختر الخطة المناسبة لمرحلة متجرك، ثم أضفها للسلة لإكمال الدفع.
       </p>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
+      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {PLAN_CATALOG.map((plan) => (
           <Card
             key={plan.slug}

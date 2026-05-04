@@ -13,6 +13,14 @@ const SUBDOMAIN_RE = /^[a-z0-9-]+$/;
 
 const PLANS = [
   {
+    id: 4,
+    key: 'free',
+    name: 'Free',
+    price: 0,
+    descAr: 'خطة مجانية للانطلاق السريع',
+    descEn: 'Free plan for a fast start',
+  },
+  {
     id: 1,
     key: 'starter',
     name: 'Starter',
@@ -58,7 +66,7 @@ function OnboardingPageInner() {
     'idle' | 'checking' | 'available' | 'taken' | 'invalid'
   >('idle');
 
-  const [planId, setPlanId] = useState<number>(2);
+  const [planId, setPlanId] = useState<number>(4);
 
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
@@ -337,7 +345,7 @@ function OnboardingPageInner() {
                 ? 'You can upgrade later anytime from your dashboard.'
                 : 'يمكنك ترقية الخطة لاحقاً في أي وقت من لوحة التحكم.'}
             </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {PLANS.map((p) => (
                 <PlanCard
                   key={p.id}
@@ -361,8 +369,8 @@ function OnboardingPageInner() {
                       ? 'Creating...'
                       : 'جارٍ الإنشاء...'
                     : isEn
-                      ? 'Start free for 14 days'
-                      : 'ابدأ مجاناً لمدة 14 يوم'}
+                      ? 'Start free'
+                      : 'ابدأ مجاناً'}
                 </Button>
                 <Button onClick={createStore} disabled={loading}>
                   {loading
@@ -456,7 +464,7 @@ function PlanCard({ plan, selected, onSelect, isEn }: any) {
         ) : null}
       </div>
       <div className="text-kaffza-info mt-2 text-2xl font-extrabold">
-        {plan.price} ر.ع
+        {isEn ? `${plan.price} OMR` : `${plan.price} ر.ع`}
         <span className="text-kaffza-text/70 text-sm font-bold">/{isEn ? 'month' : 'شهر'}</span>
       </div>
       <div className="text-kaffza-text/70 mt-2 text-xs">{isEn ? plan.descEn : plan.descAr}</div>

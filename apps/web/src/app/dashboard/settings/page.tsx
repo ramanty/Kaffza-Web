@@ -376,12 +376,12 @@ export default function SettingsPage() {
             onChange={(v) => setPaymentRules((s) => ({ ...s, codEnabled: v }))}
           />
           <Toggle
-            label="المحفظة / Wallet (قريباً)"
+            label="المحفظة / Wallet"
             checked={paymentRules.walletEnabled}
             onChange={(v) => setPaymentRules((s) => ({ ...s, walletEnabled: v }))}
           />
           <Toggle
-            label="BNPL (Placeholder)"
+            label="اشتر الآن وادفع لاحقاً / BNPL"
             checked={paymentRules.bnplEnabled}
             onChange={(v) => setPaymentRules((s) => ({ ...s, bnplEnabled: v }))}
           />

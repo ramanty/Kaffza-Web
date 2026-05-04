@@ -1,5 +1,5 @@
 export type PlanCatalogItem = {
-  slug: 'starter' | 'growth' | 'pro';
+  slug: 'free' | 'starter' | 'growth' | 'pro';
   name: string;
   subtitleAr: string;
   subtitleEn: string;
@@ -13,6 +13,28 @@ export type PlanCatalogItem = {
 };
 
 export const PLAN_CATALOG: PlanCatalogItem[] = [
+  {
+    slug: 'free',
+    name: 'Free',
+    subtitleAr: 'مجانية',
+    subtitleEn: 'Free forever',
+    priceOmr: 0,
+    commission: '3%',
+    notesAr: ['بدون اشتراك شهري', 'إطلاق سريع', 'أساسيات المتجر'],
+    notesEn: ['No monthly fee', 'Fast launch', 'Store essentials'],
+    detailsAr: [
+      'خطة مجانية للانطلاق بدون رسوم شهرية.',
+      'مناسبة للتاجر الذي يريد اختبار السوق قبل التوسع.',
+      'تشمل الأساسيات المطلوبة لتشغيل المتجر واستقبال الطلبات.',
+      'يمكن الترقية لاحقًا إلى أي خطة مدفوعة عند نمو النشاط.',
+    ],
+    detailsEn: [
+      'A free plan to launch with zero monthly subscription.',
+      'Best for merchants validating demand before scaling.',
+      'Includes the core capabilities to run a store and accept orders.',
+      'Upgrade anytime to a paid plan as your business grows.',
+    ],
+  },
   {
     slug: 'starter',
     name: 'Starter',

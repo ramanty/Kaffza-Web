@@ -114,11 +114,13 @@ export default function EnPlanCartPage() {
               <span className="text-kaffza-info text-2xl font-extrabold">{total} OMR</span>
             </div>
             <p className="text-kaffza-text/70 mt-3 text-xs">
-              Your selected plan is activated immediately after successful payment.
+              {total === 0
+                ? 'This is a free plan and can be activated immediately without payment.'
+                : 'Your selected plan is activated immediately after successful payment.'}
             </p>
             <div className="mt-4 grid gap-2">
               <Button className="w-full" onClick={checkout}>
-                Continue to payment
+                {total === 0 ? 'Continue free activation' : 'Continue to payment'}
               </Button>
               <Button variant="secondary" className="w-full" onClick={clearPlanCart}>
                 Clear cart

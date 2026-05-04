@@ -10,8 +10,13 @@ export function PlanCardActions({ slug, isEn = false }: { slug: string; isEn?: b
   const router = useRouter();
   const planHref = isEn ? `/en/plans/${slug}` : `/plans/${slug}`;
   const cartHref = isEn ? '/en/plans/cart' : '/plans/cart';
+  const registerHref = isEn ? '/en/merchant/register' : '/merchant/register';
 
   const addToCartAndGo = () => {
+    if (slug === 'free') {
+      router.push(registerHref);
+      return;
+    }
     addPlanToCart(slug, 1);
     router.push(cartHref);
   };
@@ -24,7 +29,13 @@ export function PlanCardActions({ slug, isEn = false }: { slug: string; isEn?: b
         </Button>
       </Link>
       <Button className="w-full" onClick={addToCartAndGo}>
-        {isEn ? 'Add to cart' : 'إضافة للسلة'}
+        {slug === 'free'
+          ? isEn
+            ? 'Start free'
+            : 'ابدأ مجاناً'
+          : isEn
+            ? 'Add to cart'
+            : 'إضافة للسلة'}
       </Button>
     </div>
   );

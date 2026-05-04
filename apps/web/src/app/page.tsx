@@ -197,7 +197,7 @@ function LandingPageInner() {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-3">
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {PLAN_CATALOG.map((p) => (
             <div
               key={p.slug}

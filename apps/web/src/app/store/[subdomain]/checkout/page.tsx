@@ -61,8 +61,8 @@ type Order = {
 const METHOD_LABELS: Record<PaymentMethod, { ar: string; en: string }> = {
   card: { ar: 'بطاقة', en: 'Card' },
   cod: { ar: 'الدفع عند الاستلام', en: 'Cash on Delivery' },
-  wallet: { ar: 'المحفظة (قريباً)', en: 'Wallet (Soon)' },
-  bnpl: { ar: 'اشتر الآن وادفع لاحقاً (قريباً)', en: 'BNPL (Soon)' },
+  wallet: { ar: 'المحفظة', en: 'Wallet' },
+  bnpl: { ar: 'اشتر الآن وادفع لاحقاً', en: 'Buy now, pay later' },
 };
 
 function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {

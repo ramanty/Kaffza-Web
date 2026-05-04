@@ -36,6 +36,10 @@ export default function EnPlanCheckoutPage() {
       setShowAuthModal(true);
       return;
     }
+    if (plan.priceOmr === 0) {
+      router.push('/onboarding?lang=en');
+      return;
+    }
     router.push('/pay/success');
   };
 
@@ -52,18 +56,22 @@ export default function EnPlanCheckoutPage() {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-kaffza-primary font-extrabold">{plan.name}</div>
-            <div className="text-kaffza-text/70 mt-1 text-sm">Monthly subscription</div>
+            <div className="text-kaffza-text/70 mt-1 text-sm">
+              {plan.priceOmr === 0 ? 'Free activation' : 'Monthly subscription'}
+            </div>
           </div>
           <div className="text-kaffza-info text-2xl font-extrabold">{plan.priceOmr} OMR</div>
         </div>
 
         <div className="bg-kaffza-bg text-kaffza-text/85 mt-6 rounded-xl border border-black/10 p-4 text-sm">
-          Once payment is confirmed, your selected plan will be activated on your account.
+          {plan.priceOmr === 0
+            ? 'This plan is free. After confirmation, you will be redirected to store setup.'
+            : 'Once payment is confirmed, your selected plan will be activated on your account.'}
         </div>
 
         <div className="mt-6 grid gap-2">
           <Button className="w-full" onClick={pay}>
-            Confirm and pay now
+            {plan.priceOmr === 0 ? 'Confirm free activation' : 'Confirm and pay now'}
           </Button>
           <Link href={`/en/plans/${plan.slug}`}>
             <Button variant="secondary" className="w-full">
