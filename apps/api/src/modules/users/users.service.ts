@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, UserRole } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -24,7 +24,7 @@ export class UsersService {
 
   async findAll(filters?: { role?: string }) {
     const where: Prisma.UserWhereInput = {};
-    if (filters?.role) where.role = filters.role as Prisma.EnumUserRoleFilter;
+    if (filters?.role) where.role = filters.role as UserRole;
     return this.prisma.user.findMany({ where, orderBy: { createdAt: 'desc' } });
   }
 
