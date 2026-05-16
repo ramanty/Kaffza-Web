@@ -20,7 +20,7 @@ type Me = {
 function AccountPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
-  const next = sp.get('next') || '/account';
+  const _next = sp.get('next') || '/account'; // preserved for future redirect use
 
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);

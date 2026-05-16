@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { api } from '../../../../../lib/api';
 import { authHeader } from '../../../../../lib/auth';
 import { Card } from '../../../../../components/Card';
@@ -55,12 +56,10 @@ const MOCK_PRODUCT: Product = {
   variants: [],
 };
 
-export default function ProductDetailPage({
-  params,
-}: {
-  params: { subdomain: string; id: string };
-}) {
-  const { subdomain, id } = params;
+export default function ProductDetailPage() {
+  const params = useParams<{ subdomain: string; id: string }>();
+  const subdomain = params.subdomain;
+  const id = params.id;
 
   const [store, setStore] = useState<Store | null>(null);
   const [product, setProduct] = useState<Product | null>(null);

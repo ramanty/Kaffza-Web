@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { authHeader } from '../../../lib/auth';
 import { Card } from '../../../components/Card';
@@ -61,7 +62,8 @@ async function tryGet<T = any>(
   }
 }
 
-export default function StoreFront({ params }: { params: { subdomain: string } }) {
+export default function StoreFront() {
+  const params = useParams<{ subdomain: string }>();
   const subdomain = params.subdomain;
 
   const [store, setStore] = useState<Store | null>(null);

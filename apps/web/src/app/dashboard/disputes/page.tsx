@@ -87,7 +87,7 @@ export default function DashboardDisputesPage() {
     }
   };
 
-  const resolve = async (mode: 'refund' | 'rejected') => {
+  const _resolve = async (mode: 'refund' | 'rejected') => {
     if (!selectedId) return;
     setSending(true);
     setMsg(null);
