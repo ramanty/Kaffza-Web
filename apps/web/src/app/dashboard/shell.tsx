@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import DashboardSidebar from './sidebar';
 import { Button } from '../../components/Button';
+import { NotificationBell } from '../../components/NotificationBell';
 import { api } from '../../lib/api';
 import { authHeader, clearAuthCookiesClientSide } from '../../lib/auth';
 import { clearStoreCookie, useStore } from './store-context';
@@ -288,6 +289,7 @@ function Header({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <NotificationBell isEn={isEn} />
           <Button variant="secondary" onClick={onLogout}>
             {isEn ? 'Logout' : 'تسجيل خروج'}
           </Button>

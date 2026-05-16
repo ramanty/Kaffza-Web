@@ -4,6 +4,36 @@
 
 import { registerAs } from '@nestjs/config';
 
+// Security: Validate JWT secrets in production
+const validateJwtSecrets = () => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const jwtSecret = process.env.JWT_SECRET;
+  const refreshSecret = process.env.JWT_REFRESH_SECRET;
+  
+  const defaultSecrets = [
+    'kaffza-dev-secret-change-in-production',
+    'kaffza-refresh-secret',
+  ];
+  
+  if (isProduction) {
+    if (!jwtSecret || defaultSecrets.includes(jwtSecret)) {
+      throw new Error('CRITICAL: JWT_SECRET must be set to a secure value in production');
+    }
+    if (!refreshSecret || defaultSecrets.includes(refreshSecret)) {
+      throw new Error('CRITICAL: JWT_REFRESH_SECRET must be set to a secure value in production');
+    }
+    if (jwtSecret.length < 32) {
+      throw new Error('CRITICAL: JWT_SECRET must be at least 32 characters in production');
+    }
+    if (refreshSecret.length < 32) {
+      throw new Error('CRITICAL: JWT_REFRESH_SECRET must be at least 32 characters in production');
+    }
+  }
+};
+
+// Run validation on module load
+validateJwtSecrets();
+
 export const appConfig = registerAs('app', () => ({
   name: process.env.APP_NAME || 'Kaffza',
   url: process.env.APP_URL || 'http://localhost:3000',

@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { api } from '../../lib/api';
-import { getAccessTokenFromCookies } from '../../lib/auth';
+import { getAccessTokenFromCookies, setAccessTokenCookie } from '../../lib/auth';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
@@ -116,7 +116,7 @@ function LoginPageInner() {
       const token = res?.data?.data?.tokens?.accessToken;
       if (!token) throw new Error('لم يتم استلام access token');
 
-      document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
+      setAccessTokenCookie(token);
       setSuccess('تم تسجيل الدخول بنجاح');
       router.replace(next);
     } catch (e: any) {
@@ -161,7 +161,7 @@ function LoginPageInner() {
       const token = res?.data?.data?.tokens?.accessToken;
       if (!token) throw new Error('لم يتم استلام access token');
 
-      document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
+      setAccessTokenCookie(token);
       setSuccess('تم تسجيل الدخول بنجاح');
       router.replace(next);
     } catch (e: any) {
@@ -282,7 +282,7 @@ function LoginPageInner() {
               locale="ar"
               onError={setError}
               onAuthSuccess={(token) => {
-                document.cookie = `kaffza_access=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
+                setAccessTokenCookie(token);
                 router.replace(next);
               }}
             />

@@ -3,6 +3,27 @@
 
 const CANDIDATES = ['kaffza_access', 'accessToken', 'access_token', 'token'];
 
+// Check if we're in production (HTTPS)
+function isSecureContext(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.location.protocol === 'https:';
+}
+
+// Set cookie with proper security flags
+export function setSecureCookie(name: string, value: string, options?: { maxAge?: number }) {
+  if (typeof document === 'undefined') return;
+  
+  const secure = isSecureContext() ? 'Secure; ' : '';
+  const maxAge = options?.maxAge ? `Max-Age=${options.maxAge}; ` : '';
+  
+  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Path=/; ${maxAge}${secure}SameSite=Lax`;
+}
+
+// Set access token cookie with security
+export function setAccessTokenCookie(token: string) {
+  setSecureCookie('kaffza_access', token, { maxAge: 86400 }); // 24 hours
+}
+
 export function getAccessTokenFromCookies(): string | null {
   if (typeof document === 'undefined') return null;
   const raw = document.cookie || '';
