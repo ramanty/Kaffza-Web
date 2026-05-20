@@ -95,7 +95,7 @@ export class OrdersController {
     return this.orders.confirmReceipt(user, this.toBigInt(orderId));
   }
 
-  @Post('stores/:storeId/orders/:orderId/confirm-cod')
+  @Patch('stores/:storeId/orders/:orderId/confirm-cod')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   confirmCod(

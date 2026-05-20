@@ -446,26 +446,54 @@ export class OrdersService {
 
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, storeId },
-      include: { payment: true, store: { include: { wallet: true } } },
+      include: { payment: true, store: { include: { wallet: true, plan: true } } },
     });
     if (!order) throw new NotFoundException('الطلب غير موجود');
     if (!order.payment) throw new BadRequestException('لا يوجد سجل دفع');
     if (order.payment.gateway !== 'cod')
       throw new BadRequestException('الطلب ليس دفع عند الاستلام');
-    if (order.payment.status === 'paid') throw new BadRequestException('تم تأكيد الدفع مسبقاً');
+    if (order.payment.status !== 'pending')
+      throw new BadRequestException('حالة الدفع يجب أن تكون معلقة');
+
+    const allowedOrderStatuses = ['confirmed', 'processing', 'shipped'];
+    if (!allowedOrderStatuses.includes(order.status)) {
+      throw new BadRequestException('حالة الطلب لا تسمح بتأكيد الدفع');
+    }
 
     const wallet = order.store.wallet;
     if (!wallet) throw new BadRequestException('محفظة المتجر غير موجودة');
 
-    const merchantAmount = Number(order.merchantAmount);
+    // Recalculate commission and merchant amounts
+    const totalAmount = Number(order.totalAmount);
+    const commissionRate = Number(order.store.plan?.commissionRate ?? 0.05);
+    const commissionAmount = round3(totalAmount * commissionRate);
+    const merchantAmount = round3(totalAmount - commissionAmount);
+
+    // Calculate releaseAt date by trustLevel
+    const trustLevel = order.store.trustLevel;
+    let daysToRelease = 7;
+    if (trustLevel === 'new_merchant') {
+      daysToRelease = 14;
+    } else if (trustLevel === 'trusted') {
+      daysToRelease = 3;
+    }
+    const releaseAt = new Date(Date.now() + daysToRelease * 24 * 60 * 60 * 1000);
 
     await this.prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: orderId },
+        data: {
+          commissionAmount,
+          merchantAmount,
+        },
+      });
+
       await tx.payment.update({
         where: { orderId },
         data: {
           status: 'paid',
           escrowStatus: 'held',
-          releaseAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          releaseAt,
         },
       });
 
@@ -499,7 +527,15 @@ export class OrdersService {
       data: { orderId: orderId.toString() },
     });
 
-    return { success: true, message: 'تم تأكيد الدفع عند الاستلام' };
+    await this.auditService.log({
+      userId: BigInt(user.sub),
+      action: 'COD_CONFIRMED',
+      entity: 'Order',
+      entityId: orderId,
+      details: { commissionAmount, merchantAmount, releaseAt },
+    });
+
+    return { success: true, message: 'تم تأكيد دفع الطلب بنجاح' };
   }
 
   private assertPaymentRules(
