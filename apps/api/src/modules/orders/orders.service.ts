@@ -294,15 +294,20 @@ export class OrdersService {
       });
 
       // C-02: Verify sufficient pending balance before decrementing
-      const currentWallet = await tx.wallet.findUnique({ where: { id: wallet.id } });
-      if (!currentWallet || Number(currentWallet.pendingBalance) < amount) {
-        throw new Error('Insufficient pending balance for escrow release');
-      }
-
-      const updatedWallet = await tx.wallet.update({
-        where: { id: wallet.id },
+      const result = await tx.wallet.updateMany({
+        where: { id: wallet.id, pendingBalance: { gte: amount } },
         data: { pendingBalance: { decrement: amount }, availableBalance: { increment: amount } },
       });
+      if (result.count === 0) {
+        throw new BadRequestException('الرصيد المعلق غير كافٍ');
+      }
+
+      const updatedWallet = await tx.wallet.findUnique({
+        where: { id: wallet.id },
+      });
+      if (!updatedWallet) {
+        throw new NotFoundException('المحفظة غير موجودة');
+      }
 
       await tx.walletTransaction.create({
         data: {

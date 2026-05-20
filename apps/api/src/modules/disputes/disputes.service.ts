@@ -239,18 +239,23 @@ export class DisputesService {
         });
 
         // C-02: Verify sufficient pending balance before decrementing
-        const currentWallet = await tx.wallet.findUnique({ where: { id: wallet.id } });
-        if (!currentWallet || Number(currentWallet.pendingBalance) < merchantAmount) {
-          throw new Error('Insufficient pending balance for escrow release');
-        }
-
-        const updatedWallet = await tx.wallet.update({
-          where: { id: wallet.id },
+        const result = await tx.wallet.updateMany({
+          where: { id: wallet.id, pendingBalance: { gte: merchantAmount } },
           data: {
             pendingBalance: { decrement: merchantAmount },
             availableBalance: { increment: merchantAmount },
           },
         });
+        if (result.count === 0) {
+          throw new BadRequestException('الرصيد المعلق غير كافٍ');
+        }
+
+        const updatedWallet = await tx.wallet.findUnique({
+          where: { id: wallet.id },
+        });
+        if (!updatedWallet) {
+          throw new NotFoundException('المحفظة غير موجودة');
+        }
 
         await tx.walletTransaction.create({
           data: {
@@ -310,18 +315,23 @@ export class DisputesService {
       });
 
       // C-02: Verify sufficient pending balance before decrementing
-      const currentWallet = await tx.wallet.findUnique({ where: { id: wallet.id } });
-      if (!currentWallet || Number(currentWallet.pendingBalance) < refundAmount) {
-        throw new Error('Insufficient pending balance for refund');
-      }
-
-      const updatedWallet = await tx.wallet.update({
-        where: { id: wallet.id },
+      const result = await tx.wallet.updateMany({
+        where: { id: wallet.id, pendingBalance: { gte: refundAmount } },
         data: {
           pendingBalance: { decrement: refundAmount },
           totalEarned: { decrement: refundAmount },
         },
       });
+      if (result.count === 0) {
+        throw new BadRequestException('الرصيد المعلق غير كافٍ');
+      }
+
+      const updatedWallet = await tx.wallet.findUnique({
+        where: { id: wallet.id },
+      });
+      if (!updatedWallet) {
+        throw new NotFoundException('المحفظة غير موجودة');
+      }
 
       await tx.walletTransaction.create({
         data: {

@@ -39,13 +39,21 @@ export class WalletsService {
       throw new BadRequestException('الرصيد المتاح غير كافي');
 
     const created = await this.prisma.$transaction(async (tx) => {
-      const w = await tx.wallet.update({
-        where: { id: wallet.id },
+      const result = await tx.wallet.updateMany({
+        where: { id: wallet.id, availableBalance: { gte: amount } },
         data: {
           availableBalance: { decrement: amount },
           totalWithdrawn: { increment: amount },
         },
       });
+      if (result.count === 0) {
+        throw new BadRequestException('الرصيد المتاح غير كافي');
+      }
+
+      const w = await tx.wallet.findUnique({
+        where: { id: wallet.id },
+      });
+      if (!w) throw new NotFoundException('المحفظة غير موجودة');
 
       const wd = await tx.withdrawal.create({
         data: {
