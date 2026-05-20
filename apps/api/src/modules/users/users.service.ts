@@ -1,12 +1,24 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthService } from '../auth/auth.service';
+import { RegisterMethodDto } from '../auth/dto/register.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService
+  ) {}
 
   async findById(id: bigint) {
     const user = await this.prisma.user.findUnique({ where: { id } });
@@ -29,13 +41,15 @@ export class UsersService {
   }
 
   async update(id: bigint, dto: UpdateUserDto) {
-    await this.findById(id);
+    const existingUser = await this.findById(id);
 
-    if (dto.email !== undefined) {
+    let isEmailChanged = false;
+    if (dto.email !== undefined && existingUser.email !== dto.email) {
       const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
       if (existing && existing.id !== id) {
         throw new BadRequestException('البريد الإلكتروني مستخدم بالفعل');
       }
+      isEmailChanged = true;
     }
 
     const updated = await this.prisma.user.update({
@@ -44,14 +58,27 @@ export class UsersService {
         ...(dto.name !== undefined && { name: dto.name }),
         ...(dto.email !== undefined && { email: dto.email }),
         ...(dto.locale !== undefined && { locale: dto.locale }),
+        ...(isEmailChanged && { isVerified: false }),
       },
     });
+
+    if (isEmailChanged && dto.email) {
+      await this.authService
+        .resendOtp({ email: dto.email, method: RegisterMethodDto.email })
+        .catch((e) => {
+          console.error('Failed to send OTP on email change:', e);
+        });
+    }
+
     return this.toSafeUser(updated);
   }
 
   async remove(id: bigint) {
     await this.findById(id);
-    await this.prisma.user.delete({ where: { id } });
+    await this.prisma.user.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
     return { success: true, message: 'تم حذف المستخدم' };
   }
 

@@ -15,10 +15,12 @@ export class DisputesService {
     private readonly notifications: NotificationsService
   ) {}
 
-  async list(user: any, storeId?: bigint) {
+  async list(user: any, storeId?: bigint, page = 1, limit = 20) {
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
 
     const role = String(user.role || '').toLowerCase();
+    const take = Math.max(1, Math.min(100, limit));
+    const skip = Math.max(0, (Math.max(1, page) - 1) * take);
 
     if (role === 'merchant') {
       if (!storeId) throw new BadRequestException('storeId مطلوب');
@@ -29,50 +31,68 @@ export class DisputesService {
       if (!store) throw new NotFoundException('المتجر غير موجود');
       if (store.ownerId !== BigInt(user.sub)) throw new ForbiddenException('ليس لديك صلاحية');
 
-      const disputes = await this.prisma.dispute.findMany({
-        where: { order: { storeId } },
-        orderBy: { createdAt: 'desc' },
-        include: {
-          order: {
-            select: {
-              id: true,
-              orderNumber: true,
-              totalAmount: true,
-              customer: { select: { id: true, name: true, phone: true } },
+      const where = { order: { storeId } };
+      const [total, disputes] = await this.prisma.$transaction([
+        this.prisma.dispute.count({ where }),
+        this.prisma.dispute.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take,
+          include: {
+            order: {
+              select: {
+                id: true,
+                orderNumber: true,
+                totalAmount: true,
+                customer: { select: { id: true, name: true, phone: true } },
+              },
             },
+            raisedBy: { select: { id: true, name: true, phone: true } },
           },
-          raisedBy: { select: { id: true, name: true, phone: true } },
-        },
-      });
-      return { success: true, data: disputes };
+        }),
+      ]);
+      return { success: true, data: disputes, meta: { page, limit: take, total } };
     }
 
     if (role === 'admin') {
-      const disputes = await this.prisma.dispute.findMany({
-        where: storeId ? { order: { storeId } } : {},
-        orderBy: { createdAt: 'desc' },
-        include: {
-          order: {
-            select: {
-              id: true,
-              orderNumber: true,
-              storeId: true,
-              customer: { select: { id: true, name: true, phone: true } },
+      const where = storeId ? { order: { storeId } } : {};
+      const [total, disputes] = await this.prisma.$transaction([
+        this.prisma.dispute.count({ where }),
+        this.prisma.dispute.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take,
+          include: {
+            order: {
+              select: {
+                id: true,
+                orderNumber: true,
+                storeId: true,
+                customer: { select: { id: true, name: true, phone: true } },
+              },
             },
+            raisedBy: { select: { id: true, name: true, phone: true } },
           },
-          raisedBy: { select: { id: true, name: true, phone: true } },
-        },
-      });
-      return { success: true, data: disputes };
+        }),
+      ]);
+      return { success: true, data: disputes, meta: { page, limit: take, total } };
     }
 
-    // customers can list their disputes (optional)
-    const disputes = await this.prisma.dispute.findMany({
-      where: { raisedById: BigInt(user.sub) },
-      orderBy: { createdAt: 'desc' },
-      include: { order: { select: { id: true, orderNumber: true, storeId: true } } },
-    });
-    return { success: true, data: disputes };
+    // customers can list their disputes
+    const where = { raisedById: BigInt(user.sub) };
+    const [total, disputes] = await this.prisma.$transaction([
+      this.prisma.dispute.count({ where }),
+      this.prisma.dispute.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: { order: { select: { id: true, orderNumber: true, storeId: true } } },
+      }),
+    ]);
+    return { success: true, data: disputes, meta: { page, limit: take, total } };
   }
   async open(user: any, orderId: bigint, dto: any) {
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
@@ -218,6 +238,12 @@ export class DisputesService {
           data: { escrowStatus: 'released', releasedAt: new Date() },
         });
 
+        // C-02: Verify sufficient pending balance before decrementing
+        const currentWallet = await tx.wallet.findUnique({ where: { id: wallet.id } });
+        if (!currentWallet || Number(currentWallet.pendingBalance) < merchantAmount) {
+          throw new Error('Insufficient pending balance for escrow release');
+        }
+
         const updatedWallet = await tx.wallet.update({
           where: { id: wallet.id },
           data: {
@@ -282,6 +308,12 @@ export class DisputesService {
         where: { orderId: order.id },
         data: { escrowStatus: 'refunded', status: 'refunded' },
       });
+
+      // C-02: Verify sufficient pending balance before decrementing
+      const currentWallet = await tx.wallet.findUnique({ where: { id: wallet.id } });
+      if (!currentWallet || Number(currentWallet.pendingBalance) < refundAmount) {
+        throw new Error('Insufficient pending balance for refund');
+      }
 
       const updatedWallet = await tx.wallet.update({
         where: { id: wallet.id },

@@ -5,7 +5,7 @@ const ACCOUNT_PREFIX = '/account';
 const ADMIN_PREFIX = '/admin';
 const ONBOARDING_PATH = '/onboarding';
 
-const TOKEN_COOKIE_CANDIDATES = ['kaffza_access', 'accessToken', 'access_token', 'token'];
+const TOKEN_COOKIE_CANDIDATES = ['kaffza_access'];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 

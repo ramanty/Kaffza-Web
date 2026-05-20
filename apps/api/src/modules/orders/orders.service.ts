@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { CartService } from '../cart/cart.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AuditService } from '../audit/audit.service';
 import { CheckoutDto } from './dto/checkout.dto';
 import {
   PaymentMethod,
@@ -25,7 +26,8 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly cart: CartService,
     private readonly notifications: NotificationsService,
-    private readonly integrations: IntegrationsService
+    private readonly integrations: IntegrationsService,
+    private readonly auditService: AuditService
   ) {}
 
   async checkout(user: any, storeId: bigint, dto: CheckoutDto) {
@@ -58,7 +60,7 @@ export class OrdersService {
     });
 
     // Revenue split: Thawani takes 2% (gateway fee), plan commission is direct
-    const commissionRate = Number(store.plan?.commissionRate ?? 0.02);
+    const commissionRate = Number(store.plan?.commissionRate ?? 0.05);
     const thawaniFee =
       paymentMethod === 'card' ? round3(totalAmount * THAWANI_GATEWAY_FEE_RATE) : 0;
     const commissionAmount = round3(totalAmount * commissionRate);
@@ -185,6 +187,20 @@ export class OrdersService {
     };
   }
 
+  /**
+   * C-03: Valid order status transitions enforced as a state machine.
+   * Prevents merchants from skipping states (e.g. pending → delivered).
+   */
+  private static readonly VALID_TRANSITIONS: Record<string, string[]> = {
+    pending: ['confirmed', 'cancelled'],
+    confirmed: ['processing', 'cancelled'],
+    processing: ['shipped', 'cancelled'],
+    shipped: ['delivered'],
+    delivered: [],
+    cancelled: [],
+    refunded: [],
+  };
+
   async updateStatus(user: any, storeId: bigint, orderId: bigint, status: string) {
     await this.assertStoreOwner(user, storeId);
 
@@ -196,6 +212,14 @@ export class OrdersService {
 
     if (order.customerConfirmed)
       throw new BadRequestException('لا يمكن تعديل طلب تم تأكيد استلامه');
+
+    // C-03: Validate state machine transition
+    const allowed = OrdersService.VALID_TRANSITIONS[order.status];
+    if (!allowed || !allowed.includes(status)) {
+      throw new BadRequestException(
+        `لا يمكن تغيير حالة الطلب من "${order.status}" إلى "${status}". الانتقالات المسموحة: ${(allowed || []).join(', ') || 'لا يوجد'}`
+      );
+    }
 
     const updated = await this.prisma.order.update({
       where: { id: orderId },
@@ -216,9 +240,17 @@ export class OrdersService {
       titleAr: 'تحديث حالة الطلب',
       titleEn: 'Order Status Update',
       bodyAr: `تم تحديث حالة طلبك إلى: ${status}`,
-      bodyEn: `Your order status is now: ${status}`,
-      type: 'order',
-      data: { orderId: orderId.toString() },
+      bodyEn: `Order #${order.orderNumber} status changed to ${status}`,
+      type: 'order_update',
+      data: { orderId: orderId.toString(), status },
+    });
+
+    await this.auditService.log({
+      userId: BigInt(user.sub),
+      action: 'ORDER_STATUS_CHANGED',
+      entity: 'Order',
+      entityId: orderId,
+      details: { oldStatus: order.status, newStatus: status },
     });
 
     return {
@@ -261,6 +293,12 @@ export class OrdersService {
         data: { escrowStatus: 'released', releasedAt: new Date() },
       });
 
+      // C-02: Verify sufficient pending balance before decrementing
+      const currentWallet = await tx.wallet.findUnique({ where: { id: wallet.id } });
+      if (!currentWallet || Number(currentWallet.pendingBalance) < amount) {
+        throw new Error('Insufficient pending balance for escrow release');
+      }
+
       const updatedWallet = await tx.wallet.update({
         where: { id: wallet.id },
         data: { pendingBalance: { decrement: amount }, availableBalance: { increment: amount } },
@@ -278,20 +316,22 @@ export class OrdersService {
         },
       });
 
-      // update store trust counts
-      const newTotal = order.store.totalOrders + 1;
+      // M-11: Use COUNT query for accurate totalOrders
+      const completedCount = await tx.order.count({
+        where: { storeId: order.storeId, status: { in: ['delivered'] } },
+      });
       const avg = await tx.review.aggregate({
         where: { storeId: order.storeId },
         _avg: { rating: true },
       });
       const avgRating = Number(avg._avg.rating || 0);
       let trustLevel: any = 'standard';
-      if (newTotal <= 3) trustLevel = 'new_merchant';
-      else if (newTotal >= 50 && avgRating >= 4.5) trustLevel = 'trusted';
+      if (completedCount <= 3) trustLevel = 'new_merchant';
+      else if (completedCount >= 50 && avgRating >= 4.5) trustLevel = 'trusted';
       else trustLevel = 'standard';
       await tx.store.update({
         where: { id: order.storeId },
-        data: { totalOrders: newTotal, avgRating, trustLevel },
+        data: { totalOrders: completedCount, avgRating, trustLevel },
       });
     });
 
@@ -366,14 +406,95 @@ export class OrdersService {
     };
   }
 
-  async listStoreOrders(user: any, storeId: bigint) {
+  /**
+   * M-05: Added pagination to prevent unbounded result sets.
+   */
+  async listStoreOrders(user: any, storeId: bigint, page = 1, limit = 20) {
     await this.assertStoreOwner(user, storeId);
-    const orders = await this.prisma.order.findMany({
-      where: { storeId },
-      orderBy: { createdAt: 'desc' },
-      include: { payment: true },
+    const take = Math.max(1, Math.min(100, limit));
+    const skip = Math.max(0, (Math.max(1, page) - 1) * take);
+
+    const [total, orders] = await this.prisma.$transaction([
+      this.prisma.order.count({ where: { storeId } }),
+      this.prisma.order.findMany({
+        where: { storeId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: { payment: true },
+      }),
+    ]);
+
+    return {
+      success: true,
+      data: orders,
+      meta: { page, limit: take, total, hasPrev: skip > 0, hasNext: skip + orders.length < total },
+    };
+  }
+
+  /**
+   * C-10: COD payment confirmation endpoint.
+   * Allows merchant to confirm receipt of cash-on-delivery payment.
+   */
+  async confirmCodPayment(user: any, storeId: bigint, orderId: bigint) {
+    await this.assertStoreOwner(user, storeId);
+
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, storeId },
+      include: { payment: true, store: { include: { wallet: true } } },
     });
-    return { success: true, data: orders };
+    if (!order) throw new NotFoundException('الطلب غير موجود');
+    if (!order.payment) throw new BadRequestException('لا يوجد سجل دفع');
+    if (order.payment.gateway !== 'cod')
+      throw new BadRequestException('الطلب ليس دفع عند الاستلام');
+    if (order.payment.status === 'paid') throw new BadRequestException('تم تأكيد الدفع مسبقاً');
+
+    const wallet = order.store.wallet;
+    if (!wallet) throw new BadRequestException('محفظة المتجر غير موجودة');
+
+    const merchantAmount = Number(order.merchantAmount);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.payment.update({
+        where: { orderId },
+        data: {
+          status: 'paid',
+          escrowStatus: 'held',
+          releaseAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        },
+      });
+
+      const updatedWallet = await tx.wallet.update({
+        where: { id: wallet.id },
+        data: {
+          pendingBalance: { increment: merchantAmount },
+          totalEarned: { increment: merchantAmount },
+        },
+      });
+
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          amount: merchantAmount,
+          type: 'escrow_hold',
+          description: `COD payment confirmed for order ${order.orderNumber}`,
+          referenceId: order.id,
+          referenceType: 'order',
+          balanceAfter: updatedWallet.pendingBalance,
+        },
+      });
+    });
+
+    await this.notifications.notifyUser(order.customerId, {
+      titleAr: 'تأكيد الدفع',
+      titleEn: 'Payment Confirmed',
+      bodyAr: `تم تأكيد الدفع عند الاستلام للطلب ${order.orderNumber}`,
+      bodyEn: `COD payment confirmed for order ${order.orderNumber}`,
+      type: 'payment',
+      data: { orderId: orderId.toString() },
+    });
+
+    return { success: true, message: 'تم تأكيد الدفع عند الاستلام' };
   }
 
   private assertPaymentRules(

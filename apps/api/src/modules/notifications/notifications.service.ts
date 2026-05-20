@@ -5,7 +5,17 @@ import { PrismaService } from '../../database/prisma.service';
 export class NotificationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async notifyUser(userId: bigint, payload: { titleAr: string; titleEn: string; bodyAr: string; bodyEn: string; type: any; data?: any }) {
+  async notifyUser(
+    userId: bigint,
+    payload: {
+      titleAr: string;
+      titleEn: string;
+      bodyAr: string;
+      bodyEn: string;
+      type: any;
+      data?: any;
+    }
+  ) {
     return this.prisma.notification.create({
       data: {
         userId,
@@ -19,8 +29,18 @@ export class NotificationsService {
     });
   }
 
-  async notifyAdmins(payload: { titleAr: string; titleEn: string; bodyAr: string; bodyEn: string; type: any; data?: any }) {
-    const admins = await this.prisma.user.findMany({ where: { role: 'admin' }, select: { id: true } });
+  async notifyAdmins(payload: {
+    titleAr: string;
+    titleEn: string;
+    bodyAr: string;
+    bodyEn: string;
+    type: any;
+    data?: any;
+  }) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'admin' },
+      select: { id: true },
+    });
     await Promise.all(admins.map((a) => this.notifyUser(a.id, payload)));
   }
 
@@ -34,5 +54,38 @@ export class NotificationsService {
       type: 'system',
       data: { actorId: actorId.toString(), action, ...(data ?? {}) },
     });
+  }
+
+  async getNotifications(userId: bigint, skip = 0, take = 20) {
+    const [total, items] = await Promise.all([
+      this.prisma.notification.count({ where: { userId } }),
+      this.prisma.notification.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+    ]);
+    return {
+      success: true,
+      data: items,
+      meta: { total, skip, take, hasMore: skip + items.length < total },
+    };
+  }
+
+  async markAsRead(userId: bigint, notificationId: bigint) {
+    const notification = await this.prisma.notification.findFirst({
+      where: { id: notificationId, userId },
+    });
+    if (!notification) {
+      throw new Error('Notification not found');
+    }
+
+    const updated = await this.prisma.notification.update({
+      where: { id: notificationId },
+      data: { isRead: true, readAt: new Date() },
+    });
+
+    return { success: true, data: updated };
   }
 }

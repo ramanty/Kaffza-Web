@@ -164,7 +164,10 @@ export class ProductsService {
     const product = await this.prisma.product.findFirst({ where: { id: productId, storeId } });
     if (!product) throw new NotFoundException('المنتج غير موجود');
 
-    await this.prisma.product.update({ where: { id: productId }, data: { isActive: false } });
+    await this.prisma.product.update({
+      where: { id: productId },
+      data: { isActive: false, deletedAt: new Date() },
+    });
 
     return { success: true, message: 'تم حذف المنتج (تعطيل)' };
   }

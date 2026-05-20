@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { randomInt, randomUUID, createHash } from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 import { PrismaService } from '../../database/prisma.service';
@@ -49,6 +50,15 @@ export class AuthService {
     if (!data?.success) throw new BadRequestException('تحقق لست روبوت غير صالح');
   }
 
+  /**
+   * M-10: Password strength validation
+   */
+  private assertPasswordStrength(password: string) {
+    if (!password || password.length < 8) {
+      throw new BadRequestException('كلمة المرور يجب أن تتكون من 8 أحرف على الأقل');
+    }
+  }
+
   async register(dto: MerchantRegisterDto) {
     const method = dto.method || (dto.email ? RegisterMethodDto.email : RegisterMethodDto.phone);
     const phone = dto.phone?.trim();
@@ -71,6 +81,11 @@ export class AuthService {
     if (email) or.push({ email });
 
     const existing = await this.prisma.user.findFirst({ where: { OR: or } });
+
+    // Validate password strength if provided by user
+    if (dto.password) {
+      this.assertPasswordStrength(plainPassword);
+    }
 
     const passwordHash = await bcrypt.hash(plainPassword, 10);
     const { otp, otpHash, otpExpiresAt } = await this.newOtp();
@@ -344,6 +359,8 @@ export class AuthService {
   }
 
   async changePassword(sub: string, oldPassword: string, newPassword: string) {
+    this.assertPasswordStrength(newPassword);
+
     const user = await this.prisma.user.findUnique({ where: { id: BigInt(sub) } });
     if (!user) throw new UnauthorizedException('المستخدم غير موجود');
 
@@ -375,6 +392,7 @@ export class AuthService {
   }
 
   async forgotPasswordVerify(phone: string, otp: string, newPassword: string) {
+    this.assertPasswordStrength(newPassword);
     await this.assertNotOtpBlocked(phone);
 
     const user = await this.prisma.user.findUnique({ where: { phone } });
@@ -539,7 +557,7 @@ export class AuthService {
 
   private toSafeUser(user: any) {
     return {
-      id: Number(user.id),
+      id: user.id.toString(),
       name: user.name,
       email: user.email,
       phone: user.phone,
@@ -568,19 +586,26 @@ export class AuthService {
   }
 
   private async verifyGoogleIdToken(idToken: string) {
-    const url = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new BadRequestException('Google token غير صالح');
-    const data: any = await res.json();
     const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
-    if (clientId && data.aud !== clientId) {
-      throw new BadRequestException('Google token audience غير صحيح');
+    if (!clientId) throw new BadRequestException('GOOGLE_OAUTH_CLIENT_ID غير مضبوط');
+
+    try {
+      const client = new OAuth2Client(clientId);
+      const ticket = await client.verifyIdToken({
+        idToken: idToken,
+        audience: clientId,
+      });
+      const payload = ticket.getPayload();
+      if (!payload) throw new BadRequestException('Google token غير صالح');
+
+      return {
+        email: String(payload.email || ''),
+        emailVerified: String(payload.email_verified || '') === 'true',
+        name: String(payload.name || ''),
+      };
+    } catch {
+      throw new BadRequestException('التحقق من Google token فشل');
     }
-    return {
-      email: String(data.email || ''),
-      emailVerified: String(data.email_verified || '') === 'true',
-      name: String(data.name || ''),
-    };
   }
 
   private async verifyAppleIdToken(idToken: string) {

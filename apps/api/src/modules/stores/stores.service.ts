@@ -18,6 +18,7 @@ import {
   validatePaymentSettings,
   validateShippingSettings,
 } from './store-settings.util';
+import { AuditService } from '../audit/audit.service';
 
 const ONBOARDING_STEPS = [
   {
@@ -63,7 +64,10 @@ type CampaignStatus = 'draft' | 'scheduled' | 'active' | 'paused' | 'completed';
 
 @Injectable()
 export class StoresService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService
+  ) {}
 
   async createStore(user: { sub: string; role: string }, dto: CreateStoreDto) {
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
@@ -169,6 +173,17 @@ export class StoresService {
     }
   }
 
+  async remove(user: { sub: string; role: string }, storeId: bigint) {
+    await this.assertStoreOwner(user, storeId);
+
+    await this.prisma.store.update({
+      where: { id: storeId },
+      data: { deletedAt: new Date(), isActive: false },
+    });
+
+    return { success: true, message: 'تم حذف المتجر بنجاح' };
+  }
+
   async getStoreById(user: { sub: string; role: string }, storeId: bigint) {
     const store = await this.prisma.store.findUnique({
       where: { id: storeId },
@@ -234,6 +249,14 @@ export class StoresService {
       select: { paymentSettings: true },
     });
 
+    await this.auditService.log({
+      userId: BigInt(user.sub),
+      action: 'PAYMENT_SETTINGS_UPDATED',
+      entity: 'Store',
+      entityId: storeId,
+      details: { ...next },
+    });
+
     return {
       success: true,
       message: 'تم حفظ إعدادات الدفع',
@@ -280,6 +303,14 @@ export class StoresService {
       where: { id: storeId },
       data: { shippingSettings: next as any },
       select: { shippingSettings: true },
+    });
+
+    await this.auditService.log({
+      userId: BigInt(user.sub),
+      action: 'SHIPPING_SETTINGS_UPDATED',
+      entity: 'Store',
+      entityId: storeId,
+      details: { ...next },
     });
 
     return {

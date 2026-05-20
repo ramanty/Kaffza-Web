@@ -32,8 +32,18 @@ export class OrdersController {
   @Get('stores/:storeId/orders')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  listStore(@CurrentUser() user: any, @Param('storeId') storeId: string) {
-    return this.orders.listStoreOrders(user, this.toBigInt(storeId));
+  listStore(
+    @CurrentUser() user: any,
+    @Param('storeId') storeId: string,
+    @Query('page') page = '1',
+    @Query('limit') limit = '20'
+  ) {
+    return this.orders.listStoreOrders(
+      user,
+      this.toBigInt(storeId),
+      Number(page) || 1,
+      Math.min(100, Number(limit) || 20)
+    );
   }
 
   @Get('orders')
@@ -83,6 +93,17 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard)
   confirmPatch(@CurrentUser() user: any, @Param('orderId') orderId: string) {
     return this.orders.confirmReceipt(user, this.toBigInt(orderId));
+  }
+
+  @Post('stores/:storeId/orders/:orderId/confirm-cod')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  confirmCod(
+    @CurrentUser() user: any,
+    @Param('storeId') storeId: string,
+    @Param('orderId') orderId: string
+  ) {
+    return this.orders.confirmCodPayment(user, this.toBigInt(storeId), this.toBigInt(orderId));
   }
 
   private toBigInt(value: string): bigint {

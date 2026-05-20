@@ -98,24 +98,27 @@ export class PaymentsController {
     const signature = req.headers['thawani-signature'] || req.headers['x-thawani-signature'];
     const webhookSecret = process.env.THAWANI_WEBHOOK_SECRET;
 
-    if (webhookSecret) {
-      if (!signature) {
-        throw new ForbiddenException('Invalid webhook signature');
-      }
-      const rawBody =
-        req.rawBody && Buffer.isBuffer(req.rawBody)
-          ? req.rawBody
-          : Buffer.from(JSON.stringify(req.body));
-      if (!req.rawBody || !Buffer.isBuffer(req.rawBody)) {
-        this.logger.warn('Thawani webhook rawBody missing; using JSON fallback for signature');
-      }
-      const hmac = createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
-      const valid =
-        hmac.length === String(signature).length &&
-        timingSafeEqual(Buffer.from(hmac), Buffer.from(String(signature)));
-      if (!valid) {
-        throw new ForbiddenException('Invalid webhook signature');
-      }
+    if (!webhookSecret) {
+      this.logger.error('THAWANI_WEBHOOK_SECRET is not configured');
+      throw new ForbiddenException('Webhook secret not configured');
+    }
+
+    if (!signature) {
+      throw new ForbiddenException('Invalid webhook signature');
+    }
+    const rawBody =
+      req.rawBody && Buffer.isBuffer(req.rawBody)
+        ? req.rawBody
+        : Buffer.from(JSON.stringify(req.body));
+    if (!req.rawBody || !Buffer.isBuffer(req.rawBody)) {
+      this.logger.warn('Thawani webhook rawBody missing; using JSON fallback for signature');
+    }
+    const hmac = createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
+    const valid =
+      hmac.length === String(signature).length &&
+      timingSafeEqual(Buffer.from(hmac), Buffer.from(String(signature)));
+    if (!valid) {
+      throw new ForbiddenException('Invalid webhook signature');
     }
     return this.payments.handleThawaniWebhook(req.body);
   }

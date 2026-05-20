@@ -17,7 +17,7 @@ async function main() {
       name: 'مجانية',
       nameEn: 'Free',
       priceMonthly: 0.0,
-      commissionRate: 0.03,
+      commissionRate: 0.05,
       features: { maxStores: 1, maxProducts: 50, supportTier: 'basic' },
       isActive: true,
     },

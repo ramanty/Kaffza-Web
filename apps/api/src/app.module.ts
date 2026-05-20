@@ -23,6 +23,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { EscrowModule } from './modules/escrow/escrow.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { AuditModule } from './modules/audit/audit.module';
 import { HealthModule } from './modules/health/health.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 
@@ -43,6 +44,7 @@ import { ConfigModule } from './config/config.module';
 
     ScheduleModule.forRoot(),
     DatabaseModule,
+    AuditModule,
 
     NotificationsModule,
     AuthModule,

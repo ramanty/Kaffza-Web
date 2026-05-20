@@ -1,7 +1,7 @@
 // Client-side helpers for reading access token from cookies.
 // Note: middleware runs on server/edge, so the access token MUST be set as a cookie.
 
-const CANDIDATES = ['kaffza_access', 'accessToken', 'access_token', 'token'];
+const CANDIDATES = ['kaffza_access'];
 
 export function getAccessTokenFromCookies(): string | null {
   if (typeof document === 'undefined') return null;
@@ -27,12 +27,17 @@ export function authHeader(): Record<string, string> {
   return t ? { Authorization: `Bearer ${t}` } : {};
 }
 
-export function clearAuthCookiesClientSide() {
-  // Note: HttpOnly cookies can't be deleted by JS, but calling /auth/logout should clear it.
-  const opts = 'Path=/; Max-Age=0; SameSite=Lax';
-  document.cookie = `kaffza_access=; ${opts}`;
-  document.cookie = `accessToken=; ${opts}`;
-  document.cookie = `access_token=; ${opts}`;
-  document.cookie = `token=; ${opts}`;
-  document.cookie = `kaffza_refresh=; ${opts}`;
+export async function clearAuthCookiesClientSide() {
+  // H-08: HttpOnly cookies can't be deleted by JS, so we call the backend API to clear them properly.
+  try {
+    await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/auth/logout`,
+      {
+        method: 'POST',
+        headers: authHeader(),
+      }
+    );
+  } catch {
+    // Ignore error, best effort
+  }
 }

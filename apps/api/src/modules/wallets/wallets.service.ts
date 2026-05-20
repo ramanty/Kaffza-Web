@@ -7,12 +7,14 @@ import {
 
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class WalletsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly notifications: NotificationsService
+    private readonly notifications: NotificationsService,
+    private readonly auditService: AuditService
   ) {}
 
   async getWallet(user: any, storeId: bigint) {
@@ -80,6 +82,14 @@ export class WalletsService {
       data: { withdrawalId: created.id.toString(), storeId: storeId.toString() },
     });
 
+    await this.auditService.log({
+      userId: BigInt(user.sub),
+      action: 'WITHDRAWAL_REQUESTED',
+      entity: 'Withdrawal',
+      entityId: created.id,
+      details: { amount },
+    });
+
     return { success: true, message: 'تم تقديم طلب السحب', data: created };
   }
 
@@ -129,6 +139,14 @@ export class WalletsService {
         data: { withdrawalId: withdrawalId.toString() },
       });
 
+      await this.auditService.log({
+        userId: BigInt(admin.sub),
+        action: 'WITHDRAWAL_APPROVED',
+        entity: 'Withdrawal',
+        entityId: withdrawalId,
+        details: { notes },
+      });
+
       return { success: true, message: 'تمت الموافقة', data: updated };
     }
 
@@ -168,6 +186,14 @@ export class WalletsService {
       bodyEn: `Withdrawal #${withdrawalId.toString()} rejected`,
       type: 'system',
       data: { withdrawalId: withdrawalId.toString() },
+    });
+
+    await this.auditService.log({
+      userId: BigInt(admin.sub),
+      action: 'WITHDRAWAL_REJECTED',
+      entity: 'Withdrawal',
+      entityId: withdrawalId,
+      details: { notes },
     });
 
     return { success: true, message: 'تم الرفض', data: updated };

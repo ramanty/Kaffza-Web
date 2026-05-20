@@ -7,7 +7,7 @@ export const api = axios.create({
 
 // Automatically attach JWT from cookies on every request (client-side only).
 // Matches the same cookie candidates used in lib/auth.ts and middleware.ts.
-const TOKEN_COOKIE_CANDIDATES = ['kaffza_access', 'accessToken', 'access_token', 'token'];
+const TOKEN_COOKIE_CANDIDATES = ['kaffza_access'];
 
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined' && document.cookie) {

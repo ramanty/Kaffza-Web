@@ -14,11 +14,11 @@ services:
       POSTGRES_USER: kaffza_user
       POSTGRES_PASSWORD: kaffza_dev_password
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kaffza_user -d kaffza_db"]
+      test: ['CMD-SHELL', 'pg_isready -U kaffza_user -d kaffza_db']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,12 +28,13 @@ services:
     image: redis:7-alpine
     container_name: kaffza-redis
     restart: unless-stopped
+    command: redis-server --requirepass kaffza_redis_dev
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', '-a', 'kaffza_redis_dev', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,8 +49,8 @@ services:
       MINIO_ROOT_PASSWORD: kaffza_minio_secret
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - '9000:9000'
+      - '9001:9001'
     volumes:
       - minio_data:/data
 

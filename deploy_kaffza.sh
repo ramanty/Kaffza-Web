@@ -32,7 +32,10 @@ LOCAL_HEAD="$(git rev-parse HEAD)"
 REMOTE_HEAD="$(git rev-parse origin/main)"
 if [[ "$LOCAL_HEAD" != "$REMOTE_HEAD" ]]; then
   echo "⬆️  Updating repository to latest origin/main..."
-  git pull --rebase --autostash origin main
+  if ! git merge --ff-only origin/main; then
+    echo "❌ git merge --ff-only failed. Please resolve conflicts manually."
+    exit 1
+  fi
 else
   echo "✅ Repository is already up to date."
 fi

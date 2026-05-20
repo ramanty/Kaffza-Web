@@ -11,9 +11,13 @@ const ACTIVE_DISPUTE_STATUSES = ['open', 'under_review'] as const;
 export class EscrowService {
   private readonly logger = new Logger(EscrowService.name);
 
-  constructor(private readonly prisma: PrismaService, private readonly notifications: NotificationsService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService
+  ) {}
 
-  @Cron(CronExpression.EVERY_HOUR)
+  /** M-09: Release every 5 minutes instead of every hour for faster merchant payouts */
+  @Cron(CronExpression.EVERY_5_MINUTES)
   async releaseDuePayments() {
     const now = new Date();
 
@@ -23,7 +27,11 @@ export class EscrowService {
         escrowStatus: 'held',
         releaseAt: { lte: now },
       },
-      include: { order: { include: { store: { include: { wallet: true } }, dispute: { select: { status: true } } } } },
+      include: {
+        order: {
+          include: { store: { include: { wallet: true } }, dispute: { select: { status: true } } },
+        },
+      },
     });
 
     for (const p of payments) {
@@ -62,6 +70,12 @@ export class EscrowService {
         data: { escrowStatus: 'released', releasedAt: new Date() },
       });
 
+      // C-02: Verify sufficient pending balance before decrementing
+      const currentWallet = await tx.wallet.findUnique({ where: { id: wallet.id } });
+      if (!currentWallet || Number(currentWallet.pendingBalance) < amount) {
+        throw new Error(`Insufficient pending balance for wallet ${wallet.id}`);
+      }
+
       const updatedWallet = await tx.wallet.update({
         where: { id: wallet.id },
         data: {
@@ -85,19 +99,24 @@ export class EscrowService {
       // Mark order complete
       await tx.order.update({ where: { id: order.id }, data: { status: 'delivered' } });
 
-      // Update store trust metrics
-      const newTotal = order.store.totalOrders + 1;
-      const avg = await tx.review.aggregate({ where: { storeId: order.storeId }, _avg: { rating: true } });
+      // M-11: Use COUNT query to compute totalOrders accurately
+      const completedCount = await tx.order.count({
+        where: { storeId: order.storeId, status: { in: ['delivered'] } },
+      });
+      const avg = await tx.review.aggregate({
+        where: { storeId: order.storeId },
+        _avg: { rating: true },
+      });
       const avgRating = Number(avg._avg.rating || 0);
 
       let trustLevel: any = 'standard';
-      if (newTotal <= 3) trustLevel = 'new_merchant';
-      else if (newTotal >= 50 && avgRating >= 4.5) trustLevel = 'trusted';
+      if (completedCount <= 3) trustLevel = 'new_merchant';
+      else if (completedCount >= 50 && avgRating >= 4.5) trustLevel = 'trusted';
       else trustLevel = 'standard';
 
       await tx.store.update({
         where: { id: order.storeId },
-        data: { totalOrders: newTotal, avgRating, trustLevel },
+        data: { totalOrders: completedCount, avgRating, trustLevel },
       });
     });
 

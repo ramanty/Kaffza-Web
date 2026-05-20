@@ -19,7 +19,7 @@ export const PLAN_CATALOG: PlanCatalogItem[] = [
     subtitleAr: 'مجانية',
     subtitleEn: 'Free forever',
     priceOmr: 0,
-    commission: '3%',
+    commission: '5%',
     notesAr: ['بدون اشتراك شهري', 'إطلاق سريع', 'أساسيات المتجر'],
     notesEn: ['No monthly fee', 'Fast launch', 'Store essentials'],
     detailsAr: [
