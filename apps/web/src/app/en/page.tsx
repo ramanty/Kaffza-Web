@@ -318,7 +318,7 @@ function EnLandingPageInner() {
           </div>
 
           <div className="text-kaffza-text/60 mt-8 text-xs">
-            © 2025 Jawaharat Al Shahba Modern LLC
+            © 2025 Kaffza Al-Nahda Technologies L.L.C
           </div>
         </div>
       </footer>

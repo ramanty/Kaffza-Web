@@ -311,7 +311,9 @@ function LandingPageInner() {
             </div>
           </div>
 
-          <div className="text-kaffza-text/60 mt-8 text-xs">© 2025 جوهرة الشهباء الحديثة ش.م.م</div>
+          <div className="text-kaffza-text/60 mt-8 text-xs">
+            © 2025 شركة قفزة النهضة للتكنولوجيا ش.م.م
+          </div>
         </div>
       </footer>
     </main>

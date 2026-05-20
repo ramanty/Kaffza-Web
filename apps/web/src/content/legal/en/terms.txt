@@ -1,10 +1,10 @@
 Terms & Conditions
 Kaffza Platform | Kaffza
-Jawaharat Al Shahba Modern LLC | Commercial Registration: 1417621
+Kaffza Al-Nahda Technologies L.L.C | Commercial Registration: 1417621
 Last updated: 16 March 2026
 
 1. Acceptance of Terms
-Welcome to Kaffza, Oman's first integrated e-commerce platform. The Platform is operated by Jawaharat Al Shahba Modern LLC, duly licensed in the Sultanate of Oman.
+Welcome to Kaffza, Oman's first integrated e-commerce platform. The Platform is operated by Kaffza Al-Nahda Technologies L.L.C, duly licensed in the Sultanate of Oman.
 By using the Platform or creating an account, you agree to these Terms & Conditions in full. If you do not agree to any part of these Terms, please stop using the Platform.
 
 2. Service Description
@@ -87,7 +87,7 @@ All users must not:
 • Create fake accounts or impersonate others.
 
 9. Intellectual Property
-All intellectual property rights in the Platform (including “قفزة”, “Kaffza”, logo, source code, and design) are owned by Jawaharat Al Shahba Modern LLC.
+All intellectual property rights in the Platform (including “قفزة”, “Kaffza”, logo, source code, and design) are owned by Kaffza Al-Nahda Technologies L.L.C.
 Merchants retain ownership of content they upload, and grant Kaffza a limited license to display it for store operation purposes.
 
 10. Disclaimer
@@ -109,7 +109,7 @@ These Terms are governed by the laws of the Sultanate of Oman. Any dispute shall
 
 13. Contact Us
 For inquiries or complaints:
-• Company: Jawaharat Al Shahba Modern LLC
+• Company: Kaffza Al-Nahda Technologies L.L.C
 • Commercial Registration: 1417621 | Tax No.: 1805706
 • Address: Al Mabelah Al Janubiyah, Seeb, Muscat, Sultanate of Oman
 • Phone: 77509646

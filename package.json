@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Kaffza (قفزة) — أول منصة تجارة إلكترونية عُمانية SaaS",
-  "author": "جوهرة الشهباء الحديثة ش.م.م",
+  "author": "شركة قفزة النهضة للتكنولوجيا ش.م.م",
   "license": "UNLICENSED",
   "engines": {
     "node": ">=20.0.0",

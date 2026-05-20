@@ -8,7 +8,7 @@ _The First Omani SaaS E-Commerce Platform_
 
 _أول منصة تجارة إلكترونية عُمانية SaaS_
 
-**جوهرة الشهباء الحديثة ش.م.م**
+**شركة قفزة النهضة للتكنولوجيا ش.م.م**
 
 [![License: UNLICENSED](https://img.shields.io/badge/License-UNLICENSED-red.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-brightgreen)](https://nodejs.org/)
@@ -230,4 +230,4 @@ Please read our [Contributing Guidelines](./.github/pull_request_template.md) be
 
 ## License
 
-This project is proprietary software owned by **جوهرة الشهباء الحديثة ش.م.م**. All rights reserved.
+This project is proprietary software owned by **شركة قفزة النهضة للتكنولوجيا ش.م.م**. All rights reserved.
