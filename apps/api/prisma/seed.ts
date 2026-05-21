@@ -10,19 +10,6 @@ async function main() {
   console.log('🌱 Seeding Kaffza database...');
 
   // ---- Seed Plans ----
-  const freePlan = await prisma.plan.upsert({
-    where: { id: 4n },
-    update: {},
-    create: {
-      name: 'مجانية',
-      nameEn: 'Free',
-      priceMonthly: 0.0,
-      commissionRate: 0.05,
-      features: { maxStores: 1, maxProducts: 50, supportTier: 'basic' },
-      isActive: true,
-    },
-  });
-
   const starterPlan = await prisma.plan.upsert({
     where: { id: 1n },
     update: {},
@@ -62,7 +49,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Plans seeded:', { freePlan, starterPlan, growthPlan, proPlan });
+  console.log('✅ Plans seeded:', { starterPlan, growthPlan, proPlan });
   console.log('🎉 Seeding completed successfully!');
 }
 
