@@ -10,13 +10,40 @@ async function main() {
   console.log('🌱 Seeding Kaffza database...');
 
   // ---- Seed Plans ----
-  const starterPlan = await prisma.plan.upsert({
+  const freePlan = await prisma.plan.upsert({
     where: { id: 1n },
-    update: {},
+    update: {
+      name: 'المجانية',
+      nameEn: 'Free',
+      priceMonthly: 0,
+      commissionRate: 0.05,
+      features: { maxStores: 1, maxProducts: 50, supportTier: 'basic' },
+      isActive: true,
+    },
+    create: {
+      name: 'المجانية',
+      nameEn: 'Free',
+      priceMonthly: 0,
+      commissionRate: 0.05,
+      features: { maxStores: 1, maxProducts: 50, supportTier: 'basic' },
+      isActive: true,
+    },
+  });
+
+  const starterPlan = await prisma.plan.upsert({
+    where: { id: 2n },
+    update: {
+      name: 'البداية',
+      nameEn: 'Starter',
+      priceMonthly: 5,
+      commissionRate: 0.02,
+      features: { maxStores: 1 },
+      isActive: true,
+    },
     create: {
       name: 'البداية',
       nameEn: 'Starter',
-      priceMonthly: 5.0,
+      priceMonthly: 5,
       commissionRate: 0.02,
       features: { maxStores: 1 },
       isActive: true,
@@ -24,12 +51,19 @@ async function main() {
   });
 
   const growthPlan = await prisma.plan.upsert({
-    where: { id: 2n },
-    update: {},
+    where: { id: 3n },
+    update: {
+      name: 'النمو',
+      nameEn: 'Growth',
+      priceMonthly: 8,
+      commissionRate: 0.01,
+      features: { maxStores: 3 },
+      isActive: true,
+    },
     create: {
       name: 'النمو',
       nameEn: 'Growth',
-      priceMonthly: 8.0,
+      priceMonthly: 8,
       commissionRate: 0.01,
       features: { maxStores: 3 },
       isActive: true,
@@ -37,19 +71,26 @@ async function main() {
   });
 
   const proPlan = await prisma.plan.upsert({
-    where: { id: 3n },
-    update: {},
+    where: { id: 4n },
+    update: {
+      name: 'المحترف',
+      nameEn: 'Pro',
+      priceMonthly: 35,
+      commissionRate: 0.005,
+      features: { maxStores: null },
+      isActive: true,
+    },
     create: {
       name: 'المحترف',
       nameEn: 'Pro',
-      priceMonthly: 35.0,
+      priceMonthly: 35,
       commissionRate: 0.005,
       features: { maxStores: null },
       isActive: true,
     },
   });
 
-  console.log('✅ Plans seeded:', { starterPlan, growthPlan, proPlan });
+  console.log('✅ Plans seeded:', { freePlan, starterPlan, growthPlan, proPlan });
   console.log('🎉 Seeding completed successfully!');
 }
 
