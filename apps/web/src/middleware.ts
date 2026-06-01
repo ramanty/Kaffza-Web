@@ -93,6 +93,26 @@ async function hasStores(token: string): Promise<boolean> {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const hostname = req.headers.get('host') || '';
+
+  const currentHost = hostname.replace(/:\d+$/, '');
+  const isKaffzaMain = currentHost === 'kaffza.me' || currentHost === 'www.kaffza.me' || currentHost === 'localhost' || currentHost === 'shops.kaffza.me';
+
+  if (!isKaffzaMain) {
+    let slug = currentHost;
+    if (currentHost.endsWith('.kaffza.me')) slug = currentHost.replace('.kaffza.me', '');
+    else if (currentHost.endsWith('.localhost')) slug = currentHost.replace('.localhost', '');
+
+    const localeMatch = pathname.match(/^\/(en|ar)(\/|$)/);
+    const locale = localeMatch ? localeMatch[1] : 'ar';
+    const pathWithoutLocale = localeMatch ? pathname.replace(`/${locale}`, '') : pathname;
+    const finalPath = pathWithoutLocale === '' ? '/' : pathWithoutLocale;
+
+    const url = req.nextUrl.clone();
+    url.pathname = `/${locale}/storefront/${slug}${finalPath}`;
+    return NextResponse.rewrite(url);
+  }
+
   const isEn = req.nextUrl.searchParams.get('lang') === 'en';
   const merchantLoginPath = isEn ? '/en/merchant/login' : '/merchant/login';
   const customerLoginPath = isEn ? '/en/login' : '/login';
@@ -136,6 +156,7 @@ export async function middleware(req: NextRequest) {
   }
 
   const role = String(payload?.role || '').toLowerCase();
+  const hasStore = payload?.hasStore === true;
 
   if (isAdmin) {
     if (role !== 'admin') {
@@ -147,30 +168,22 @@ export async function middleware(req: NextRequest) {
   }
 
   if (isDash) {
-    if (role && role !== 'merchant' && role !== 'admin') return redirect(req, '/account/orders');
-
-    if (role === 'merchant') {
-      const ok = await hasStores(token);
-      if (!ok) return redirect(req, '/onboarding');
-    }
+    if (!token || !payload) return redirect(req, merchantLoginPath, pathname);
+    if (role === 'customer' && !hasStore) return redirect(req, '/onboarding');
   }
 
   if (isOnboarding) {
-    if (role && role !== 'merchant' && role !== 'admin') return redirect(req, '/account/orders');
-    if (role === 'merchant') {
-      const ok = await hasStores(token);
-      if (ok) return redirect(req, '/dashboard');
-    }
+    if (!token || !payload) return redirect(req, merchantLoginPath, pathname);
+    if (hasStore) return redirect(req, '/dashboard');
   }
 
   if (isAccount) {
-    if (role && role !== 'customer' && role !== 'admin')
-      return redirect(req, customerLoginPath, pathname);
+    if (!token || !payload) return redirect(req, customerLoginPath, pathname);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/account/:path*', '/onboarding', '/admin/:path*'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
