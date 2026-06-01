@@ -24,9 +24,11 @@ export function SiteTopBar() {
   const nextLocalePath = buildLocalizedPath(pathname);
   const localeLabel = pathname === '/en' || pathname.startsWith('/en/') ? 'العربية' : 'English';
   const isEn = pathname === '/en' || pathname.startsWith('/en/');
+  const [mounted, setMounted] = useState(false);
   const [count, setCount] = useState(0);
 
   useEffect(() => {
+    setMounted(true);
     const update = () => setCount(getPlanCartCount());
     update();
     window.addEventListener('storage', update);
@@ -49,7 +51,7 @@ export function SiteTopBar() {
         </a>
 
         <div className="flex items-center gap-3 text-sm">
-          {count > 0 ? (
+          {mounted && count > 0 ? (
             <Link
               className="text-kaffza-primary relative rounded-full border border-black/10 px-3 py-1 font-bold"
               href={isEn ? '/en/plans/cart' : '/plans/cart'}

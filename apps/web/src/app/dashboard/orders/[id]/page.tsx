@@ -70,8 +70,8 @@ const MOCK_ORDER: OrderDetail = {
     { id: 1, productName: 'عسل سدر عماني أصيل', quantity: 2, unitPrice: 5.5, totalPrice: 11.0 },
     { id: 2, productName: 'زيت عود طبيعي', quantity: 1, unitPrice: 3.0, totalPrice: 3.0 },
   ],
-  createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: '2025-01-01T00:00:00.000Z',
+  updatedAt: '2025-01-01T12:00:00.000Z',
 };
 
 const STATUS_OPTIONS = [
