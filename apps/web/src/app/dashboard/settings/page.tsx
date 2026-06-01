@@ -50,6 +50,7 @@ export default function SettingsPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [verifyingDomain, setVerifyingDomain] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -152,6 +153,24 @@ export default function SettingsPage() {
       setError(e?.response?.data?.message || e?.message || 'فشل حفظ الإعدادات');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function verifyDomain() {
+    if (!storeId || !form.customDomain) return;
+    setVerifyingDomain(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await api.post(`/stores/${storeId}/verify-domain`, { customDomain: form.customDomain }, {
+        headers: { ...authHeader(), 'x-client': 'web' },
+      });
+      setSuccess(res.data.message || 'تم التحقق من الدومين وحفظه بنجاح');
+      await load();
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'فشل التحقق من الدومين');
+    } finally {
+      setVerifyingDomain(false);
     }
   }
 
@@ -266,17 +285,22 @@ export default function SettingsPage() {
               <div className="mt-1 text-xs text-blue-800">
                 هل تريد ربط متجرك بدومين خاص؟ (مثال: mystore.com). اشترك في باقة 'النمو' أو 'المحترف' لتفعيل هذه الميزة.
               </div>
-              <a href="/dashboard/plans" className="mt-3 inline-block rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">
+              <a href="/dashboard/pricing" className="mt-3 inline-block rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">
                 الترقية الآن
               </a>
             </div>
           ) : (
             <Field label="Custom Domain (اختياري)">
-              <Input
-                value={form.customDomain}
-                onChange={(e: any) => setForm((s) => ({ ...s, customDomain: e.target.value }))}
-                placeholder="example.com"
-              />
+              <div className="flex gap-2">
+                <Input
+                  value={form.customDomain}
+                  onChange={(e: any) => setForm((s) => ({ ...s, customDomain: e.target.value }))}
+                  placeholder="example.com"
+                />
+                <Button onClick={verifyDomain} disabled={!form.customDomain || verifyingDomain || loading}>
+                  {verifyingDomain ? 'جارٍ التحقق...' : 'تحقق وحفظ'}
+                </Button>
+              </div>
               <div className="mt-1 text-xs text-gray-500">أضف CNAME Record يشير إلى shops.kaffza.me في إعدادات الـ DNS الخاصة بك.</div>
             </Field>
           )}

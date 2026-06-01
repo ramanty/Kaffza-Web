@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import * as dns from 'dns';
 
 import { PrismaService } from '../../database/prisma.service';
 import { CreateStoreDto } from './dto/create-store.dto';
@@ -19,6 +20,7 @@ import {
   validateShippingSettings,
 } from './store-settings.util';
 import { AuditService } from '../audit/audit.service';
+import { AuthService } from '../auth/auth.service';
 
 const ONBOARDING_STEPS = [
   {
@@ -66,14 +68,12 @@ type CampaignStatus = 'draft' | 'scheduled' | 'active' | 'paused' | 'completed';
 export class StoresService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly auditService: AuditService
+    private readonly auditService: AuditService,
+    private readonly authService: AuthService
   ) {}
 
   async createStore(user: { sub: string; role: string }, dto: CreateStoreDto) {
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
-    if (user.role !== 'merchant' && user.role !== 'admin') {
-      throw new ForbiddenException('فقط التاجر أو الأدمن يمكنه إنشاء متجر');
-    }
 
     const ownerId = BigInt(user.sub);
     const planId = BigInt(dto.planId);
@@ -133,7 +133,14 @@ export class StoresService {
         },
       });
 
-      return { success: true, message: 'تم إنشاء المتجر بنجاح', data: store };
+      await this.prisma.user.update({
+        where: { id: ownerId },
+        data: { role: 'merchant' }
+      });
+
+      const tokens = await this.authService.generateUserTokens(ownerId);
+
+      return { success: true, message: 'تم إنشاء المتجر بنجاح', data: { store, tokens } };
     } catch (e: any) {
       if (String(e?.code) === 'P2002') {
         throw new BadRequestException('النطاق الفرعي أو النطاق المخصص مستخدم بالفعل');
@@ -168,6 +175,41 @@ export class StoresService {
     } catch (e: any) {
       if (String(e?.code) === 'P2002') {
         throw new BadRequestException('النطاق المخصص مستخدم بالفعل');
+      }
+      throw e;
+    }
+  }
+
+  async verifyAndSaveDomain(user: { sub: string; role: string }, storeId: bigint, customDomain: string) {
+    await this.assertStoreOwner(user, storeId);
+    
+    let domain = customDomain.trim().toLowerCase();
+    if (domain.startsWith('http://')) domain = domain.replace('http://', '');
+    if (domain.startsWith('https://')) domain = domain.replace('https://', '');
+    if (domain.startsWith('www.')) domain = domain.replace('www.', '');
+
+    try {
+      const records = await dns.promises.resolveCname(domain);
+      const target = 'shops.kaffza.me';
+      
+      const isValid = records.some(r => r.toLowerCase() === target || r.toLowerCase() === target + '.');
+      if (!isValid) {
+        throw new BadRequestException(`لم يتم العثور على CNAME يوجه إلى ${target}`);
+      }
+    } catch (error: any) {
+      if (error instanceof BadRequestException) throw error;
+      throw new BadRequestException('فشل التحقق من إعدادات DNS. يرجى التأكد من إضافة CNAME Record يشير إلى shops.kaffza.me');
+    }
+
+    try {
+      const updated = await this.prisma.store.update({
+        where: { id: storeId },
+        data: { customDomain: domain },
+      });
+      return { success: true, message: 'تم التحقق من الدومين وحفظه بنجاح', data: updated };
+    } catch (e: any) {
+      if (String(e?.code) === 'P2002') {
+        throw new BadRequestException('النطاق المخصص مستخدم بالفعل بواسطة متجر آخر');
       }
       throw e;
     }

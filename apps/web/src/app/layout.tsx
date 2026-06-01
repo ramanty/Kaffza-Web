@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     apple: '/icon.svg',
   },
 };
+import { ThemeProvider } from '../components/ThemeProvider';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -28,9 +29,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body className="overflow-x-hidden">
-        <SiteTopBar />
-        {children}
+      <body className="overflow-x-hidden transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100 text-kaffza-text bg-kaffza-bg">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange={false}>
+          <SiteTopBar />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

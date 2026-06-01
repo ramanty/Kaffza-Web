@@ -162,6 +162,20 @@ export class StoresController {
     return this.stores.getAnalyticsOverview(user, this.toBigInt(id), Number(days) || 30);
   }
 
+  @Post(':id/verify-domain')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  verifyDomain(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Body('customDomain') customDomain: string
+  ) {
+    if (!customDomain) {
+      throw new BadRequestException('اسم الدومين مطلوب');
+    }
+    return this.stores.verifyAndSaveDomain(user, this.toBigInt(id), customDomain);
+  }
+
   private toBigInt(value: string): bigint {
     try {
       return BigInt(value);

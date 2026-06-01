@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { getPlanCartCount } from '../lib/plan-cart';
+import { api } from '../lib/api';
+import { authHeader } from '../lib/auth';
+import { ThemeToggle } from './ThemeToggle';
 
 function buildLocalizedPath(pathname: string) {
   const protectedOnly = ['/dashboard', '/admin', '/account', '/merchant', '/onboarding'];
@@ -26,6 +29,31 @@ export function SiteTopBar() {
   const isEn = pathname === '/en' || pathname.startsWith('/en/');
   const [mounted, setMounted] = useState(false);
   const [count, setCount] = useState(0);
+  const [userState, setUserState] = useState({ loaded: false, loggedIn: false, hasStore: false });
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await api.get('/auth/me', { headers: { ...authHeader(), 'x-client': 'web' } });
+        if (res?.data?.success) {
+          try {
+            const storesRes = await api.get('/stores/my', { headers: { ...authHeader(), 'x-client': 'web' } });
+            const arr = storesRes?.data?.data;
+            const hasStore = Array.isArray(arr) && arr.length > 0;
+            if (mounted) setUserState({ loaded: true, loggedIn: true, hasStore });
+          } catch {
+            if (mounted) setUserState({ loaded: true, loggedIn: true, hasStore: false });
+          }
+        } else {
+          if (mounted) setUserState({ loaded: true, loggedIn: false, hasStore: false });
+        }
+      } catch {
+        if (mounted) setUserState({ loaded: true, loggedIn: false, hasStore: false });
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -66,6 +94,25 @@ export function SiteTopBar() {
           <Link className="text-kaffza-primary font-bold underline" href={nextLocalePath}>
             {localeLabel}
           </Link>
+          <ThemeToggle />
+
+          {userState.loaded ? (
+            userState.hasStore ? (
+              <Link href={isEn ? '/en/dashboard' : '/dashboard'} className="bg-kaffza-primary text-white px-4 py-1.5 rounded-full font-bold text-sm">
+                {isEn ? 'Dashboard' : 'لوحة التحكم'}
+              </Link>
+            ) : userState.loggedIn ? (
+              <Link href={isEn ? '/en/onboarding' : '/onboarding'} className="bg-kaffza-primary text-white px-4 py-1.5 rounded-full font-bold text-sm">
+                {isEn ? 'Open Your Store' : 'افتح متجرك'}
+              </Link>
+            ) : (
+              <Link href={isEn ? '/en/merchant/login' : '/merchant/login'} className="bg-kaffza-primary text-white px-4 py-1.5 rounded-full font-bold text-sm">
+                {isEn ? 'Start Now' : 'ابدأ الآن'}
+              </Link>
+            )
+          ) : (
+            <div className="w-24 h-8 bg-black/5 animate-pulse rounded-full" />
+          )}
         </div>
       </div>
     </header>

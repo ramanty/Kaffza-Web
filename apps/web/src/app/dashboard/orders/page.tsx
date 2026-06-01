@@ -163,6 +163,15 @@ export default function OrdersPage() {
         </Button>
       </header>
 
+      {/* Dummy Orders Alert Banner */}
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 flex items-start gap-3">
+        <span className="text-xl leading-none">ℹ️</span>
+        <div>
+          <strong className="block font-bold mb-1">ملاحظة هامة (النسخة التجريبية)</strong>
+          الطلبات المعروضة حالياً في هذه القائمة هي <span className="font-bold">طلبات تجريبية (Placeholder)</span> بهدف استعراض شكل النظام فقط. في النسخة القادمة سيتم ربطها مباشرة بواجهة الدفع (Stripe/Paypal) واستقبال الطلبات الحقيقية لمتجرك.
+        </div>
+      </div>
+
       {/* Error Banner */}
       {error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
