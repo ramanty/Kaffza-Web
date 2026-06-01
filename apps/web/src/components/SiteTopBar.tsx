@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { getPlanCartCount } from '../lib/plan-cart';
 import { api } from '../lib/api';
 import { authHeader } from '../lib/auth';
-import { ThemeToggle } from './ThemeToggle';
+import { useTheme } from 'next-themes';
 
 function buildLocalizedPath(pathname: string) {
   const protectedOnly = ['/dashboard', '/admin', '/account', '/merchant', '/onboarding'];
@@ -20,6 +20,26 @@ function buildLocalizedPath(pathname: string) {
     return stripped || '/';
   }
   return pathname === '/' ? '/en' : `/en${pathname}`;
+}
+
+function ThemeToggle() {
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
+
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 animate-pulse" />;
+
+  return (
+    <button
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-lg"
+      aria-label="Toggle Theme"
+      title="تبديل الوضع الليلي"
+    >
+      {theme === 'dark' ? '☀️' : '🌙'}
+    </button>
+  );
 }
 
 export function SiteTopBar() {
@@ -98,15 +118,15 @@ export function SiteTopBar() {
 
           {userState.loaded ? (
             userState.hasStore ? (
-              <Link href={isEn ? '/en/dashboard' : '/dashboard'} className="bg-kaffza-primary text-white px-4 py-1.5 rounded-full font-bold text-sm">
+              <Link href={isEn ? '/en/dashboard' : '/dashboard'} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-full transition-colors">
                 {isEn ? 'Dashboard' : 'لوحة التحكم'}
               </Link>
             ) : userState.loggedIn ? (
-              <Link href={isEn ? '/en/onboarding' : '/onboarding'} className="bg-kaffza-primary text-white px-4 py-1.5 rounded-full font-bold text-sm">
+              <Link href={isEn ? '/en/onboarding' : '/onboarding'} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-full transition-colors">
                 {isEn ? 'Open Your Store' : 'افتح متجرك'}
               </Link>
             ) : (
-              <Link href={isEn ? '/en/merchant/login' : '/merchant/login'} className="bg-kaffza-primary text-white px-4 py-1.5 rounded-full font-bold text-sm">
+              <Link href={isEn ? '/en/merchant/login' : '/merchant/login'} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-full transition-colors">
                 {isEn ? 'Start Now' : 'ابدأ الآن'}
               </Link>
             )
