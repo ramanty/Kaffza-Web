@@ -71,7 +71,7 @@ export class AuthService {
       throw new BadRequestException('البريد الإلكتروني مطلوب عند التسجيل عبر البريد');
     }
 
-    const role = dto.role || 'customer';
+    const role = 'customer';
     const locale = dto.locale || 'ar';
     const email = providedEmail || this.syntheticEmail(phone || '');
     const resolvedPhone = phone || this.syntheticPhone(email);
@@ -86,6 +86,9 @@ export class AuthService {
     if (dto.password) {
       this.assertPasswordStrength(plainPassword);
     }
+
+    const rateLimitKey = method === RegisterMethodDto.email ? email : resolvedPhone;
+    await this.assertOtpRateLimit(rateLimitKey);
 
     const passwordHash = await bcrypt.hash(plainPassword, 10);
     const { otp, otpHash, otpExpiresAt } = await this.newOtp();
@@ -157,6 +160,9 @@ export class AuthService {
         : await this.prisma.user.findUnique({ where: { phone: phone! } });
     if (!user) throw new BadRequestException('المستخدم غير موجود');
 
+    const rateLimitKey = method === RegisterMethodDto.email ? email! : phone!;
+    await this.assertOtpRateLimit(rateLimitKey);
+
     const { otp, otpHash, otpExpiresAt } = await this.newOtp();
     await this.prisma.user.update({ where: { id: user.id }, data: { otpHash, otpExpiresAt } });
     if (method === RegisterMethodDto.email) await this.email.sendOtp(email!, otp);
@@ -195,6 +201,9 @@ export class AuthService {
         : await this.prisma.user.findUnique({ where: { phone: phone! } });
     if (!user) throw new BadRequestException('المستخدم غير موجود');
     if (user.isVerified) throw new BadRequestException('الحساب مُفعّل بالفعل');
+
+    const rateLimitKey = method === RegisterMethodDto.email ? email! : phone!;
+    await this.assertOtpRateLimit(rateLimitKey);
 
     const { otp, otpHash, otpExpiresAt } = await this.newOtp();
     await this.prisma.user.update({ where: { id: user.id }, data: { otpHash, otpExpiresAt } });
@@ -380,6 +389,8 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { phone } });
     if (!user) throw new BadRequestException('المستخدم غير موجود');
 
+    await this.assertOtpRateLimit(phone);
+
     const { otp, otpHash, otpExpiresAt } = await this.newOtp();
     await this.prisma.user.update({ where: { id: user.id }, data: { otpHash, otpExpiresAt } });
     await this.sms.sendOtp(phone, otp);
@@ -431,6 +442,24 @@ export class AuthService {
     return `otp:block:${phone}`;
   }
 
+  private otpRateLimitKey(key: string) {
+    return `otp:ratelimit:${key}`;
+  }
+
+  private async assertOtpRateLimit(key: string) {
+    const rlKey = this.otpRateLimitKey(key);
+    const countStr = await this.redis.get(rlKey);
+    const count = countStr ? parseInt(countStr, 10) : 0;
+    if (count >= 3) {
+      throw new BadRequestException('تم تجاوز الحد المسموح به لطلب الرمز. يرجى المحاولة بعد 5 دقائق');
+    }
+    if (count === 0) {
+      await this.redis.set(rlKey, '1', 300);
+    } else {
+      await this.redis.incr(rlKey);
+    }
+  }
+
   private async assertNotOtpBlocked(phone: string) {
     const blocked = await this.redis.get(this.otpBlockKey(phone));
     if (blocked) {
@@ -473,12 +502,24 @@ export class AuthService {
   }
 
   // ---- tokens ----
+  public async generateUserTokens(userId: bigint) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('المستخدم غير موجود');
+    return this.issueTokens(user);
+  }
+
   private async issueTokens(user: any) {
+    const storeCount = await this.prisma.store.count({
+      where: { ownerId: user.id, deletedAt: null }
+    });
+    const hasStore = storeCount > 0;
+
     const accessPayload = {
       sub: user.id.toString(),
       role: user.role,
       locale: user.locale,
       email: user.email,
+      hasStore,
     };
 
     const accessToken = await this.jwt.signAsync(accessPayload, {
