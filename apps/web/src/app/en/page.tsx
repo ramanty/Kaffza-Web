@@ -1,344 +1,53 @@
-'use client';
+"use client";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import dynamic from "next/dynamic";
 
-import Link from 'next/link';
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+const Hero3D = dynamic(() => import("@/components/landing/Hero3D"), { ssr: false });
 
-import { Button } from '../../components/Button';
-import { PlanCardActions } from '../../components/PlanCardActions';
-import { FEATURE_CATALOG } from '../../lib/feature-catalog';
-import { PLAN_CATALOG, getPlanNotes, getPlanSubtitle } from '../../lib/plan-catalog';
-import {
-  TRUST_CATALOG,
-  getTrustPoints,
-  getTrustSummary,
-  getTrustTitle,
-} from '../../lib/trust-catalog';
-
-const PAIN_POINTS = ['Manual bank details', 'Lost orders', 'Low trust'];
-const LANDING_FEATURES = FEATURE_CATALOG.slice(0, 6);
-
-function EnLandingPageInner() {
-  const sp = useSearchParams();
-  const unauthorized = sp.get('unauthorized') === '1';
-
+export default function Home() {
   return (
-    <main dir="ltr" className="text-foreground bg-card text-card-foreground">
-      <section
-        className="relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #1B3A6B 0%, #2A5298 100%)' }}
-      >
-        <div className="mx-auto max-w-6xl px-6 pb-16 pt-8 sm:pb-24 sm:pt-10">
-          <div className="rounded-2xl border border-white/15 bg-card text-card-foreground/5 px-4 py-3 shadow-lg backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <a
-                href="https://kaffza.me"
-                className="text-xl font-extrabold text-white transition hover:text-muted-foreground"
-                aria-label="Kaffza"
-              >
-                Kaffza
-              </a>
-              <div className="flex flex-wrap items-center gap-4 text-sm">
-                <Link href="/en/features" className="font-bold text-muted-foreground hover:text-white">
-                  Features
-                </Link>
-                <Link href="/en/pricing" className="font-bold text-muted-foreground hover:text-white">
-                  Pricing
-                </Link>
-                <Link href="/en/contact" className="font-bold text-muted-foreground hover:text-white">
-                  Support
-                </Link>
-                <Link
-                  href="/en/merchant/login"
-                  className="font-bold text-muted-foreground hover:text-white"
-                >
-                  Merchant Login
-                </Link>
-                <Link href="/en/login" className="font-bold text-muted-foreground hover:text-white">
-                  Customer Login
-                </Link>
-                <Link href="/en/merchant/register" className="inline-flex">
-                  <Button className="h-9 border border-white/60 bg-card text-card-foreground !px-4 !py-0 !text-[#1B3A6B] shadow-sm hover:bg-slate-100">
-                    Start now
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center">
+      {/* Glowing Gradients */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/30 rounded-full blur-[120px] -z-20 pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/30 rounded-full blur-[120px] -z-20 pointer-events-none" />
 
-          {unauthorized ? (
-            <div className="mt-6 rounded-2xl border border-white/20 bg-card text-card-foreground/10 p-4 text-sm font-bold text-white">
-              Unauthorized
-            </div>
-          ) : null}
-
-          <div className="mt-12 grid gap-10 lg:grid-cols-2 lg:items-center">
-            <div>
-              <div className="inline-flex rounded-full border border-white/20 bg-card text-card-foreground/10 px-4 py-1.5 text-xs font-bold text-white/90">
-                Built for Oman merchants and local buying behavior
-              </div>
-              <div className="mt-5 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                {PAIN_POINTS.map((pain) => (
-                  <span key={pain} className="rounded-full bg-card text-card-foreground/10 px-3 py-1">
-                    {pain}
-                  </span>
-                ))}
-              </div>
-
-              <h1 className="mt-4 text-4xl font-extrabold leading-tight text-white sm:text-5xl sm:leading-tight">
-                Launch your Oman online store in 10 minutes
-              </h1>
-              <p className="mt-5 max-w-xl text-base leading-7 text-white/85 sm:text-lg">
-                Kaffza gives you a production-ready store, local Thawani payment, and Escrow
-                protection to increase conversion with trust.
-              </p>
-
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/en/merchant/register">
-                  <Button className="border border-white/60 bg-card text-card-foreground !text-[#1B3A6B] shadow-sm hover:bg-slate-100">
-                    Register as merchant
-                  </Button>
-                </Link>
-                <Link href="/en/pricing" className="inline-flex">
-                  <Button
-                    variant="secondary"
-                    className="border-white/40 bg-card text-card-foreground/10 !text-white hover:bg-card text-card-foreground/20"
-                  >
-                    Compare plans
-                  </Button>
-                </Link>
-              </div>
-
-              <p className="mt-4 text-xs text-white/75">No credit card required • Fast setup</p>
-
-              <div className="mt-8 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                {TRUST_CATALOG.map((item) => (
-                  <Link
-                    key={item.slug}
-                    href={`/en/trust/${item.slug}`}
-                    className="rounded-full bg-card text-card-foreground/10 px-3 py-1 hover:bg-card text-card-foreground/20"
-                  >
-                    {getTrustTitle(item, true)}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute -left-10 -top-10 h-56 w-56 rounded-full bg-card text-card-foreground/10 blur-2xl" />
-              <div className="absolute -bottom-10 -right-10 h-56 w-56 rounded-full bg-card text-card-foreground/10 blur-2xl" />
-              <div className="relative rounded-3xl border border-white/20 bg-card text-card-foreground/10 p-6 backdrop-blur sm:p-7">
-                <div className="text-sm font-extrabold text-white">Why Kaffza?</div>
-                <div className="mt-4 grid gap-3">
-                  <Stat label="Setup" value="10 min" />
-                  <Stat label="Payments" value="Thawani" />
-                  <Stat label="Protection" value="Escrow" />
-                </div>
-                <div className="mt-6 rounded-2xl bg-card text-card-foreground/10 p-4 text-xs leading-6 text-white/85">
-                  Faster launch + reliable checkout + practical operations tools in one place.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="pain" className="mx-auto max-w-6xl px-6 py-14">
-        <div className="max-w-2xl">
-          <h2 className="text-primary text-2xl font-extrabold">
-            Do these problems sound familiar?
-          </h2>
-          <p className="text-muted-foreground mt-2 text-sm">
-            These are the most common blockers when selling without a structured storefront.
-          </p>
-        </div>
-
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {PAIN_POINTS.map((pain) => (
-            <div
-              key={pain}
-              className="rounded-2xl border border-border bg-card text-card-foreground p-6 text-center shadow-sm"
-            >
-              <div className="text-primary text-lg font-extrabold">{pain}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="features" className="bg-background">
-        <div className="mx-auto max-w-6xl px-6 py-14">
-          <div className="max-w-2xl">
-            <h2 className="text-primary text-2xl font-extrabold">
-              6 core features in Kaffza
-            </h2>
-            <p className="text-foreground/80 mt-2 text-sm">
-              Click any feature card to open a detailed explanation page.
+      {/* Hero Section */}
+      <section className="relative w-full max-w-7xl mx-auto px-6 pt-32 pb-20 md:pt-48 flex flex-col md:flex-row items-center">
+        <Hero3D />
+        
+        <div className="md:w-1/2 flex flex-col items-start text-left z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-foreground mb-6">
+              E-Commerce, <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600">
+                Reinvented.
+              </span>
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-lg">
+              Kaffza platform gives you everything you need to launch your online store, manage disputes, and receive payments easily and securely.
             </p>
-          </div>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {LANDING_FEATURES.map((feature, idx) => (
+            <div className="flex gap-4">
               <Link
-                key={feature.slug}
-                href={`/en/features/${feature.slug}`}
-                className="rounded-2xl border border-border bg-card text-card-foreground p-6 transition hover:-translate-y-0.5 hover:shadow-md"
+                href="/en/merchant/login"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all hover:scale-105"
               >
-                <div className="text-primary text-3xl font-extrabold">{idx + 1}</div>
-                <div className="text-primary mt-3 text-sm font-extrabold">
-                  {feature.titleEn}
-                </div>
-                <div className="text-foreground/80 mt-2 text-sm">{feature.summaryEn}</div>
+                Start Free Now
               </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="pricing" className="mx-auto max-w-6xl px-6 py-14">
-        <div className="max-w-2xl">
-          <h2 className="text-primary text-2xl font-extrabold">Pricing</h2>
-          <p className="text-muted-foreground mt-2 text-sm">
-            Clear plan options by growth stage with transparent fees and actions.
-          </p>
-        </div>
-
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {PLAN_CATALOG.map((p) => (
-            <div
-              key={p.slug}
-              className={
-                'flex h-full flex-col rounded-2xl border bg-card text-card-foreground p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ' +
-                (p.popular ? 'border-[#F5A623] ring-1 ring-[#F5A623]/30' : 'border-border')
-              }
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="text-primary text-sm font-extrabold">{p.name}</div>
-                  <div className="text-muted-foreground mt-1 text-xs">{getPlanSubtitle(p, true)}</div>
-                </div>
-                {p.popular ? (
-                  <span className="rounded-full bg-[#F5A623] px-3 py-1 text-[11px] font-extrabold text-white">
-                    Most popular
-                  </span>
-                ) : null}
-              </div>
-
-              <div className="text-kaffza-info mt-4 text-3xl font-extrabold">
-                {p.priceOmr} OMR{' '}
-                <span className="text-muted-foreground text-sm font-bold">/month</span>
-              </div>
-              <div className="text-muted-foreground mt-1 text-xs">Commission: {p.commission}</div>
-
-              <ul className="text-foreground/80 mt-5 flex-1 space-y-2 text-sm">
-                {getPlanNotes(p, true).map((x) => (
-                  <li key={x} className="flex items-start gap-2">
-                    <span className="text-primary mt-0.5">✓</span>
-                    <span>{x}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <PlanCardActions slug={p.slug} isEn />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="bg-background">
-        <div className="mx-auto max-w-6xl px-6 py-14">
-          <div className="max-w-2xl">
-            <h2 className="text-primary text-2xl font-extrabold">Trust & Safety</h2>
-            <p className="text-muted-foreground mt-2 text-sm">
-              Credibility blocks that improve checkout confidence for both merchant and customer.
-            </p>
-          </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            {TRUST_CATALOG.map((item) => (
               <Link
-                key={item.slug}
-                href={`/en/trust/${item.slug}`}
-                className="rounded-2xl border border-border bg-card text-card-foreground p-6 transition hover:-translate-y-0.5 hover:shadow-md"
+                href="/en/pricing"
+                className="bg-accent text-accent-foreground hover:bg-muted font-bold py-3 px-8 rounded-full border border-border transition-all hover:scale-105"
               >
-                <div className="text-primary text-sm font-extrabold">
-                  {getTrustTitle(item, true)}
-                </div>
-                <div className="text-foreground/80 mt-2 text-sm leading-6">
-                  {getTrustSummary(item, true)}
-                </div>
-                <ul className="text-muted-foreground mt-3 space-y-1 text-xs">
-                  {getTrustPoints(item, true)
-                    .slice(0, 2)
-                    .map((point) => (
-                      <li key={point}>• {point}</li>
-                    ))}
-                </ul>
+                Discover Plans
               </Link>
-            ))}
-          </div>
-          <div className="mt-6">
-            <Link className="text-primary text-sm font-bold underline" href="/en/trust">
-              View all Trust & Safety pages
-            </Link>
-          </div>
+            </div>
+          </motion.div>
         </div>
       </section>
-
-      <footer className="border-t border-border bg-card text-card-foreground">
-        <div className="mx-auto max-w-6xl px-6 py-10">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <a
-                href="https://kaffza.me"
-                className="text-primary text-lg font-extrabold transition hover:opacity-80"
-              >
-                Kaffza
-              </a>
-              <div className="text-muted-foreground mt-2 text-sm">
-                Oman e-commerce platform — Ship or die.
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-4 text-sm">
-              <Link className="text-primary font-bold underline" href="/en/legal/privacy">
-                Privacy Policy
-              </Link>
-              <Link className="text-primary font-bold underline" href="/en/legal/terms">
-                Terms & Conditions
-              </Link>
-              <Link className="text-primary font-bold underline" href="/en/features">
-                Features
-              </Link>
-              <Link className="text-primary font-bold underline" href="/en/pricing">
-                Pricing
-              </Link>
-              <Link className="text-primary font-bold underline" href="/en/contact">
-                Contact Us
-              </Link>
-            </div>
-          </div>
-
-          <div className="text-muted-foreground mt-8 text-xs">
-            © 2025 Kaffza Al-Nahda Technologies L.L.C
-          </div>
-        </div>
-      </footer>
-    </main>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-2xl bg-card text-card-foreground/10 px-4 py-3 text-white">
-      <div className="text-xs font-bold text-muted-foreground">{label}</div>
-      <div className="text-sm font-extrabold">{value}</div>
     </div>
-  );
-}
-
-export default function EnLandingPage() {
-  return (
-    <Suspense>
-      <EnLandingPageInner />
-    </Suspense>
   );
 }
