@@ -137,7 +137,7 @@ export function SocialAuthButtons({
         type="button"
         onClick={loginWithGoogle}
         disabled={loading !== null}
-        className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-bold text-[#1B3A6B] hover:bg-slate-50 disabled:opacity-60"
+        className="rounded-xl border border-border bg-card text-card-foreground px-4 py-2 text-sm font-bold text-[#1B3A6B] hover:bg-slate-50 disabled:opacity-60"
       >
         {loading === 'google'
           ? locale === 'ar'
@@ -149,7 +149,7 @@ export function SocialAuthButtons({
         type="button"
         onClick={loginWithApple}
         disabled={loading !== null}
-        className="rounded-xl border border-black/10 bg-black px-4 py-2 text-sm font-bold text-white hover:bg-black/90 disabled:opacity-60"
+        className="rounded-xl border border-border bg-black px-4 py-2 text-sm font-bold text-white hover:bg-black/90 disabled:opacity-60"
       >
         {loading === 'apple'
           ? locale === 'ar'

@@ -10,7 +10,7 @@ COPY packages/types/package.json ./packages/types/
 COPY packages/validators/package.json ./packages/validators/
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npm install -g pnpm && pnpm install
 
 COPY . .
 

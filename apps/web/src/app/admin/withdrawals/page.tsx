@@ -46,8 +46,8 @@ export default function AdminWithdrawalsPage() {
     <div dir="rtl" className="space-y-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-kaffza-primary">إدارة السحوبات</h1>
-          <p className="mt-1 text-sm text-kaffza-text/80">مراجعة طلبات سحب التجار والموافقة أو الرفض.</p>
+          <h1 className="text-2xl font-extrabold text-primary">إدارة السحوبات</h1>
+          <p className="mt-1 text-sm text-foreground/80">مراجعة طلبات سحب التجار والموافقة أو الرفض.</p>
         </div>
         <Button variant="secondary" onClick={load} disabled={loading}>تحديث</Button>
       </div>
@@ -57,33 +57,33 @@ export default function AdminWithdrawalsPage() {
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-kaffza-bg">
+            <thead className="bg-background">
               <tr className="text-right">
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">المتجر</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">المبلغ</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الحالة</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">التاريخ</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الإجراء</th>
+                <th className="px-4 py-3 font-extrabold text-primary">المتجر</th>
+                <th className="px-4 py-3 font-extrabold text-primary">المبلغ</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الحالة</th>
+                <th className="px-4 py-3 font-extrabold text-primary">التاريخ</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الإجراء</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="px-4 py-6 text-kaffza-text/70">جاري التحميل...</td></tr>
+                <tr><td colSpan={5} className="px-4 py-6 text-muted-foreground">جاري التحميل...</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-6 text-kaffza-text/70">لا يوجد طلبات سحب حالياً.</td></tr>
+                <tr><td colSpan={5} className="px-4 py-6 text-muted-foreground">لا يوجد طلبات سحب حالياً.</td></tr>
               ) : rows.map((w) => (
-                <tr key={String(w.id)} className="border-t border-black/5">
-                  <td className="px-4 py-3 text-kaffza-text/80">{w.wallet?.store?.subdomain || '-'}</td>
-                  <td className="px-4 py-3 font-bold text-kaffza-text">{Number(w.amount || 0).toFixed(3)} ر.ع</td>
+                <tr key={String(w.id)} className="border-t border-border">
+                  <td className="px-4 py-3 text-foreground/80">{w.wallet?.store?.subdomain || '-'}</td>
+                  <td className="px-4 py-3 font-bold text-foreground">{Number(w.amount || 0).toFixed(3)} ر.ع</td>
                   <td className="px-4 py-3">{String(w.status || '-')}</td>
-                  <td className="px-4 py-3 text-kaffza-text/70">{formatDate(w.createdAt)}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{formatDate(w.createdAt)}</td>
                   <td className="px-4 py-3">
                     {String(w.status).toLowerCase() === 'pending' ? (
                       <div className="flex gap-2">
                         <Button onClick={() => decide(String(w.id), true)}>موافقة</Button>
                         <Button variant="secondary" onClick={() => decide(String(w.id), false)}>رفض</Button>
                       </div>
-                    ) : <span className="text-xs text-kaffza-text/60">—</span>}
+                    ) : <span className="text-xs text-muted-foreground">—</span>}
                   </td>
                 </tr>
               ))}

@@ -108,7 +108,7 @@ function StatusBadge({ status }: { status: string }) {
     blocked: { cls: 'bg-rose-100 text-rose-800 border-rose-200', label: 'محظور' },
   };
   const { cls, label } = map[s] ?? {
-    cls: 'bg-slate-100 text-slate-700 border-slate-200',
+    cls: 'bg-slate-100 text-slate-700 border-border',
     label: status,
   };
   return (
@@ -125,7 +125,7 @@ function ThawaniBadge({ ready }: { ready: boolean }) {
       ✓ مُفعَّل
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-500">
+    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-500">
       غير مُفعَّل
     </span>
   );
@@ -276,7 +276,7 @@ export default function AdminMerchants() {
                         <div className="flex items-center gap-2">
                           <a
                             href={`/admin/merchants/${row.id}`}
-                            className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                            className="rounded-lg border border-border px-3 py-1 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                           >
                             عرض التفاصيل
                           </a>

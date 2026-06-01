@@ -56,15 +56,15 @@ export default function EnPlanCartPage() {
   return (
     <main dir="ltr" className="mx-auto max-w-5xl px-6 py-12">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-kaffza-primary text-3xl font-extrabold">Plan Cart</h1>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/en/plans">
+        <h1 className="text-primary text-3xl font-extrabold">Plan Cart</h1>
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/en/plans">
           Back to plans
         </Link>
       </div>
 
       {rows.length === 0 ? (
         <Card className="mt-8 p-6 text-center">
-          <p className="text-kaffza-text/80 text-sm">Your cart is empty.</p>
+          <p className="text-foreground/80 text-sm">Your cart is empty.</p>
           <div className="mt-4">
             <Link href="/en/plans">
               <Button>Browse plans</Button>
@@ -75,17 +75,17 @@ export default function EnPlanCartPage() {
         <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
           <div className="grid gap-4">
             {rows.map((row) => (
-              <Card key={row.slug} className="border-black/10 p-5 shadow-sm">
+              <Card key={row.slug} className="border-border p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-kaffza-primary font-extrabold">{row.plan.name}</div>
-                    <div className="text-kaffza-text/70 mt-1 text-xs">
+                    <div className="text-primary font-extrabold">{row.plan.name}</div>
+                    <div className="text-muted-foreground mt-1 text-xs">
                       {getPlanSubtitle(row.plan, true)}
                     </div>
-                    <div className="text-kaffza-text/70 mt-1 text-xs">
+                    <div className="text-muted-foreground mt-1 text-xs">
                       {row.quantity} × {row.plan.priceOmr} OMR
                     </div>
-                    <div className="text-kaffza-text/75 mt-2 inline-flex rounded-full border border-black/10 px-2 py-1 text-[11px] font-bold">
+                    <div className="text-foreground/75 mt-2 inline-flex rounded-full border border-border px-2 py-1 text-[11px] font-bold">
                       Monthly subscription
                     </div>
                   </div>
@@ -104,16 +104,16 @@ export default function EnPlanCartPage() {
             ))}
           </div>
 
-          <Card className="border-black/10 p-5 shadow-sm lg:sticky lg:top-20">
+          <Card className="border-border p-5 shadow-sm lg:sticky lg:top-20">
             <div className="flex items-center justify-between">
-              <span className="text-kaffza-text/70 text-sm">Items</span>
-              <span className="text-kaffza-primary font-extrabold">{totalItems}</span>
+              <span className="text-muted-foreground text-sm">Items</span>
+              <span className="text-primary font-extrabold">{totalItems}</span>
             </div>
             <div className="mt-3 flex items-center justify-between">
-              <span className="text-kaffza-primary font-extrabold">Total</span>
+              <span className="text-primary font-extrabold">Total</span>
               <span className="text-kaffza-info text-2xl font-extrabold">{total} OMR</span>
             </div>
-            <p className="text-kaffza-text/70 mt-3 text-xs">
+            <p className="text-muted-foreground mt-3 text-xs">
               {total === 0
                 ? 'This is a free plan and can be activated immediately without payment.'
                 : 'Your selected plan is activated immediately after successful payment.'}

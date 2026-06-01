@@ -157,13 +157,13 @@ export function RecentOrdersTable({
   isEn = false,
 }: RecentOrdersTableProps) {
   return (
-    <div className="overflow-hidden rounded-xl border border-black/5 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-black/5 px-5 py-4">
+    <div className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm">
+      <div className="flex items-center justify-between border-b border-border px-5 py-4">
         <div>
-          <h2 className="text-kaffza-primary text-base font-extrabold">
+          <h2 className="text-primary text-base font-extrabold">
             {isEn ? 'Recent Orders' : 'آخر الطلبات'}
           </h2>
-          <p className="text-kaffza-text/60 mt-0.5 text-xs">
+          <p className="text-muted-foreground mt-0.5 text-xs">
             {loading
               ? isEn
                 ? 'Loading...'
@@ -175,7 +175,7 @@ export function RecentOrdersTable({
         </div>
         <Link
           href={withLang('/dashboard/orders', isEn)}
-          className="bg-kaffza-bg text-kaffza-primary hover:bg-kaffza-primary/10 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors"
+          className="bg-background text-primary hover:bg-primary/10 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors"
         >
           {isEn ? 'View all' : 'عرض الكل'}
         </Link>
@@ -183,24 +183,24 @@ export function RecentOrdersTable({
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-kaffza-bg">
+          <thead className="bg-background">
             <tr className={isEn ? 'text-left' : 'text-right'}>
-              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
+              <th className="text-foreground/80 whitespace-nowrap px-5 py-3 font-bold">
                 {isEn ? 'Order #' : 'رقم الطلب'}
               </th>
-              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
+              <th className="text-foreground/80 whitespace-nowrap px-5 py-3 font-bold">
                 {isEn ? 'Customer' : 'العميل'}
               </th>
-              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
+              <th className="text-foreground/80 whitespace-nowrap px-5 py-3 font-bold">
                 {isEn ? 'Date' : 'التاريخ'}
               </th>
-              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
+              <th className="text-foreground/80 whitespace-nowrap px-5 py-3 font-bold">
                 {isEn ? 'Total' : 'الإجمالي'}
               </th>
-              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
+              <th className="text-foreground/80 whitespace-nowrap px-5 py-3 font-bold">
                 {isEn ? 'Status' : 'الحالة'}
               </th>
-              <th className="text-kaffza-text/80 whitespace-nowrap px-5 py-3 font-bold">
+              <th className="text-foreground/80 whitespace-nowrap px-5 py-3 font-bold">
                 {isEn ? 'Action' : 'إجراء'}
               </th>
             </tr>
@@ -208,7 +208,7 @@ export function RecentOrdersTable({
           <tbody>
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-t border-black/5">
+                <tr key={i} className="border-t border-border">
                   {Array.from({ length: 6 }).map((__, j) => (
                     <td key={j} className="px-5 py-3">
                       <span className="inline-block h-4 w-24 animate-pulse rounded bg-black/10" />
@@ -218,7 +218,7 @@ export function RecentOrdersTable({
               ))
             ) : orders.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-kaffza-text/60 px-5 py-8 text-center text-sm">
+                <td colSpan={6} className="text-muted-foreground px-5 py-8 text-center text-sm">
                   {isEn ? 'No recent orders' : 'لا توجد طلبات حديثة'}
                 </td>
               </tr>
@@ -226,16 +226,16 @@ export function RecentOrdersTable({
               orders.map((order) => (
                 <tr
                   key={String(order.id)}
-                  className="hover:bg-kaffza-bg/50 border-t border-black/5 transition-colors"
+                  className="hover:bg-background/50 border-t border-border transition-colors"
                 >
                   <td className="px-5 py-3">
-                    <span className="text-kaffza-text font-extrabold">{order.orderNumber}</span>
+                    <span className="text-foreground font-extrabold">{order.orderNumber}</span>
                   </td>
-                  <td className="text-kaffza-text/80 px-5 py-3">{order.customerName}</td>
-                  <td className="text-kaffza-text/60 px-5 py-3">
+                  <td className="text-foreground/80 px-5 py-3">{order.customerName}</td>
+                  <td className="text-muted-foreground px-5 py-3">
                     {formatDate(order.createdAt, isEn)}
                   </td>
-                  <td className="text-kaffza-primary px-5 py-3 font-bold">
+                  <td className="text-primary px-5 py-3 font-bold">
                     {Number(order.totalAmount).toFixed(3)} ر.ع
                   </td>
                   <td className="px-5 py-3">
@@ -244,7 +244,7 @@ export function RecentOrdersTable({
                   <td className="px-5 py-3">
                     <Link
                       href={withLang(`/dashboard/orders?id=${order.id}`, isEn)}
-                      className="border-kaffza-primary/30 text-kaffza-primary hover:bg-kaffza-primary rounded-lg border px-3 py-1 text-xs font-bold transition-colors hover:text-white"
+                      className="border-kaffza-primary/30 text-primary hover:bg-primary rounded-lg border px-3 py-1 text-xs font-bold transition-colors hover:text-white"
                     >
                       {isEn ? 'View details' : 'عرض التفاصيل'}
                     </Link>

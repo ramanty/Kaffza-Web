@@ -64,8 +64,8 @@ export default function AdminSettings() {
   return (
     <div dir="rtl" className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-kaffza-primary">إعدادات المنصة</h1>
-        <p className="mt-1 text-sm text-kaffza-text/80">إعدادات عامة للمنصة (Admin). يتم حفظها في Redis وتظهر فوراً في لوحة الإدارة.</p>
+        <h1 className="text-2xl font-extrabold text-primary">إعدادات المنصة</h1>
+        <p className="mt-1 text-sm text-foreground/80">إعدادات عامة للمنصة (Admin). يتم حفظها في Redis وتظهر فوراً في لوحة الإدارة.</p>
       </div>
 
       {msg ? (
@@ -130,7 +130,7 @@ export default function AdminSettings() {
               checked={!!form.maintenanceMode}
               onChange={(e) => setForm({ ...form, maintenanceMode: e.target.checked })}
             />
-            <label htmlFor="maint" className="text-sm font-bold text-kaffza-text">وضع الصيانة</label>
+            <label htmlFor="maint" className="text-sm font-bold text-foreground">وضع الصيانة</label>
           </div>
         </div>
 
@@ -150,7 +150,7 @@ export default function AdminSettings() {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-sm font-bold text-kaffza-text">{label}</span>
+      <span className="text-sm font-bold text-foreground">{label}</span>
       {children}
     </label>
   );

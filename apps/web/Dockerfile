@@ -25,7 +25,7 @@ COPY packages/validators/package.json ./packages/validators/
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 
 # Install all workspace dependencies with proper symlinks
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npm install -g pnpm && pnpm install
 
 # Copy all source files (node_modules already built above)
 COPY . .

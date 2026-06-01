@@ -106,14 +106,14 @@ function ForgotPasswordPageInner() {
   return (
     <main dir="rtl" className="mx-auto max-w-lg px-6 py-12">
       <div className="flex items-center justify-between">
-        <div className="text-kaffza-primary text-2xl font-extrabold">نسيت كلمة المرور</div>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/">
+        <div className="text-primary text-2xl font-extrabold">نسيت كلمة المرور</div>
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/">
           الرئيسية
         </Link>
       </div>
 
       <Card className="mt-6 p-6">
-        <div className="text-kaffza-text/80 text-sm">
+        <div className="text-foreground/80 text-sm">
           {step === 1
             ? 'أدخل رقم هاتفك وسنرسل لك OTP.'
             : step === 2
@@ -185,14 +185,14 @@ function ForgotPasswordPageInner() {
 
           <div className="flex items-center justify-between text-sm">
             <Link
-              className="text-kaffza-primary font-bold underline"
+              className="text-primary font-bold underline"
               href={`/login?next=${encodeURIComponent(next)}`}
             >
               رجوع لتسجيل الدخول
             </Link>
             {step > 1 ? (
               <button
-                className="text-kaffza-text/70 text-xs font-bold underline"
+                className="text-muted-foreground text-xs font-bold underline"
                 onClick={() => {
                   setStep(1);
                   setOtp('');
@@ -207,7 +207,7 @@ function ForgotPasswordPageInner() {
         </div>
       </Card>
 
-      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
+      <div className="text-foreground mt-6 flex flex-wrap gap-3 text-xs">
         <Link className="underline" href="/legal/terms">
           الشروط
         </Link>
@@ -222,14 +222,14 @@ function ForgotPasswordPageInner() {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );
 }
 
 function Hint({ children }: any) {
-  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
+  return <span className="text-muted-foreground text-xs">{children}</span>;
 }
 
 export default function ForgotPasswordPage() {

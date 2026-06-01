@@ -161,8 +161,8 @@ function CampaignsPageInner() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-kaffza-primary text-2xl font-extrabold">{t.title}</h1>
-        <p className="text-kaffza-text/70 mt-1 text-sm">{t.subtitle}</p>
+        <h1 className="text-primary text-2xl font-extrabold">{t.title}</h1>
+        <p className="text-muted-foreground mt-1 text-sm">{t.subtitle}</p>
       </header>
 
       {error ? (
@@ -172,7 +172,7 @@ function CampaignsPageInner() {
       ) : null}
 
       <Card className="space-y-4 p-5">
-        <h2 className="text-kaffza-primary text-base font-extrabold">{t.createTitle}</h2>
+        <h2 className="text-primary text-base font-extrabold">{t.createTitle}</h2>
         <div className="grid gap-3 md:grid-cols-2">
           <Input
             placeholder={t.nameAr}
@@ -252,7 +252,7 @@ function CampaignsPageInner() {
             ]}
           />
           <div className="grid gap-1">
-            <label className="text-kaffza-text text-xs font-bold">{t.startsAt}</label>
+            <label className="text-foreground text-xs font-bold">{t.startsAt}</label>
             <Input
               type="date"
               value={form.startsAt}
@@ -260,7 +260,7 @@ function CampaignsPageInner() {
             />
           </div>
           <div className="grid gap-1">
-            <label className="text-kaffza-text text-xs font-bold">{t.endsAt}</label>
+            <label className="text-foreground text-xs font-bold">{t.endsAt}</label>
             <Input
               type="date"
               value={form.endsAt}
@@ -278,11 +278,11 @@ function CampaignsPageInner() {
       </Card>
 
       <Card className="p-5">
-        <h2 className="text-kaffza-primary text-base font-extrabold">{t.listTitle}</h2>
+        <h2 className="text-primary text-base font-extrabold">{t.listTitle}</h2>
         <div className="mt-3 overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-kaffza-text/70 border-b border-black/10 text-right">
+              <tr className="text-muted-foreground border-b border-border text-right">
                 <th className="px-2 py-2">{isEn ? 'Campaign' : 'الحملة'}</th>
                 <th className="px-2 py-2">{t.channel}</th>
                 <th className="px-2 py-2">{t.audience}</th>
@@ -292,7 +292,7 @@ function CampaignsPageInner() {
             </thead>
             <tbody>
               {campaigns.map((c) => (
-                <tr key={c.id} className="border-b border-black/5">
+                <tr key={c.id} className="border-b border-border">
                   <td className="px-2 py-2 font-semibold">{isEn ? c.nameEn : c.nameAr}</td>
                   <td className="px-2 py-2">{c.channel.toUpperCase()}</td>
                   <td className="px-2 py-2">{c.audience}</td>
@@ -305,7 +305,7 @@ function CampaignsPageInner() {
               ))}
               {!loading && campaigns.length === 0 ? (
                 <tr>
-                  <td className="text-kaffza-text/60 px-2 py-4" colSpan={5}>
+                  <td className="text-muted-foreground px-2 py-4" colSpan={5}>
                     {t.empty}
                   </td>
                 </tr>
@@ -320,7 +320,7 @@ function CampaignsPageInner() {
 
 export default function CampaignsPage() {
   return (
-    <Suspense fallback={<div className="text-kaffza-text/60 text-sm">...</div>}>
+    <Suspense fallback={<div className="text-muted-foreground text-sm">...</div>}>
       <CampaignsPageInner />
     </Suspense>
   );
@@ -339,9 +339,9 @@ function SelectRow({
 }) {
   return (
     <div className="grid gap-1">
-      <label className="text-kaffza-text text-xs font-bold">{label}</label>
+      <label className="text-foreground text-xs font-bold">{label}</label>
       <select
-        className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold"
+        className="text-foreground rounded-lg border border-border bg-card text-card-foreground px-3 py-2 text-sm font-semibold"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >

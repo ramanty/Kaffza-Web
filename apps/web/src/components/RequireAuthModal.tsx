@@ -24,13 +24,13 @@ export function RequireAuthModal({
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/45 p-4">
       <div
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+        className="w-full max-w-md rounded-2xl bg-card text-card-foreground p-6 shadow-2xl"
         dir={isEn ? 'ltr' : 'rtl'}
       >
-        <h3 className="text-kaffza-primary text-lg font-extrabold">
+        <h3 className="text-primary text-lg font-extrabold">
           {isEn ? 'Login required' : 'تسجيل الدخول مطلوب'}
         </h3>
-        <p className="text-kaffza-text/80 mt-2 text-sm">
+        <p className="text-foreground/80 mt-2 text-sm">
           {isEn
             ? 'You need to register or login before completing the payment.'
             : 'تحتاج إلى التسجيل أو تسجيل الدخول قبل إكمال عملية الدفع.'}
@@ -48,7 +48,7 @@ export function RequireAuthModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-kaffza-text/70 mt-1 text-xs font-bold underline"
+            className="text-muted-foreground mt-1 text-xs font-bold underline"
           >
             {isEn ? 'Close' : 'إغلاق'}
           </button>

@@ -73,7 +73,7 @@ function PaySuccessInner() {
   return (
     <main dir={isEn ? 'ltr' : 'rtl'} className="mx-auto max-w-2xl px-6 py-12">
       <Card className="p-8">
-        <div className="text-kaffza-primary text-2xl font-extrabold">
+        <div className="text-primary text-2xl font-extrabold">
           {isEn ? 'Payment status' : 'نتيجة الدفع'}
         </div>
 
@@ -91,13 +91,13 @@ function PaySuccessInner() {
           </div>
         ) : null}
 
-        <div className="bg-kaffza-bg text-kaffza-text mt-4 rounded-xl p-4 text-sm">
+        <div className="bg-background text-foreground mt-4 rounded-xl p-4 text-sm">
           <div>
             {isEn ? 'Status: ' : 'الحالة: '}
-            <span className="text-kaffza-primary font-extrabold">{status}</span>
+            <span className="text-primary font-extrabold">{status}</span>
           </div>
           {invoice ? (
-            <div className="text-kaffza-text/70 mt-1 text-xs">Invoice: {invoice}</div>
+            <div className="text-muted-foreground mt-1 text-xs">Invoice: {invoice}</div>
           ) : null}
         </div>
         {status === 'paid' ? (
@@ -153,7 +153,7 @@ function PaySuccessInner() {
           ) : null}
         </div>
 
-        <div className="text-kaffza-text/70 mt-6 text-xs">
+        <div className="text-muted-foreground mt-6 text-xs">
           {isEn
             ? 'Note: In Sandbox mode, status may take a few seconds to update.'
             : 'ملاحظة: في وضع الاختبار (Sandbox) قد تتأخر الحالة عدة ثواني.'}

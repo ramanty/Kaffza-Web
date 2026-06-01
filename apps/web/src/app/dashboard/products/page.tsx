@@ -86,8 +86,8 @@ export default function ProductsPage() {
       {/* Page Header */}
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-kaffza-primary text-2xl font-extrabold">المنتجات</h1>
-          <p className="text-kaffza-text/80 mt-1 text-sm">
+          <h1 className="text-primary text-2xl font-extrabold">المنتجات</h1>
+          <p className="text-foreground/80 mt-1 text-sm">
             إدارة منتجات المتجر – عرض، إضافة، تعديل وحذف.
           </p>
           {!storeId && !storesLoading ? (
@@ -117,21 +117,21 @@ export default function ProductsPage() {
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-kaffza-bg">
+            <thead className="bg-background">
               <tr className="text-right">
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">الصورة</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">اسم المنتج</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">التصنيف</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">السعر</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">المخزون</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">الحالة</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">إجراءات</th>
+                <th className="text-primary px-4 py-3 font-extrabold">الصورة</th>
+                <th className="text-primary px-4 py-3 font-extrabold">اسم المنتج</th>
+                <th className="text-primary px-4 py-3 font-extrabold">التصنيف</th>
+                <th className="text-primary px-4 py-3 font-extrabold">السعر</th>
+                <th className="text-primary px-4 py-3 font-extrabold">المخزون</th>
+                <th className="text-primary px-4 py-3 font-extrabold">الحالة</th>
+                <th className="text-primary px-4 py-3 font-extrabold">إجراءات</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td className="text-kaffza-text/70 px-4 py-10 text-center" colSpan={7}>
+                  <td className="text-muted-foreground px-4 py-10 text-center" colSpan={7}>
                     <div className="flex flex-col items-center gap-2">
                       <span className="text-2xl">⏳</span>
                       <span>جاري التحميل...</span>
@@ -148,7 +148,7 @@ export default function ProductsPage() {
                 items.map((p) => (
                   <tr
                     key={p.id}
-                    className="hover:bg-kaffza-bg/50 border-t border-black/5 transition-colors"
+                    className="hover:bg-background/50 border-t border-border transition-colors"
                   >
                     {/* Image */}
                     <td className="px-4 py-3">
@@ -156,10 +156,10 @@ export default function ProductsPage() {
                         <img
                           src={p.images[0]}
                           alt={p.nameAr}
-                          className="h-12 w-12 rounded-lg border border-black/5 object-cover"
+                          className="h-12 w-12 rounded-lg border border-border object-cover"
                         />
                       ) : (
-                        <div className="bg-kaffza-bg flex h-12 w-12 items-center justify-center rounded-lg border border-black/5 text-2xl">
+                        <div className="bg-background flex h-12 w-12 items-center justify-center rounded-lg border border-border text-2xl">
                           📦
                         </div>
                       )}
@@ -167,24 +167,24 @@ export default function ProductsPage() {
 
                     {/* Name */}
                     <td className="px-4 py-3">
-                      <div className="text-kaffza-text font-bold">{p.nameAr}</div>
-                      <div className="text-kaffza-text/60 text-xs">{p.nameEn}</div>
+                      <div className="text-foreground font-bold">{p.nameAr}</div>
+                      <div className="text-muted-foreground text-xs">{p.nameEn}</div>
                     </td>
 
                     {/* Category */}
                     <td className="px-4 py-3">
                       {p.category ? (
-                        <span className="bg-kaffza-bg text-kaffza-primary inline-flex rounded-lg px-2 py-1 text-xs font-semibold">
+                        <span className="bg-background text-primary inline-flex rounded-lg px-2 py-1 text-xs font-semibold">
                           {p.category.nameAr || p.category.nameEn || '-'}
                         </span>
                       ) : (
-                        <span className="text-kaffza-text/50 text-xs">—</span>
+                        <span className="text-foreground/50 text-xs">—</span>
                       )}
                     </td>
 
                     {/* Price */}
                     <td className="px-4 py-3">
-                      <span className="text-kaffza-primary font-bold">
+                      <span className="text-primary font-bold">
                         {Number(p.price).toFixed(3)} ر.ع
                       </span>
                     </td>
@@ -192,7 +192,7 @@ export default function ProductsPage() {
                     {/* Stock */}
                     <td className="px-4 py-3">
                       <span
-                        className={`font-semibold ${p.stock === 0 ? 'text-red-600' : 'text-kaffza-text'}`}
+                        className={`font-semibold ${p.stock === 0 ? 'text-red-600' : 'text-foreground'}`}
                       >
                         {p.stock}
                       </span>
@@ -234,12 +234,12 @@ export default function ProductsPage() {
 function EmptyState({ storeId }: { storeId: string | null }) {
   return (
     <div className="flex flex-col items-center gap-4 py-4 text-center">
-      <div className="bg-kaffza-bg flex h-20 w-20 items-center justify-center rounded-2xl text-5xl">
+      <div className="bg-background flex h-20 w-20 items-center justify-center rounded-2xl text-5xl">
         📦
       </div>
       <div>
-        <h3 className="text-kaffza-text text-base font-extrabold">لا توجد منتجات بعد</h3>
-        <p className="text-kaffza-text/60 mt-1 text-sm">ابدأ بإضافة أول منتج لمتجرك وسيظهر هنا.</p>
+        <h3 className="text-foreground text-base font-extrabold">لا توجد منتجات بعد</h3>
+        <p className="text-muted-foreground mt-1 text-sm">ابدأ بإضافة أول منتج لمتجرك وسيظهر هنا.</p>
       </div>
       {storeId ? (
         <Link href="/dashboard/products/new">

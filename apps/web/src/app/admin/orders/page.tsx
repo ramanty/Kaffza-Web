@@ -48,8 +48,8 @@ export default function AdminOrders() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-kaffza-primary">كل الطلبات</h1>
-          <p className="mt-1 text-sm text-kaffza-text/80">بحث/فلترة ومتابعة طلبات المنصة.</p>
+          <h1 className="text-2xl font-extrabold text-primary">كل الطلبات</h1>
+          <p className="mt-1 text-sm text-foreground/80">بحث/فلترة ومتابعة طلبات المنصة.</p>
         </div>
         <Button variant="secondary" onClick={load} disabled={loading}>تحديث</Button>
       </div>
@@ -59,49 +59,49 @@ export default function AdminOrders() {
       <Card className="p-6">
         <div className="grid gap-3 md:grid-cols-3">
           <input
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
+            className="rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="بحث برقم الطلب"
           />
           <select
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
+            className="rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
             <option value="">كل الحالات</option>
             {STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          <div className="text-xs text-kaffza-text/70">النتائج: {rows.length}</div>
+          <div className="text-xs text-muted-foreground">النتائج: {rows.length}</div>
         </div>
       </Card>
 
       <Card className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-kaffza-bg">
+            <thead className="bg-background">
               <tr className="text-right">
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">رقم الطلب</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">العميل</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">التاجر</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">المتجر</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الإجمالي</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الحالة</th>
+                <th className="px-4 py-3 font-extrabold text-primary">رقم الطلب</th>
+                <th className="px-4 py-3 font-extrabold text-primary">العميل</th>
+                <th className="px-4 py-3 font-extrabold text-primary">التاجر</th>
+                <th className="px-4 py-3 font-extrabold text-primary">المتجر</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الإجمالي</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الحالة</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="px-4 py-6 text-kaffza-text/70">جاري التحميل...</td></tr>
+                <tr><td colSpan={6} className="px-4 py-6 text-muted-foreground">جاري التحميل...</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={6} className="px-4 py-6 text-kaffza-text/70">لا يوجد طلبات.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-6 text-muted-foreground">لا يوجد طلبات.</td></tr>
               ) : (
                 rows.map((o) => (
-                  <tr key={String(o.id)} className="border-t border-black/5">
-                    <td className="px-4 py-3 font-bold text-kaffza-text">{o.orderNumber}</td>
-                    <td className="px-4 py-3 text-kaffza-text/80">{o.customer?.name || '-'}</td>
-                    <td className="px-4 py-3 text-kaffza-text/80">{o.store?.owner?.name || '-'}</td>
-                    <td className="px-4 py-3 text-kaffza-text/80">{o.store?.nameAr || o.store?.subdomain || '-'}</td>
-                    <td className="px-4 py-3 text-kaffza-text/80">{formatOMR(Number(o.totalAmount))}</td>
+                  <tr key={String(o.id)} className="border-t border-border">
+                    <td className="px-4 py-3 font-bold text-foreground">{o.orderNumber}</td>
+                    <td className="px-4 py-3 text-foreground/80">{o.customer?.name || '-'}</td>
+                    <td className="px-4 py-3 text-foreground/80">{o.store?.owner?.name || '-'}</td>
+                    <td className="px-4 py-3 text-foreground/80">{o.store?.nameAr || o.store?.subdomain || '-'}</td>
+                    <td className="px-4 py-3 text-foreground/80">{formatOMR(Number(o.totalAmount))}</td>
                     <td className="px-4 py-3"><Badge status={o.status} /></td>
                   </tr>
                 ))

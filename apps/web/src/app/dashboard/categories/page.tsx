@@ -138,8 +138,8 @@ export default function DashboardCategoriesPage() {
     <div className="space-y-6" dir="rtl">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-kaffza-primary">التصنيفات</h1>
-          <p className="mt-1 text-sm text-kaffza-text/80">إدارة التصنيفات كهيكل شجرة (Parent → Children).</p>
+          <h1 className="text-2xl font-extrabold text-primary">التصنيفات</h1>
+          <p className="mt-1 text-sm text-foreground/80">إدارة التصنيفات كهيكل شجرة (Parent → Children).</p>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={load} disabled={loading}>
@@ -156,39 +156,39 @@ export default function DashboardCategoriesPage() {
       <Card className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-kaffza-bg">
+            <thead className="bg-background">
               <tr className="text-right">
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الاسم (AR)</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الاسم (EN)</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الأب</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">إجراءات</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الاسم (AR)</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الاسم (EN)</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الأب</th>
+                <th className="px-4 py-3 font-extrabold text-primary">إجراءات</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td className="px-4 py-6 text-kaffza-text/70" colSpan={4}>
+                  <td className="px-4 py-6 text-muted-foreground" colSpan={4}>
                     جاري التحميل...
                   </td>
                 </tr>
               ) : flat.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-6 text-kaffza-text/70" colSpan={4}>
+                  <td className="px-4 py-6 text-muted-foreground" colSpan={4}>
                     لا يوجد تصنيفات بعد.
                   </td>
                 </tr>
               ) : (
                 flat.map((r) => (
-                  <tr key={r.cat.id} className="border-t border-black/5">
+                  <tr key={r.cat.id} className="border-t border-border">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-kaffza-text/60" style={{ width: r.depth * 16 }} />
-                        {r.depth > 0 ? <span className="text-kaffza-text/50">↳</span> : null}
-                        <span className="font-bold text-kaffza-text">{r.cat.nameAr || '-'}</span>
+                        <span className="text-muted-foreground" style={{ width: r.depth * 16 }} />
+                        {r.depth > 0 ? <span className="text-foreground/50">↳</span> : null}
+                        <span className="font-bold text-foreground">{r.cat.nameAr || '-'}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-kaffza-text/80">{r.cat.nameEn || '-'}</td>
-                    <td className="px-4 py-3 text-kaffza-text/70">{r.parent ? (r.parent.nameAr || r.parent.nameEn) : '-'}</td>
+                    <td className="px-4 py-3 text-foreground/80">{r.cat.nameEn || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{r.parent ? (r.parent.nameAr || r.parent.nameEn) : '-'}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <Button variant="secondary" onClick={() => openEdit(r.cat)}>
@@ -219,7 +219,7 @@ export default function DashboardCategoriesPage() {
 
             <Field label="الأب (اختياري)">
               <select
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
+                className="rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
                 value={parentId}
                 onChange={(e) => setParentId(e.target.value)}
               >
@@ -265,10 +265,10 @@ function Modal({ title, children, onClose }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+      <div className="relative w-full max-w-md rounded-2xl bg-card text-card-foreground p-6 shadow-xl">
         <div className="flex items-start justify-between gap-2">
-          <div className="text-lg font-extrabold text-kaffza-primary">{title}</div>
-          <button className="text-sm font-bold text-kaffza-text/70" onClick={onClose}>
+          <div className="text-lg font-extrabold text-primary">{title}</div>
+          <button className="text-sm font-bold text-muted-foreground" onClick={onClose}>
             إغلاق
           </button>
         </div>
@@ -281,7 +281,7 @@ function Modal({ title, children, onClose }: any) {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-sm font-bold text-kaffza-text">{label}</span>
+      <span className="text-sm font-bold text-foreground">{label}</span>
       {children}
     </label>
   );

@@ -178,7 +178,7 @@ export default function OrderDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center" dir="rtl">
-        <div className="text-kaffza-text/70 flex flex-col items-center gap-3">
+        <div className="text-muted-foreground flex flex-col items-center gap-3">
           <span className="text-4xl">⏳</span>
           <p>جاري تحميل تفاصيل الطلب...</p>
         </div>
@@ -191,7 +191,7 @@ export default function OrderDetailPage() {
       <div className="flex min-h-[400px] items-center justify-center" dir="rtl">
         <div className="flex flex-col items-center gap-3 text-center">
           <span className="text-4xl">🔍</span>
-          <p className="text-kaffza-text font-bold">الطلب غير موجود</p>
+          <p className="text-foreground font-bold">الطلب غير موجود</p>
           <Link href="/dashboard/orders">
             <Button variant="secondary">← العودة للطلبات</Button>
           </Link>
@@ -209,16 +209,16 @@ export default function OrderDetailPage() {
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link href="/dashboard/orders">
-            <button className="text-kaffza-text hover:bg-kaffza-bg flex items-center gap-1 rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold transition-colors">
+            <button className="text-foreground hover:bg-background flex items-center gap-1 rounded-lg border border-border bg-card text-card-foreground px-3 py-2 text-sm font-semibold transition-colors">
               ← عودة
             </button>
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-kaffza-primary text-2xl font-extrabold">{order.orderNumber}</h1>
+              <h1 className="text-primary text-2xl font-extrabold">{order.orderNumber}</h1>
               <StatusPill status={order.status} />
             </div>
-            <p className="text-kaffza-text/70 mt-1 text-sm">
+            <p className="text-muted-foreground mt-1 text-sm">
               تفاصيل الطلب · {formatDate(order.createdAt)}
             </p>
           </div>
@@ -244,7 +244,7 @@ export default function OrderDetailPage() {
         <div className="space-y-6 lg:col-span-2">
           {/* Customer Details Card */}
           <Card className="p-6">
-            <h2 className="text-kaffza-primary mb-4 flex items-center gap-2 text-base font-extrabold">
+            <h2 className="text-primary mb-4 flex items-center gap-2 text-base font-extrabold">
               <span>👤</span> بيانات العميل
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -275,25 +275,25 @@ export default function OrderDetailPage() {
 
           {/* Order Items Card */}
           <Card className="overflow-hidden p-0">
-            <div className="border-b border-black/5 p-5">
-              <h2 className="text-kaffza-primary flex items-center gap-2 text-base font-extrabold">
+            <div className="border-b border-border p-5">
+              <h2 className="text-primary flex items-center gap-2 text-base font-extrabold">
                 <span>🛒</span> المنتجات المطلوبة
               </h2>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-kaffza-bg">
+                <thead className="bg-background">
                   <tr className="text-right">
-                    <th className="text-kaffza-primary px-5 py-3 font-extrabold">المنتج</th>
-                    <th className="text-kaffza-primary px-5 py-3 font-extrabold">سعر الوحدة</th>
-                    <th className="text-kaffza-primary px-5 py-3 font-extrabold">الكمية</th>
-                    <th className="text-kaffza-primary px-5 py-3 font-extrabold">الإجمالي</th>
+                    <th className="text-primary px-5 py-3 font-extrabold">المنتج</th>
+                    <th className="text-primary px-5 py-3 font-extrabold">سعر الوحدة</th>
+                    <th className="text-primary px-5 py-3 font-extrabold">الكمية</th>
+                    <th className="text-primary px-5 py-3 font-extrabold">الإجمالي</th>
                   </tr>
                 </thead>
                 <tbody>
                   {order.items.length === 0 ? (
                     <tr>
-                      <td className="text-kaffza-text/60 px-5 py-6 text-center" colSpan={4}>
+                      <td className="text-muted-foreground px-5 py-6 text-center" colSpan={4}>
                         لا توجد منتجات في هذا الطلب
                       </td>
                     </tr>
@@ -301,20 +301,20 @@ export default function OrderDetailPage() {
                     order.items.map((item) => (
                       <tr
                         key={item.id}
-                        className="hover:bg-kaffza-bg/40 border-t border-black/5 transition-colors"
+                        className="hover:bg-background/40 border-t border-border transition-colors"
                       >
                         <td className="px-5 py-4">
-                          <div className="text-kaffza-text font-semibold">{item.productName}</div>
+                          <div className="text-foreground font-semibold">{item.productName}</div>
                         </td>
-                        <td className="text-kaffza-text/80 px-5 py-4">
+                        <td className="text-foreground/80 px-5 py-4">
                           {item.unitPrice.toFixed(3)} ر.ع
                         </td>
                         <td className="px-5 py-4">
-                          <span className="bg-kaffza-bg text-kaffza-text inline-flex items-center justify-center rounded-lg px-3 py-1 text-xs font-bold">
+                          <span className="bg-background text-foreground inline-flex items-center justify-center rounded-lg px-3 py-1 text-xs font-bold">
                             ×{item.quantity}
                           </span>
                         </td>
-                        <td className="text-kaffza-primary px-5 py-4 font-bold">
+                        <td className="text-primary px-5 py-4 font-bold">
                           {item.totalPrice.toFixed(3)} ر.ع
                         </td>
                       </tr>
@@ -330,7 +330,7 @@ export default function OrderDetailPage() {
         <div className="space-y-6">
           {/* Payment Summary Card */}
           <Card className="p-5">
-            <h2 className="text-kaffza-primary mb-4 flex items-center gap-2 text-base font-extrabold">
+            <h2 className="text-primary mb-4 flex items-center gap-2 text-base font-extrabold">
               <span>💳</span> ملخص الدفع
             </h2>
 
@@ -344,10 +344,10 @@ export default function OrderDetailPage() {
               {taxAmount > 0 ? (
                 <SummaryRow label="الضريبة" value={`${taxAmount.toFixed(3)} ر.ع`} />
               ) : null}
-              <div className="border-t border-black/10 pt-3">
+              <div className="border-t border-border pt-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-kaffza-text font-extrabold">الإجمالي الكلي</span>
-                  <span className="text-kaffza-primary text-lg font-extrabold">
+                  <span className="text-foreground font-extrabold">الإجمالي الكلي</span>
+                  <span className="text-primary text-lg font-extrabold">
                     {order.totalAmount.toFixed(3)} ر.ع
                   </span>
                 </div>
@@ -355,8 +355,8 @@ export default function OrderDetailPage() {
             </div>
 
             {/* Thawani Payment Status */}
-            <div className="bg-kaffza-bg mt-5 rounded-xl border border-black/5 p-4">
-              <p className="text-kaffza-text/70 text-xs font-bold">حالة الدفع (ثواني)</p>
+            <div className="bg-background mt-5 rounded-xl border border-border p-4">
+              <p className="text-muted-foreground text-xs font-bold">حالة الدفع (ثواني)</p>
               <div className="mt-2 flex items-center gap-2">
                 <PaymentBadge status={paymentStatus} />
                 {paymentStatus === 'paid' ? (
@@ -369,11 +369,11 @@ export default function OrderDetailPage() {
 
             {/* Merchant earnings */}
             <div className="mt-4 rounded-xl border border-[#1B3A6B]/10 bg-[#1B3A6B]/5 p-4">
-              <p className="text-kaffza-primary/70 text-xs font-bold">صافي أرباحك</p>
-              <p className="text-kaffza-primary mt-1 text-xl font-extrabold">
+              <p className="text-primary/70 text-xs font-bold">صافي أرباحك</p>
+              <p className="text-primary mt-1 text-xl font-extrabold">
                 {order.merchantAmount.toFixed(3)} ر.ع
               </p>
-              <p className="text-kaffza-text/50 mt-1 text-xs">
+              <p className="text-foreground/50 mt-1 text-xs">
                 بعد خصم عمولة قفزة ({order.commissionAmount.toFixed(3)} ر.ع)
               </p>
             </div>
@@ -381,12 +381,12 @@ export default function OrderDetailPage() {
 
           {/* Status Control Card */}
           <Card className="p-5">
-            <h2 className="text-kaffza-primary mb-4 flex items-center gap-2 text-base font-extrabold">
+            <h2 className="text-primary mb-4 flex items-center gap-2 text-base font-extrabold">
               <span>🔄</span> تحديث حالة الطلب
             </h2>
 
             <div className="mb-3">
-              <p className="text-kaffza-text/60 mb-2 text-xs">الحالة الحالية</p>
+              <p className="text-muted-foreground mb-2 text-xs">الحالة الحالية</p>
               <StatusPill status={order.status} />
             </div>
 
@@ -402,7 +402,7 @@ export default function OrderDetailPage() {
                       ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
                       : opt.value === 'delivered'
                         ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
-                        : 'text-kaffza-primary border-[#1B3A6B]/20 bg-[#1B3A6B]/5 hover:bg-[#1B3A6B]/10')
+                        : 'text-primary border-[#1B3A6B]/20 bg-[#1B3A6B]/5 hover:bg-[#1B3A6B]/10')
                   }
                 >
                   {statusLoading ? '...' : `تحويل إلى: ${opt.label}`}
@@ -411,7 +411,7 @@ export default function OrderDetailPage() {
             </div>
 
             {!storeId ? (
-              <p className="text-kaffza-text/50 mt-3 text-center text-xs">
+              <p className="text-foreground/50 mt-3 text-center text-xs">
                 اختر متجرًا لتفعيل التحكم بالحالة
               </p>
             ) : null}
@@ -419,19 +419,19 @@ export default function OrderDetailPage() {
 
           {/* Order Meta */}
           <Card className="p-5">
-            <h2 className="text-kaffza-text/70 mb-4 text-sm font-extrabold">معلومات الطلب</h2>
-            <div className="text-kaffza-text/70 space-y-2 text-xs">
+            <h2 className="text-muted-foreground mb-4 text-sm font-extrabold">معلومات الطلب</h2>
+            <div className="text-muted-foreground space-y-2 text-xs">
               <div className="flex justify-between">
                 <span>رقم الطلب</span>
-                <span className="text-kaffza-text font-bold">{order.orderNumber}</span>
+                <span className="text-foreground font-bold">{order.orderNumber}</span>
               </div>
               <div className="flex justify-between">
                 <span>تاريخ الإنشاء</span>
-                <span className="text-kaffza-text font-bold">{formatDate(order.createdAt)}</span>
+                <span className="text-foreground font-bold">{formatDate(order.createdAt)}</span>
               </div>
               <div className="flex justify-between">
                 <span>آخر تحديث</span>
-                <span className="text-kaffza-text font-bold">{formatDate(order.updatedAt)}</span>
+                <span className="text-foreground font-bold">{formatDate(order.updatedAt)}</span>
               </div>
             </div>
           </Card>
@@ -470,8 +470,8 @@ function PaymentBadge({ status }: { status: 'paid' | 'pending' }) {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-kaffza-text/50 text-xs font-bold">{label}</p>
-      <p className="text-kaffza-text mt-0.5 text-sm font-semibold">{value || '—'}</p>
+      <p className="text-foreground/50 text-xs font-bold">{label}</p>
+      <p className="text-foreground mt-0.5 text-sm font-semibold">{value || '—'}</p>
     </div>
   );
 }
@@ -487,8 +487,8 @@ function SummaryRow({
 }) {
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-kaffza-text/70">{label}</span>
-      <span className={`font-semibold ${highlight ? 'text-green-600' : 'text-kaffza-text'}`}>
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`font-semibold ${highlight ? 'text-green-600' : 'text-foreground'}`}>
         {value}
       </span>
     </div>

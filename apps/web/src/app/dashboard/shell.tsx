@@ -1,33 +1,46 @@
 'use client';
 
-import { ReactNode, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { ReactNode, useEffect, useState } from 'react';
 import DashboardSidebar from './sidebar';
-import { Button } from '../../components/Button';
+import { usePathname, useRouter } from 'next/navigation';
 import { api } from '../../lib/api';
-import { authHeader, clearAuthCookiesClientSide } from '../../lib/auth';
-import { clearStoreCookie, useStore } from './store-context';
+import { authHeader } from '../../lib/auth';
+import { Button } from '../../components/Button';
+import { useStore } from './store-context';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const NAV_AR = [
+type NavItem = { href: string; label: string; icon?: string };
+
+const NAV_AR: NavItem[] = [
   { href: '/dashboard', label: 'نظرة عامة', icon: '📊' },
   { href: '/dashboard/products', label: 'المنتجات', icon: '📦' },
   { href: '/dashboard/categories', label: 'التصنيفات', icon: '🏷️' },
   { href: '/dashboard/orders', label: 'الطلبات', icon: '🧾' },
+  { href: '/dashboard/onboarding', label: 'الانطلاقة', icon: '🚀' },
+  { href: '/dashboard/growth', label: 'النمو', icon: '📣' },
+  { href: '/dashboard/campaigns', label: 'الحملات', icon: '🎯' },
+  { href: '/dashboard/analytics', label: 'التحليلات', icon: '📈' },
   { href: '/dashboard/shipping', label: 'الشحن', icon: '🚚' },
   { href: '/dashboard/disputes', label: 'النزاعات', icon: '⚖️' },
   { href: '/dashboard/wallet', label: 'المحفظة', icon: '👜' },
+  { href: '/dashboard/integrations', label: 'تطبيقات', icon: '🧩' },
   { href: '/dashboard/settings', label: 'الإعدادات', icon: '⚙️' },
 ];
 
-const NAV_EN = [
+const NAV_EN: NavItem[] = [
   { href: '/dashboard', label: 'Overview', icon: '📊' },
   { href: '/dashboard/products', label: 'Products', icon: '📦' },
   { href: '/dashboard/categories', label: 'Categories', icon: '🏷️' },
   { href: '/dashboard/orders', label: 'Orders', icon: '🧾' },
+  { href: '/dashboard/onboarding', label: 'Launch', icon: '🚀' },
+  { href: '/dashboard/growth', label: 'Growth', icon: '📣' },
+  { href: '/dashboard/campaigns', label: 'Campaigns', icon: '🎯' },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: '📈' },
   { href: '/dashboard/shipping', label: 'Shipping', icon: '🚚' },
   { href: '/dashboard/disputes', label: 'Disputes', icon: '⚖️' },
   { href: '/dashboard/wallet', label: 'Wallet', icon: '👜' },
+  { href: '/dashboard/integrations', label: 'Apps', icon: '🧩' },
   { href: '/dashboard/settings', label: 'Settings', icon: '⚙️' },
 ];
 
@@ -38,84 +51,57 @@ function isActive(pathname: string, href: string) {
 
 export default function DashboardShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() || '/dashboard';
+  const router = useRouter();
+  const [userName, setUserName] = useState('');
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [isEn, setIsEn] = useState(false);
+  
+  const { stores, storeId, setStoreId, loading: storesLoading, reloadStores } = useStore();
+
   const nav = isEn ? NAV_EN : NAV_AR;
   const withLang = (href: string) => (isEn ? `${href}?lang=en` : href);
-  const router = useRouter();
-
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [userName, setUserName] = useState<string>('');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     setIsEn(new URLSearchParams(window.location.search).get('lang') === 'en');
   }, [pathname]);
 
-  const { stores, storeId, setStoreId, loading: storesLoading, reload: reloadStores } = useStore();
-
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await api.get('/auth/me', { headers: { ...authHeader(), 'x-client': 'web' } });
-        const u = res?.data?.data;
-        setUserName(u?.name || u?.email || '');
-      } catch {
-        // ignore
-      }
-    })();
-  }, []);
+    let m = true;
+    api
+      .get('/auth/me', { headers: { ...authHeader(), 'x-client': 'web' } })
+      .then((res) => {
+        if (!m) return;
+        if (res.data.success && res.data.data?.name) {
+          setUserName(res.data.data.name);
+        } else {
+          router.replace('/merchant/login');
+        }
+      })
+      .catch(() => {
+        if (m) router.replace('/merchant/login');
+      });
+    return () => {
+      m = false;
+    };
+  }, [router]);
 
-  const activeLabel = useMemo(
-    () =>
-      nav.find((n) => isActive(pathname, n.href))?.label || (isEn ? 'Dashboard' : 'لوحة التحكم'),
-    [isEn, nav, pathname]
-  );
+  const logout = () => {
+    try { fetch((process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1') + '/auth/logout', { method: 'POST', headers: authHeader() }); } catch(e){}
+    router.replace('/');
+  };
 
-  async function logout() {
-    try {
-      await api.post('/auth/logout', {}, { headers: { 'x-client': 'web' } });
-    } catch {
-      try {
-        await api.post('/auth/refresh/revoke', {}, { headers: { 'x-client': 'web' } });
-      } catch {
-        // ignore
-      }
-    }
-
-    try {
-      clearAuthCookiesClientSide();
-      clearStoreCookie();
-    } catch {
-      // ignore
-    }
-
-    router.push(isEn ? '/en/merchant/login' : '/merchant/login');
-  }
+  const activeItem = nav.find((n) => isActive(pathname, n.href)) || nav[0];
+  const activeLabel = activeItem?.label || '';
 
   return (
-    <div className="bg-kaffza-bg text-kaffza-text flex h-full w-full flex-col">
-      <div className="hidden h-full md:flex md:flex-row-reverse">
+    <div className="flex h-screen w-full overflow-hidden bg-background">
+      {/* Desktop Sidebar */}
+      <div className="hidden sm:block">
         <DashboardSidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Header
-            title={activeLabel}
-            userName={userName}
-            onLogout={logout}
-            onOpenMobile={() => setMobileOpen(true)}
-            stores={stores}
-            storeId={storeId}
-            onChangeStore={(id) => setStoreId(id)}
-            storesLoading={storesLoading}
-            onReloadStores={() => reloadStores()}
-            isEn={isEn}
-          />
-          <main className="min-w-0 flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8">
-            <div className="mx-auto max-w-6xl">{children}</div>
-          </main>
-        </div>
       </div>
 
-      <div className="md:hidden">
+      <div className="flex flex-1 flex-col overflow-y-auto">
         <Header
           title={activeLabel}
           userName={userName}
@@ -130,28 +116,38 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
           isEn={isEn}
         />
 
-        {mobileOpen ? (
-          <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-            <div
-              dir={isEn ? 'ltr' : 'rtl'}
-              className="absolute right-0 top-0 h-full w-[82%] max-w-xs bg-[#1A2B4A] shadow-xl"
-            >
-              <div className="flex items-center justify-between border-b border-white/10 p-4">
-                <div className="text-kaffza-premium text-sm font-extrabold">
-                  {isEn ? 'Menu' : 'القائمة'}
+        <AnimatePresence>
+          {mobileOpen && (
+            <div className="fixed inset-0 z-50 sm:hidden">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                onClick={() => setMobileOpen(false)}
+              />
+              <motion.div
+                initial={{ x: isEn ? '-100%' : '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: isEn ? '-100%' : '100%' }}
+                transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
+                dir={isEn ? 'ltr' : 'rtl'}
+                className="absolute right-0 top-0 h-full w-[82%] max-w-xs bg-background shadow-xl border-l border-border flex flex-col"
+              >
+                <div className="flex items-center justify-between border-b border-border p-4">
+                  <div className="text-primary text-sm font-extrabold">
+                    {isEn ? 'Menu' : 'القائمة'}
+                  </div>
+                  <button
+                    className="text-sm font-bold text-muted-foreground hover:text-foreground"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {isEn ? 'Close' : 'إغلاق'}
+                  </button>
                 </div>
-                <button
-                  className="text-sm font-bold text-white/70"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {isEn ? 'Close' : 'إغلاق'}
-                </button>
-              </div>
 
-              <div className="border-b border-white/10 p-4">
-                <div className="text-xs font-bold text-white/70">{isEn ? 'Store' : 'المتجر'}</div>
-                <div className="mt-2">
+                <div className="border-b border-border p-4 bg-muted/20">
+                  <div className="text-xs font-bold text-muted-foreground mb-2">{isEn ? 'Store' : 'المتجر'}</div>
                   <StoreSwitcher
                     stores={stores}
                     storeId={storeId}
@@ -161,63 +157,64 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
                     isEn={isEn}
                   />
                 </div>
-              </div>
 
-              <nav className="p-3">
-                {nav.map((item) => {
-                  const active = isActive(pathname, item.href);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={withLang(item.href)}
-                      onClick={() => setMobileOpen(false)}
-                      className={
-                        'mb-1 flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ' +
-                        (active
-                          ? 'bg-kaffza-primary font-bold text-white'
-                          : 'text-white/80 hover:bg-white/10 hover:text-white')
-                      }
-                    >
-                      <span aria-hidden className="text-base">
-                        {item.icon}
-                      </span>
-                      <span className="font-semibold">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
+                <nav className="p-3 flex-1 overflow-y-auto space-y-1">
+                  {nav.map((item) => {
+                    const active = isActive(pathname, item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={withLang(item.href)}
+                        onClick={() => setMobileOpen(false)}
+                        className={
+                          'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ' +
+                          (active
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground')
+                        }
+                      >
+                        <span aria-hidden className="text-base">
+                          {item.icon}
+                        </span>
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </motion.div>
             </div>
-          </div>
-        ) : null}
+          )}
+        </AnimatePresence>
 
-        <main className="p-4">
+        <main className="p-4 sm:p-6 lg:p-8 flex-1">
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>
 
-        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/10 bg-white">
+        {/* Mobile bottom nav */}
+        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/80 backdrop-blur-md sm:hidden">
           <div className="mx-auto grid max-w-6xl grid-cols-5">
-            {nav.map((item) => {
+            {nav.slice(0, 5).map((item) => {
               const active = isActive(pathname, item.href);
               return (
                 <Link
                   key={item.href}
                   href={withLang(item.href)}
                   className={
-                    'flex flex-col items-center justify-center gap-1 px-2 py-2 text-[11px] ' +
-                    (active ? 'text-kaffza-primary' : 'text-kaffza-text/70')
+                    'flex flex-col items-center justify-center gap-1 px-1 py-2 text-[10px] sm:text-[11px] ' +
+                    (active ? 'text-primary' : 'text-muted-foreground')
                   }
                 >
                   <span className="text-base" aria-hidden>
                     {item.icon}
                   </span>
-                  <span className="font-bold">{item.label}</span>
+                  <span className="font-bold truncate w-full text-center">{item.label}</span>
                 </Link>
               );
             })}
           </div>
         </nav>
 
-        <div className="h-16" />
+        <div className="h-16 sm:hidden" />
       </div>
     </div>
   );
@@ -249,21 +246,23 @@ function Header({
   isEn: boolean;
 }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-black/10 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+    <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          {mobile ? (
-            <button
+          {mobile && (
+            <Button
+              variant="outline"
+              size="icon"
               onClick={onOpenMobile}
-              className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-bold"
+              className="sm:hidden"
               aria-label={isEn ? 'Open menu' : 'فتح القائمة'}
             >
               ☰
-            </button>
-          ) : null}
+            </Button>
+          )}
 
           <div className="min-w-0">
-            <div className="text-kaffza-text/70 truncate text-sm">
+            <div className="text-muted-foreground truncate text-xs sm:text-sm">
               {userName
                 ? isEn
                   ? `Hi, ${userName}`
@@ -272,10 +271,10 @@ function Header({
                   ? 'Merchant Dashboard'
                   : 'لوحة التاجر'}
             </div>
-            <div className="text-kaffza-primary truncate text-base font-extrabold">{title}</div>
+            <div className="text-foreground truncate text-lg sm:text-xl font-extrabold tracking-tight">{title}</div>
           </div>
 
-          <div className="hidden sm:block">
+          <div className="hidden sm:block mr-4 border-r border-border pr-4">
             <StoreSwitcher
               stores={stores}
               storeId={storeId}
@@ -292,17 +291,6 @@ function Header({
             {isEn ? 'Logout' : 'تسجيل خروج'}
           </Button>
         </div>
-      </div>
-
-      <div className="border-t border-black/10 px-4 py-3 sm:hidden">
-        <StoreSwitcher
-          stores={stores}
-          storeId={storeId}
-          onChange={onChangeStore}
-          loading={storesLoading}
-          onReload={onReloadStores}
-          isEn={isEn}
-        />
       </div>
     </header>
   );
@@ -333,10 +321,10 @@ function StoreSwitcher({
         : s.nameAr || s.nameEn || s.subdomain || s.id
       : '—';
     return (
-      <div className="bg-kaffza-bg text-kaffza-text flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
-        <span className="font-bold">{isEn ? 'Store:' : 'المتجر:'}</span>
-        <span className="text-kaffza-primary font-extrabold">{loading ? '...' : label}</span>
-        <button className="text-kaffza-text/70 underline" onClick={onReload}>
+      <div className="bg-muted/50 text-foreground flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs">
+        <span className="font-medium text-muted-foreground">{isEn ? 'Store:' : 'المتجر:'}</span>
+        <span className="font-bold truncate max-w-[150px]">{loading ? '...' : label}</span>
+        <button className="text-primary hover:underline ml-1" onClick={onReload}>
           {isEn ? 'Refresh' : 'تحديث'}
         </button>
       </div>
@@ -346,7 +334,7 @@ function StoreSwitcher({
   return (
     <div className="flex items-center gap-2">
       <select
-        className="text-kaffza-text max-w-[220px] rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
+        className="text-foreground max-w-[220px] rounded-md border border-input bg-background px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
         value={storeId || ''}
         onChange={(e) => onChange(e.target.value)}
         disabled={loading}
@@ -362,7 +350,7 @@ function StoreSwitcher({
           );
         })}
       </select>
-      <button className="text-kaffza-text/70 text-xs font-bold underline" onClick={onReload}>
+      <button className="text-primary text-xs font-medium hover:underline" onClick={onReload}>
         {isEn ? 'Refresh' : 'تحديث'}
       </button>
     </div>

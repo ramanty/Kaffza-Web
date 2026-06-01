@@ -211,8 +211,8 @@ function GrowthPageInner() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-kaffza-primary text-2xl font-extrabold">{t.title}</h1>
-          <p className="text-kaffza-text/70 mt-1 text-sm">{t.subtitle}</p>
+          <h1 className="text-primary text-2xl font-extrabold">{t.title}</h1>
+          <p className="text-muted-foreground mt-1 text-sm">{t.subtitle}</p>
         </div>
         <Link href={withLang('/dashboard/campaigns')}>
           <Button variant="secondary">{t.campaignsCta}</Button>
@@ -241,16 +241,16 @@ function GrowthPageInner() {
       ) : null}
 
       {loading && !initialLoadDone ? (
-        <Card className="space-y-3 border-black/10 p-6">
-          <div className="text-kaffza-primary text-sm font-bold">{t.loading}</div>
+        <Card className="space-y-3 border-border p-6">
+          <div className="text-primary text-sm font-bold">{t.loading}</div>
           <div className="h-3 w-48 animate-pulse rounded bg-black/10" />
           <div className="h-3 w-64 animate-pulse rounded bg-black/10" />
         </Card>
       ) : (
         <>
-          <Card className="border-black/10 p-4">
-            <div className="text-kaffza-primary text-sm font-extrabold">{t.readyTitle}</div>
-            <p className="text-kaffza-text/70 mt-1 text-sm">{t.readyState(enabledAutomations)}</p>
+          <Card className="border-border p-4">
+            <div className="text-primary text-sm font-extrabold">{t.readyTitle}</div>
+            <p className="text-muted-foreground mt-1 text-sm">{t.readyState(enabledAutomations)}</p>
           </Card>
 
           <Card className="space-y-5 p-6">
@@ -261,7 +261,7 @@ function GrowthPageInner() {
             />
 
             <div className="grid gap-2">
-              <label className="text-kaffza-text text-sm font-bold">{t.delayLabel}</label>
+              <label className="text-foreground text-sm font-bold">{t.delayLabel}</label>
               <Input
                 type="number"
                 min={5}
@@ -271,11 +271,11 @@ function GrowthPageInner() {
                   setForm((s) => ({ ...s, abandonedCartDelayMin: Number(e.target.value || 60) }))
                 }
               />
-              <p className="text-kaffza-text/60 text-xs">{t.delayHint}</p>
+              <p className="text-muted-foreground text-xs">{t.delayHint}</p>
             </div>
 
             <div>
-              <div className="text-kaffza-text text-sm font-bold">{t.channels}</div>
+              <div className="text-foreground text-sm font-bold">{t.channels}</div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {['sms', 'whatsapp', 'email'].map((ch) => {
                   const active = form.abandonedCartChannels.includes(ch);
@@ -287,8 +287,8 @@ function GrowthPageInner() {
                       className={
                         'rounded-lg border px-3 py-2 text-sm font-semibold ' +
                         (active
-                          ? 'border-kaffza-primary bg-kaffza-primary text-white'
-                          : 'text-kaffza-text border-slate-200 bg-white')
+                          ? 'border-kaffza-primary bg-primary text-white'
+                          : 'text-foreground border-border bg-card text-card-foreground')
                       }
                     >
                       {ch.toUpperCase()}
@@ -308,7 +308,7 @@ function GrowthPageInner() {
 
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="grid gap-2">
-                <label className="text-kaffza-text text-sm font-bold">{t.discountLabel}</label>
+                <label className="text-foreground text-sm font-bold">{t.discountLabel}</label>
                 <Input
                   type="number"
                   min={1}
@@ -323,7 +323,7 @@ function GrowthPageInner() {
                 />
               </div>
               <div className="grid gap-2">
-                <label className="text-kaffza-text text-sm font-bold">{t.timezoneLabel}</label>
+                <label className="text-foreground text-sm font-bold">{t.timezoneLabel}</label>
                 <Input
                   value={form.campaignTimezone || ''}
                   onChange={(e: any) =>
@@ -335,9 +335,9 @@ function GrowthPageInner() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="grid gap-2">
-                <label className="text-kaffza-text text-sm font-bold">{t.cadenceLabel}</label>
+                <label className="text-foreground text-sm font-bold">{t.cadenceLabel}</label>
                 <select
-                  className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold"
+                  className="text-foreground rounded-lg border border-border bg-card text-card-foreground px-3 py-2 text-sm font-semibold"
                   value={form.reminderCadencePreset}
                   onChange={(e) =>
                     setForm((s) => ({
@@ -352,9 +352,9 @@ function GrowthPageInner() {
                 </select>
               </div>
               <div className="grid gap-2">
-                <label className="text-kaffza-text text-sm font-bold">{t.scheduleLabel}</label>
+                <label className="text-foreground text-sm font-bold">{t.scheduleLabel}</label>
                 <select
-                  className="text-kaffza-text rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold"
+                  className="text-foreground rounded-lg border border-border bg-card text-card-foreground px-3 py-2 text-sm font-semibold"
                   value={form.campaignScheduleMode}
                   onChange={(e) =>
                     setForm((s) => ({
@@ -395,7 +395,7 @@ function GrowthPageInner() {
 
 export default function GrowthPage() {
   return (
-    <Suspense fallback={<div className="text-kaffza-text/60 text-sm">Loading...</div>}>
+    <Suspense fallback={<div className="text-muted-foreground text-sm">Loading...</div>}>
       <GrowthPageInner />
     </Suspense>
   );
@@ -411,18 +411,18 @@ function SwitchRow({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="bg-kaffza-bg flex items-center justify-between rounded-xl border border-black/5 px-4 py-3">
-      <span className="text-kaffza-text text-sm font-semibold">{label}</span>
+    <label className="bg-background flex items-center justify-between rounded-xl border border-border px-4 py-3">
+      <span className="text-foreground text-sm font-semibold">{label}</span>
       <button
         type="button"
         onClick={() => onChange(!checked)}
         className={
-          'h-7 w-12 rounded-full p-1 transition ' + (checked ? 'bg-kaffza-primary' : 'bg-slate-300')
+          'h-7 w-12 rounded-full p-1 transition ' + (checked ? 'bg-primary' : 'bg-slate-300')
         }
       >
         <span
           className={
-            'block h-5 w-5 rounded-full bg-white transition-transform ' +
+            'block h-5 w-5 rounded-full bg-card text-card-foreground transition-transform ' +
             (checked ? 'translate-x-5' : 'translate-x-0')
           }
         />

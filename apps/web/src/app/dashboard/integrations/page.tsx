@@ -207,8 +207,8 @@ export default function DashboardIntegrationsPage() {
   return (
     <div className="space-y-6" dir="rtl">
       <header>
-        <h1 className="text-kaffza-primary text-2xl font-extrabold">التكاملات | Integrations</h1>
-        <p className="text-kaffza-text/80 mt-1 text-sm">
+        <h1 className="text-primary text-2xl font-extrabold">التكاملات | Integrations</h1>
+        <p className="text-foreground/80 mt-1 text-sm">
           إدارة Webhooks و API Keys للشركاء والتطبيقات الخارجية.
         </p>
       </header>
@@ -224,8 +224,8 @@ export default function DashboardIntegrationsPage() {
       <Card className="space-y-4 p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="text-kaffza-primary text-sm font-extrabold">Webhook Endpoints</div>
-            <div className="text-kaffza-text/70 mt-1 text-xs">
+            <div className="text-primary text-sm font-extrabold">Webhook Endpoints</div>
+            <div className="text-muted-foreground mt-1 text-xs">
               يتم توقيع كل webhook باستخدام HMAC SHA-256 مع timestamp.
             </div>
           </div>
@@ -252,14 +252,14 @@ export default function DashboardIntegrationsPage() {
         </div>
 
         <div>
-          <div className="text-kaffza-text mb-2 text-sm font-bold">الأحداث | Events</div>
+          <div className="text-foreground mb-2 text-sm font-bold">الأحداث | Events</div>
           <div className="grid gap-2 md:grid-cols-2">
             {events.map((event) => {
               const selected = form.events.includes(event.code);
               return (
                 <label
                   key={event.code}
-                  className="flex items-center justify-between rounded-xl border border-black/10 px-3 py-2 text-sm"
+                  className="flex items-center justify-between rounded-xl border border-border px-3 py-2 text-sm"
                 >
                   <div>
                     <div>{event.labelAr}</div>
@@ -299,10 +299,10 @@ export default function DashboardIntegrationsPage() {
 
         <div className="space-y-2">
           {webhooks.map((hook) => (
-            <div key={hook.id} className="rounded-xl border border-black/10 p-3">
+            <div key={hook.id} className="rounded-xl border border-border p-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <div className="text-kaffza-primary font-bold">{hook.name}</div>
+                  <div className="text-primary font-bold">{hook.name}</div>
                   <div className="text-xs text-slate-600">{hook.url}</div>
                   <div className="mt-1 text-xs text-slate-500">
                     Events: {(hook.events || []).join(', ') || 'all'}
@@ -336,8 +336,8 @@ export default function DashboardIntegrationsPage() {
 
       <Card className="space-y-4 p-6">
         <div>
-          <div className="text-kaffza-primary text-sm font-extrabold">Integration API Keys</div>
-          <div className="text-kaffza-text/70 mt-1 text-xs">
+          <div className="text-primary text-sm font-extrabold">Integration API Keys</div>
+          <div className="text-muted-foreground mt-1 text-xs">
             مفاتيح للوصول الآمن لتكاملات الشركاء. التدوير والإيقاف مدعومان.
           </div>
         </div>
@@ -357,10 +357,10 @@ export default function DashboardIntegrationsPage() {
 
         <div className="space-y-2">
           {apiKeys.map((key) => (
-            <div key={key.id} className="rounded-xl border border-black/10 p-3">
+            <div key={key.id} className="rounded-xl border border-border p-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <div className="text-kaffza-primary font-bold">{key.name}</div>
+                  <div className="text-primary font-bold">{key.name}</div>
                   <div className="text-xs text-slate-600">Prefix: {key.keyPrefix}</div>
                   <div className="mt-1 text-xs text-slate-500">
                     الحالة: {key.isActive ? 'مفعّل' : 'موقوف'} • الإنشاء:{' '}
@@ -390,7 +390,7 @@ export default function DashboardIntegrationsPage() {
 function Field({ label, children }: { label: string; children: any }) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );

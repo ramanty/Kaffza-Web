@@ -112,8 +112,8 @@ export default function WalletPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-kaffza-primary text-2xl font-extrabold">المحفظة</h1>
-        <p className="text-kaffza-text/80 mt-1 text-sm">الرصيد، الأرباح، السحب، وسجل المعاملات.</p>
+        <h1 className="text-primary text-2xl font-extrabold">المحفظة</h1>
+        <p className="text-foreground/80 mt-1 text-sm">الرصيد، الأرباح، السحب، وسجل المعاملات.</p>
         {!storeId && !storesLoading ? (
           <p className="mt-1 text-xs text-red-700">لا يوجد متجر محدد.</p>
         ) : null}
@@ -129,8 +129,8 @@ export default function WalletPage() {
 
       <section className="grid gap-4 lg:grid-cols-3">
         <Card className="p-6 lg:col-span-1">
-          <div className="text-kaffza-primary text-sm font-extrabold">سحب رصيد</div>
-          <p className="text-kaffza-text/70 mt-1 text-xs">الحد الأدنى للسحب 10 ر.ع.</p>
+          <div className="text-primary text-sm font-extrabold">سحب رصيد</div>
+          <p className="text-muted-foreground mt-1 text-xs">الحد الأدنى للسحب 10 ر.ع.</p>
 
           <div className="mt-4 grid gap-3">
             <Field label="المبلغ (OMR)">
@@ -171,8 +171,8 @@ export default function WalletPage() {
         <Card className="overflow-hidden p-0 lg:col-span-2">
           <div className="flex items-center justify-between border-b border-slate-100 p-5">
             <div>
-              <div className="text-kaffza-primary text-sm font-extrabold">سجل المعاملات</div>
-              <div className="text-kaffza-text/70 mt-1 text-xs">
+              <div className="text-primary text-sm font-extrabold">سجل المعاملات</div>
+              <div className="text-muted-foreground mt-1 text-xs">
                 آخر 50 معاملة (إن كانت متوفرة من الـ API).
               </div>
             </div>
@@ -183,31 +183,31 @@ export default function WalletPage() {
 
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-kaffza-bg">
+              <thead className="bg-background">
                 <tr className="text-right">
-                  <th className="text-kaffza-text px-4 py-3 font-bold">التاريخ</th>
-                  <th className="text-kaffza-text px-4 py-3 font-bold">النوع</th>
-                  <th className="text-kaffza-text px-4 py-3 font-bold">المبلغ</th>
-                  <th className="text-kaffza-text px-4 py-3 font-bold">الوصف</th>
+                  <th className="text-foreground px-4 py-3 font-bold">التاريخ</th>
+                  <th className="text-foreground px-4 py-3 font-bold">النوع</th>
+                  <th className="text-foreground px-4 py-3 font-bold">المبلغ</th>
+                  <th className="text-foreground px-4 py-3 font-bold">الوصف</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={4} className="text-kaffza-text/70 px-4 py-6 text-center">
+                    <td colSpan={4} className="text-muted-foreground px-4 py-6 text-center">
                       جاري التحميل...
                     </td>
                   </tr>
                 ) : txs.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="text-kaffza-text/70 px-4 py-6 text-center">
+                    <td colSpan={4} className="text-muted-foreground px-4 py-6 text-center">
                       لا توجد معاملات لعرضها.
                     </td>
                   </tr>
                 ) : (
                   txs.map((t) => (
-                    <tr key={t.id} className="border-t border-black/5">
-                      <td className="text-kaffza-text/70 px-4 py-3 text-xs">
+                    <tr key={t.id} className="border-t border-border">
+                      <td className="text-muted-foreground px-4 py-3 text-xs">
                         {formatDate(t.createdAt)}
                       </td>
                       <td className="px-4 py-3">
@@ -216,7 +216,7 @@ export default function WalletPage() {
                       <td className="px-4 py-3">
                         <span className={amountClass(t.amount)}>{formatOMR(t.amount)}</span>
                       </td>
-                      <td className="text-kaffza-text px-4 py-3 text-sm">{t.description}</td>
+                      <td className="text-foreground px-4 py-3 text-sm">{t.description}</td>
                     </tr>
                   ))
                 )}
@@ -232,7 +232,7 @@ export default function WalletPage() {
 function Field({ label, children }: { label: string; children: any }) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );
@@ -240,9 +240,9 @@ function Field({ label, children }: { label: string; children: any }) {
 
 function StatCard({ title, value, loading }: { title: string; value: string; loading: boolean }) {
   return (
-    <div className="rounded-xl border border-black/5 bg-white p-5 shadow-sm">
-      <div className="text-kaffza-text/70 text-sm">{title}</div>
-      <div className="text-kaffza-primary mt-2 text-2xl font-extrabold">
+    <div className="rounded-xl border border-border bg-card text-card-foreground p-5 shadow-sm">
+      <div className="text-muted-foreground text-sm">{title}</div>
+      <div className="text-primary mt-2 text-2xl font-extrabold">
         {loading ? (
           <span className="inline-block h-7 w-28 animate-pulse rounded bg-black/10" />
         ) : (
@@ -317,5 +317,5 @@ function pillClass(type: string) {
 function amountClass(amount: number) {
   if (amount > 0) return 'font-extrabold text-green-700';
   if (amount < 0) return 'font-extrabold text-red-700';
-  return 'font-extrabold text-kaffza-primary';
+  return 'font-extrabold text-primary';
 }

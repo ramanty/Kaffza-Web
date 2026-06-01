@@ -91,8 +91,8 @@ export default function DisputePage({ params }: { params: { orderId: string } })
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-kaffza-primary">فتح نزاع</h1>
-          <p className="mt-1 text-sm text-kaffza-text/80">أرسل تفاصيل المشكلة وسنراجعها خلال 48 ساعة.</p>
+          <h1 className="text-2xl font-extrabold text-primary">فتح نزاع</h1>
+          <p className="mt-1 text-sm text-foreground/80">أرسل تفاصيل المشكلة وسنراجعها خلال 48 ساعة.</p>
         </div>
         <Link href={`/account/orders/${orderId}`}>
           <Button variant="secondary">رجوع</Button>
@@ -109,17 +109,17 @@ export default function DisputePage({ params }: { params: { orderId: string } })
       ) : null}
 
       {loading || !order ? (
-        <Card className="p-6"><div className="text-sm text-kaffza-text/70">{loading ? 'جاري التحميل...' : 'لا توجد بيانات'}</div></Card>
+        <Card className="p-6"><div className="text-sm text-muted-foreground">{loading ? 'جاري التحميل...' : 'لا توجد بيانات'}</div></Card>
       ) : (
         <Card className="p-6">
-          <div className="text-sm font-extrabold text-kaffza-primary">ملخص الطلب</div>
-          <div className="mt-2 text-xs text-kaffza-text/70">{order.orderNumber} • {formatDate(order.createdAt)} • {order.store?.subdomain}</div>
+          <div className="text-sm font-extrabold text-primary">ملخص الطلب</div>
+          <div className="mt-2 text-xs text-muted-foreground">{order.orderNumber} • {formatDate(order.createdAt)} • {order.store?.subdomain}</div>
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="rounded-xl bg-kaffza-bg p-4 text-sm">
+            <div className="rounded-xl bg-background p-4 text-sm">
               <div className="font-bold">الإجمالي</div>
-              <div className="mt-1 text-sm font-extrabold text-kaffza-primary">{formatOMR(Number(order.totalAmount))}</div>
+              <div className="mt-1 text-sm font-extrabold text-primary">{formatOMR(Number(order.totalAmount))}</div>
             </div>
-            <div className="rounded-xl bg-kaffza-bg p-4 text-sm">
+            <div className="rounded-xl bg-background p-4 text-sm">
               <div className="font-bold">الحالة</div>
               <div className="mt-1"><StatusBadge status={order.status} /></div>
             </div>
@@ -128,13 +128,13 @@ export default function DisputePage({ params }: { params: { orderId: string } })
       )}
 
       <Card className="p-6">
-        <div className="text-sm font-extrabold text-kaffza-primary">بيانات النزاع</div>
+        <div className="text-sm font-extrabold text-primary">بيانات النزاع</div>
 
         <div className="mt-4 grid gap-4">
           <label className="grid gap-1">
-            <span className="text-sm font-bold text-kaffza-text">سبب النزاع</span>
+            <span className="text-sm font-bold text-foreground">سبب النزاع</span>
             <select
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
+              className="rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
               value={type}
               onChange={(e) => setType(e.target.value)}
             >
@@ -147,20 +147,20 @@ export default function DisputePage({ params }: { params: { orderId: string } })
           </label>
 
           <label className="grid gap-1">
-            <span className="text-sm font-bold text-kaffza-text">وصف المشكلة (إلزامي)</span>
+            <span className="text-sm font-bold text-foreground">وصف المشكلة (إلزامي)</span>
             <textarea
-              className="min-h-[120px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
+              className="min-h-[120px] w-full rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="اشرح المشكلة بالتفصيل..."
             />
-            <span className="text-xs text-kaffza-text/60">حد أدنى 10 أحرف</span>
+            <span className="text-xs text-muted-foreground">حد أدنى 10 أحرف</span>
           </label>
 
           <label className="grid gap-1">
-            <span className="text-sm font-bold text-kaffza-text">رفع صور كدليل (Placeholder)</span>
+            <span className="text-sm font-bold text-foreground">رفع صور كدليل (Placeholder)</span>
             <input type="file" multiple accept="image/*" className="w-full text-sm" disabled />
-            <span className="text-xs text-kaffza-text/60">رفع الملفات غير مربوط حالياً، UI فقط.</span>
+            <span className="text-xs text-muted-foreground">رفع الملفات غير مربوط حالياً، UI فقط.</span>
           </label>
 
           <Button onClick={submit} disabled={submitting || !canSubmit}>

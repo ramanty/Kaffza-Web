@@ -388,8 +388,6 @@ export class StoresService {
 
   async getMyStores(user: { sub: string; role: string }) {
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
-    if (user.role !== 'merchant' && user.role !== 'admin')
-      throw new ForbiddenException('فقط التاجر');
 
     const ownerId = BigInt(user.sub);
     const stores = await this.prisma.store.findMany({

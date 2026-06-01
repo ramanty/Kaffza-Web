@@ -185,10 +185,10 @@ function DashboardPageInner() {
           </div>
         )}
 
-        <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-border bg-card text-card-foreground p-5 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-kaffza-primary text-2xl font-extrabold">
+              <h1 className="text-primary text-2xl font-extrabold">
                 {storesLoading
                   ? isEn
                     ? 'Loading...'
@@ -201,7 +201,7 @@ function DashboardPageInner() {
                       ? 'Start your merchant workspace'
                       : 'ابدأ مساحة عمل متجرك'}
               </h1>
-              <p className="text-kaffza-text/70 mt-1 text-sm">
+              <p className="text-muted-foreground mt-1 text-sm">
                 {storesLoading
                   ? isEn
                     ? 'Loading stores...'
@@ -218,7 +218,7 @@ function DashboardPageInner() {
 
             <Link
               href={withLang('/dashboard/products/new', isEn)}
-              className="bg-kaffza-primary inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-opacity hover:opacity-90"
+              className="bg-primary inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-opacity hover:opacity-90"
             >
               <Plus className="h-4 w-4" />
               {isEn ? 'Add Product' : 'إضافة منتج'}
@@ -228,21 +228,21 @@ function DashboardPageInner() {
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
               href={withLang('/dashboard/onboarding', isEn)}
-              className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
+              className="text-primary hover:bg-background inline-flex items-center gap-2 rounded-lg border border-border bg-card text-card-foreground px-3 py-2 text-xs font-bold"
             >
               <Rocket className="h-4 w-4" />
               {isEn ? 'Launch checklist' : 'خطة الانطلاقة'}
             </Link>
             <Link
               href={withLang('/dashboard/growth', isEn)}
-              className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
+              className="text-primary hover:bg-background inline-flex items-center gap-2 rounded-lg border border-border bg-card text-card-foreground px-3 py-2 text-xs font-bold"
             >
               <Megaphone className="h-4 w-4" />
               {isEn ? 'Growth hub' : 'مركز النمو'}
             </Link>
             <Link
               href={withLang('/dashboard/settings', isEn)}
-              className="text-kaffza-primary hover:bg-kaffza-bg inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold"
+              className="text-primary hover:bg-background inline-flex items-center gap-2 rounded-lg border border-border bg-card text-card-foreground px-3 py-2 text-xs font-bold"
             >
               <LifeBuoy className="h-4 w-4" />
               {isEn ? 'Store settings' : 'إعدادات المتجر'}
@@ -252,18 +252,18 @@ function DashboardPageInner() {
       </header>
 
       {hasNoStore ? (
-        <div className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
-          <h2 className="text-kaffza-primary text-lg font-extrabold">
+        <div className="rounded-2xl border border-border bg-card text-card-foreground p-6 shadow-sm">
+          <h2 className="text-primary text-lg font-extrabold">
             {isEn ? 'No active store yet' : 'لا يوجد متجر نشط بعد'}
           </h2>
-          <p className="text-kaffza-text/70 mt-2 text-sm">
+          <p className="text-muted-foreground mt-2 text-sm">
             {isEn
               ? 'Finish onboarding to create your first store, then return here for sales and order insights.'
               : 'أكمل خطوات الإعداد لإنشاء متجرك الأول ثم عد هنا لمتابعة الطلبات والمبيعات.'}
           </p>
           <div className="mt-4">
             <Link href={withLang('/onboarding', isEn)}>
-              <span className="bg-kaffza-primary inline-flex rounded-xl px-4 py-2 text-sm font-bold text-white">
+              <span className="bg-primary inline-flex rounded-xl px-4 py-2 text-sm font-bold text-white">
                 {isEn ? 'Continue onboarding' : 'متابعة الإعداد'}
               </span>
             </Link>
@@ -278,7 +278,7 @@ function DashboardPageInner() {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs font-bold text-red-700"
+              className="rounded-lg border border-red-300 bg-card text-card-foreground px-3 py-1 text-xs font-bold text-red-700"
             >
               {isEn ? 'Retry loading' : 'إعادة المحاولة'}
             </button>
@@ -287,12 +287,12 @@ function DashboardPageInner() {
       )}
 
       {!hasNoStore && nextActions.length > 0 ? (
-        <section className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+        <section className="rounded-2xl border border-border bg-card text-card-foreground p-5 shadow-sm">
           <div className="mb-3">
-            <h2 className="text-kaffza-primary text-base font-extrabold">
+            <h2 className="text-primary text-base font-extrabold">
               {isEn ? 'Recommended next actions' : 'إجراءات مقترحة الآن'}
             </h2>
-            <p className="text-kaffza-text/70 mt-1 text-xs">
+            <p className="text-muted-foreground mt-1 text-xs">
               {isEn
                 ? 'Focused tasks to keep your store moving this week.'
                 : 'مهام عملية تساعدك على تحريك متجرك هذا الأسبوع.'}
@@ -303,13 +303,13 @@ function DashboardPageInner() {
               <Link
                 key={action.title}
                 href={withLang(action.href, isEn)}
-                className="hover:bg-kaffza-bg flex items-center justify-between rounded-xl border border-black/10 px-4 py-3"
+                className="hover:bg-background flex items-center justify-between rounded-xl border border-border px-4 py-3"
               >
                 <div>
-                  <div className="text-kaffza-primary text-sm font-bold">{action.title}</div>
-                  <div className="text-kaffza-text/70 mt-0.5 text-xs">{action.hint}</div>
+                  <div className="text-primary text-sm font-bold">{action.title}</div>
+                  <div className="text-muted-foreground mt-0.5 text-xs">{action.hint}</div>
                 </div>
-                <ArrowRight className="text-kaffza-text/60 h-4 w-4" />
+                <ArrowRight className="text-muted-foreground h-4 w-4" />
               </Link>
             ))}
           </div>
@@ -356,11 +356,11 @@ function DashboardPageInner() {
           <SalesChart isEn={isEn} />
         </div>
 
-        <div className="rounded-xl border border-black/5 bg-white p-5 shadow-sm">
-          <h2 className="text-kaffza-primary text-base font-extrabold">
+        <div className="rounded-xl border border-border bg-card text-card-foreground p-5 shadow-sm">
+          <h2 className="text-primary text-base font-extrabold">
             {isEn ? 'Wallet Summary' : 'ملخص المحفظة'}
           </h2>
-          <p className="text-kaffza-text/60 mt-0.5 text-xs">
+          <p className="text-muted-foreground mt-0.5 text-xs">
             {isEn ? 'Currency: OMR' : 'العملة: OMR'}
           </p>
 
@@ -385,7 +385,7 @@ function DashboardPageInner() {
 
           <Link
             href={withLang('/dashboard/wallet', isEn)}
-            className="border-kaffza-primary/30 text-kaffza-primary hover:bg-kaffza-primary mt-4 flex w-full items-center justify-center rounded-xl border py-2 text-sm font-bold transition-colors hover:text-white"
+            className="border-kaffza-primary/30 text-primary hover:bg-primary mt-4 flex w-full items-center justify-center rounded-xl border py-2 text-sm font-bold transition-colors hover:text-white"
           >
             {isEn ? 'Manage Wallet' : 'إدارة المحفظة'}
           </Link>
@@ -402,11 +402,11 @@ function DashboardPageInner() {
         )}
 
         {ordersFromApi && !loading && recentOrders.length === 0 ? (
-          <div className="mb-3 rounded-lg border border-black/10 bg-white px-4 py-4 text-sm">
-            <div className="text-kaffza-primary font-extrabold">
+          <div className="mb-3 rounded-lg border border-border bg-card text-card-foreground px-4 py-4 text-sm">
+            <div className="text-primary font-extrabold">
               {isEn ? 'No orders yet' : 'لا توجد طلبات حتى الآن'}
             </div>
-            <p className="text-kaffza-text/70 mt-1 text-xs">
+            <p className="text-muted-foreground mt-1 text-xs">
               {isEn
                 ? 'Add products and share your storefront link to receive your first order.'
                 : 'أضف منتجاتك وشارك رابط متجرك لبدء استقبال أول طلب.'}
@@ -414,13 +414,13 @@ function DashboardPageInner() {
             <div className="mt-3 flex flex-wrap gap-2">
               <Link
                 href={withLang('/dashboard/products/new', isEn)}
-                className="text-kaffza-primary rounded-lg border border-black/10 px-3 py-1.5 text-xs font-bold"
+                className="text-primary rounded-lg border border-border px-3 py-1.5 text-xs font-bold"
               >
                 {isEn ? 'Add first product' : 'إضافة أول منتج'}
               </Link>
               <Link
                 href={withLang('/dashboard/onboarding', isEn)}
-                className="text-kaffza-primary rounded-lg border border-black/10 px-3 py-1.5 text-xs font-bold"
+                className="text-primary rounded-lg border border-border px-3 py-1.5 text-xs font-bold"
               >
                 {isEn ? 'Open checklist' : 'فتح خطة الانطلاقة'}
               </Link>
@@ -446,10 +446,10 @@ function InfoRow({
   highlight?: boolean;
 }) {
   return (
-    <div className="bg-kaffza-bg flex items-center justify-between rounded-lg px-4 py-3">
-      <div className="text-kaffza-text text-sm font-semibold">{label}</div>
+    <div className="bg-background flex items-center justify-between rounded-lg px-4 py-3">
+      <div className="text-foreground text-sm font-semibold">{label}</div>
       <div
-        className={`text-sm font-extrabold ${highlight ? 'text-kaffza-premium' : 'text-kaffza-primary'}`}
+        className={`text-sm font-extrabold ${highlight ? 'text-premium' : 'text-primary'}`}
       >
         {loading ? (
           <span className="inline-block h-5 w-20 animate-pulse rounded bg-black/10" />

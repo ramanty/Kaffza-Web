@@ -45,8 +45,8 @@ export default function AdminCustomers() {
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-kaffza-primary">إدارة العملاء</h1>
-          <p className="mt-1 text-sm text-kaffza-text/80">عرض العملاء وتفعيل/تعليق الحساب.</p>
+          <h1 className="text-2xl font-extrabold text-primary">إدارة العملاء</h1>
+          <p className="mt-1 text-sm text-foreground/80">عرض العملاء وتفعيل/تعليق الحساب.</p>
         </div>
         <Button variant="secondary" onClick={load} disabled={loading}>تحديث</Button>
       </div>
@@ -56,24 +56,24 @@ export default function AdminCustomers() {
       <Card className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-kaffza-bg">
+            <thead className="bg-background">
               <tr className="text-right">
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الاسم</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الهاتف</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الحالة</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">إجراء</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الاسم</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الهاتف</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الحالة</th>
+                <th className="px-4 py-3 font-extrabold text-primary">إجراء</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={4} className="px-4 py-6 text-kaffza-text/70">جاري التحميل...</td></tr>
+                <tr><td colSpan={4} className="px-4 py-6 text-muted-foreground">جاري التحميل...</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={4} className="px-4 py-6 text-kaffza-text/70">لا يوجد عملاء.</td></tr>
+                <tr><td colSpan={4} className="px-4 py-6 text-muted-foreground">لا يوجد عملاء.</td></tr>
               ) : (
                 rows.map((u) => (
-                  <tr key={String(u.id)} className="border-t border-black/5">
-                    <td className="px-4 py-3 font-bold text-kaffza-text">{u.name}</td>
-                    <td className="px-4 py-3 text-kaffza-text/80">{u.phone}</td>
+                  <tr key={String(u.id)} className="border-t border-border">
+                    <td className="px-4 py-3 font-bold text-foreground">{u.name}</td>
+                    <td className="px-4 py-3 text-foreground/80">{u.phone}</td>
                     <td className="px-4 py-3"><StatusBadge status={u.status} /></td>
                     <td className="px-4 py-3">
                       {u.status === 'suspended' ? (

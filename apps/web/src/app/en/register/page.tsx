@@ -193,18 +193,18 @@ function EnRegisterPageInner() {
   return (
     <main dir="ltr" className="mx-auto max-w-lg px-6 py-12">
       <div className="flex items-center justify-between">
-        <div className="text-kaffza-primary text-2xl font-extrabold">Create account</div>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/en">
+        <div className="text-primary text-2xl font-extrabold">Create account</div>
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/en">
           Home
         </Link>
       </div>
 
       <Card className="mt-6 p-6">
-        <div className="border-kaffza-primary/20 bg-kaffza-primary/5 text-kaffza-text/80 mb-4 rounded-xl border p-3 text-xs">
-          <span className="text-kaffza-primary font-bold">Fast & secure signup:</span> your details
+        <div className="border-kaffza-primary/20 bg-primary/5 text-foreground/80 mb-4 rounded-xl border p-3 text-xs">
+          <span className="text-primary font-bold">Fast & secure signup:</span> your details
           are used only to manage your account and orders.
         </div>
-        <div className="text-kaffza-text/80 text-sm">
+        <div className="text-foreground/80 text-sm">
           Choose your preferred registration method. OTP will be sent via your selected method.
         </div>
 
@@ -224,7 +224,7 @@ function EnRegisterPageInner() {
         {step === 'register' ? (
           <div className="mt-5 grid gap-3">
             <div className="grid gap-2">
-              <span className="text-kaffza-text text-sm font-bold">Registration method</span>
+              <span className="text-foreground text-sm font-bold">Registration method</span>
               <div className="flex gap-2">
                 <TabButton active={method === 'phone'} onClick={() => setMethod('phone')}>
                   Phone
@@ -272,20 +272,20 @@ function EnRegisterPageInner() {
               <Hint>At least 8 characters</Hint>
             </Field>
 
-            <label className="flex items-start gap-2 rounded-xl border border-black/10 bg-white p-3 text-sm">
+            <label className="flex items-start gap-2 rounded-xl border border-border bg-card text-card-foreground p-3 text-sm">
               <input
                 type="checkbox"
                 checked={acceptedPolicies}
                 onChange={(e) => setAcceptedPolicies(e.target.checked)}
                 className="mt-1 h-4 w-4"
               />
-              <span className="text-kaffza-text/85">
+              <span className="text-foreground/85">
                 I agree to the{' '}
-                <Link className="text-kaffza-primary font-bold underline" href="/en/legal/terms">
+                <Link className="text-primary font-bold underline" href="/en/legal/terms">
                   Terms & Conditions
                 </Link>{' '}
                 and{' '}
-                <Link className="text-kaffza-primary font-bold underline" href="/en/legal/privacy">
+                <Link className="text-primary font-bold underline" href="/en/legal/privacy">
                   Privacy Policy
                 </Link>
                 .
@@ -293,7 +293,7 @@ function EnRegisterPageInner() {
             </label>
 
             {turnstileEnabled ? (
-              <div className="rounded-xl border border-black/10 bg-white p-3">
+              <div className="rounded-xl border border-border bg-card text-card-foreground p-3">
                 <TurnstileChallenge onToken={setTurnstileToken} isEn />
               </div>
             ) : null}
@@ -309,7 +309,7 @@ function EnRegisterPageInner() {
             <div className="text-sm">
               Already have an account?{' '}
               <Link
-                className="text-kaffza-primary font-bold underline"
+                className="text-primary font-bold underline"
                 href={`/en/login?next=${encodeURIComponent(next)}`}
               >
                 Login
@@ -326,7 +326,7 @@ function EnRegisterPageInner() {
           </div>
         ) : (
           <div className="mt-5 grid gap-3">
-            <div className="bg-kaffza-bg text-kaffza-text rounded-xl p-3 text-xs">
+            <div className="bg-background text-foreground rounded-xl p-3 text-xs">
               <span className="font-bold">{method === 'email' ? 'Email:' : 'Phone:'}</span>{' '}
               {method === 'email' ? email.trim() : phone.trim()}
             </div>
@@ -350,14 +350,14 @@ function EnRegisterPageInner() {
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
               <button
-                className="text-kaffza-primary font-bold underline disabled:opacity-50"
+                className="text-primary font-bold underline disabled:opacity-50"
                 onClick={resendOtp}
                 disabled={loading}
               >
                 Resend OTP
               </button>
               <button
-                className="text-kaffza-text/70 text-xs font-bold underline"
+                className="text-muted-foreground text-xs font-bold underline"
                 onClick={() => {
                   setStep('register');
                   setOtp('');
@@ -370,7 +370,7 @@ function EnRegisterPageInner() {
         )}
       </Card>
 
-      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
+      <div className="text-foreground mt-6 flex flex-wrap gap-3 text-xs">
         <Link className="underline" href="/en/legal/terms">
           Terms
         </Link>
@@ -385,14 +385,14 @@ function EnRegisterPageInner() {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );
 }
 
 function Hint({ children }: any) {
-  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
+  return <span className="text-muted-foreground text-xs">{children}</span>;
 }
 
 function TabButton({ active, onClick, children }: any) {
@@ -404,7 +404,7 @@ function TabButton({ active, onClick, children }: any) {
         'flex-1 rounded-xl px-4 py-2 text-sm font-extrabold transition ' +
         (active
           ? 'bg-[#1B3A6B] text-white'
-          : 'bg-kaffza-bg text-kaffza-text border border-black/10 hover:bg-black/5')
+          : 'bg-background text-foreground border border-border hover:bg-black/5')
       }
     >
       {children}

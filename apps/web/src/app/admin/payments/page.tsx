@@ -35,8 +35,8 @@ export default function AdminPayments() {
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-kaffza-primary">المدفوعات</h1>
-          <p className="mt-1 text-sm text-kaffza-text/80">سجل المدفوعات على المنصة.</p>
+          <h1 className="text-2xl font-extrabold text-primary">المدفوعات</h1>
+          <p className="mt-1 text-sm text-foreground/80">سجل المدفوعات على المنصة.</p>
         </div>
         <Button variant="secondary" onClick={load} disabled={loading}>تحديث</Button>
       </div>
@@ -46,28 +46,28 @@ export default function AdminPayments() {
       <Card className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-kaffza-bg">
+            <thead className="bg-background">
               <tr className="text-right">
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الطلب</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">المتجر</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">العميل</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">المبلغ</th>
-                <th className="px-4 py-3 font-extrabold text-kaffza-primary">الحالة</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الطلب</th>
+                <th className="px-4 py-3 font-extrabold text-primary">المتجر</th>
+                <th className="px-4 py-3 font-extrabold text-primary">العميل</th>
+                <th className="px-4 py-3 font-extrabold text-primary">المبلغ</th>
+                <th className="px-4 py-3 font-extrabold text-primary">الحالة</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="px-4 py-6 text-kaffza-text/70">جاري التحميل...</td></tr>
+                <tr><td colSpan={5} className="px-4 py-6 text-muted-foreground">جاري التحميل...</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-6 text-kaffza-text/70">لا يوجد مدفوعات.</td></tr>
+                <tr><td colSpan={5} className="px-4 py-6 text-muted-foreground">لا يوجد مدفوعات.</td></tr>
               ) : (
                 rows.map((p) => (
-                  <tr key={String(p.id)} className="border-t border-black/5">
-                    <td className="px-4 py-3 font-bold text-kaffza-text">{p.order?.orderNumber || p.orderId}</td>
-                    <td className="px-4 py-3 text-kaffza-text/80">{p.order?.store?.subdomain || '-'}</td>
-                    <td className="px-4 py-3 text-kaffza-text/80">{p.order?.customer?.name || '-'}</td>
-                    <td className="px-4 py-3 text-kaffza-text/80">{formatOMR(Number(p.amount || 0))}</td>
-                    <td className="px-4 py-3"><span className="text-xs font-bold text-kaffza-text/70">{p.status}</span></td>
+                  <tr key={String(p.id)} className="border-t border-border">
+                    <td className="px-4 py-3 font-bold text-foreground">{p.order?.orderNumber || p.orderId}</td>
+                    <td className="px-4 py-3 text-foreground/80">{p.order?.store?.subdomain || '-'}</td>
+                    <td className="px-4 py-3 text-foreground/80">{p.order?.customer?.name || '-'}</td>
+                    <td className="px-4 py-3 text-foreground/80">{formatOMR(Number(p.amount || 0))}</td>
+                    <td className="px-4 py-3"><span className="text-xs font-bold text-muted-foreground">{p.status}</span></td>
                   </tr>
                 ))
               )}

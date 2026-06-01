@@ -68,7 +68,7 @@ export function PhoneInput({ value, onChange, disabled }: PhoneInputProps) {
   return (
     <div className="grid gap-2 sm:grid-cols-[minmax(0,240px),1fr]">
       <select
-        className="focus:border-kaffza-primary w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+        className="focus:border-kaffza-primary w-full rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none"
         value={countryCode}
         onChange={(e) => setCountryCode(e.target.value)}
         disabled={disabled}
@@ -81,7 +81,7 @@ export function PhoneInput({ value, onChange, disabled }: PhoneInputProps) {
       </select>
 
       <div className="relative">
-        <span className="text-kaffza-text/70 pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-semibold">
+        <span className="text-muted-foreground pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-semibold">
           {dialPrefix}
         </span>
         <Input

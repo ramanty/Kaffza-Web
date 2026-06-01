@@ -8,13 +8,13 @@ export default function EnPlansPage() {
   return (
     <main dir="ltr" className="mx-auto max-w-6xl px-6 py-12">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-kaffza-primary text-3xl font-extrabold">Plans & Pricing</h1>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/en">
+        <h1 className="text-primary text-3xl font-extrabold">Plans & Pricing</h1>
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/en">
           Home
         </Link>
       </div>
 
-      <p className="text-kaffza-text/80 mt-3 text-sm">
+      <p className="text-foreground/80 mt-3 text-sm">
         Pick the right plan for your store, then continue to cart and checkout.
       </p>
 
@@ -27,9 +27,9 @@ export default function EnPlansPage() {
             }
           >
             <div className="flex items-center justify-between gap-2">
-              <div className="text-kaffza-primary text-lg font-extrabold">{plan.name}</div>
+              <div className="text-primary text-lg font-extrabold">{plan.name}</div>
               {plan.popular ? (
-                <span className="bg-kaffza-premium text-kaffza-dark-blue rounded-full px-3 py-1 text-xs font-extrabold">
+                <span className="bg-premium text-kaffza-dark-blue rounded-full px-3 py-1 text-xs font-extrabold">
                   Most popular
                 </span>
               ) : null}
@@ -37,9 +37,9 @@ export default function EnPlansPage() {
             <div className="text-kaffza-info mt-3 text-2xl font-extrabold">
               {plan.priceOmr} OMR / month
             </div>
-            <div className="text-kaffza-text/70 mt-1 text-xs">{getPlanSubtitle(plan, true)}</div>
-            <div className="text-kaffza-text/80 mt-1 text-sm">Commission: {plan.commission}</div>
-            <ul className="text-kaffza-text/80 mt-4 space-y-2 text-sm">
+            <div className="text-muted-foreground mt-1 text-xs">{getPlanSubtitle(plan, true)}</div>
+            <div className="text-foreground/80 mt-1 text-sm">Commission: {plan.commission}</div>
+            <ul className="text-foreground/80 mt-4 space-y-2 text-sm">
               {getPlanNotes(plan, true).map((n) => (
                 <li key={n}>• {n}</li>
               ))}

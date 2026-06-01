@@ -180,15 +180,15 @@ export default function StoreCart({ params }: { params: { subdomain: string } })
     <main dir={isEn ? 'ltr' : 'rtl'} className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="text-kaffza-primary text-2xl font-extrabold">
+          <div className="text-primary text-2xl font-extrabold">
             {isEn ? (store ? `${title} Cart` : 'Cart') : `سلة ${title}`}
           </div>
-          <div className="text-kaffza-text/80 mt-1 text-sm">
+          <div className="text-foreground/80 mt-1 text-sm">
             {isEn
               ? 'Review your cart items before checkout.'
               : 'راجع عناصر السلة وعدّل الكميات قبل الدفع.'}
           </div>
-          <div className="text-kaffza-text/70 mt-2 text-xs">
+          <div className="text-muted-foreground mt-2 text-xs">
             {isEn
               ? 'Step 1 of 2: confirm items now, then finish shipping and payment in checkout.'
               : 'الخطوة 1 من 2: أكد العناصر الآن، ثم أكمل العنوان والدفع في صفحة إتمام الشراء.'}
@@ -215,17 +215,17 @@ export default function StoreCart({ params }: { params: { subdomain: string } })
         <div className="space-y-4 lg:col-span-2">
           {loading && !cart ? (
             <Card className="p-6">
-              <div className="text-kaffza-primary text-sm font-bold">
+              <div className="text-primary text-sm font-bold">
                 {isEn ? 'Loading your cart...' : 'جارٍ تحميل السلة...'}
               </div>
               <div className="mt-2 h-3 w-48 animate-pulse rounded bg-black/10" />
             </Card>
           ) : items.length === 0 ? (
             <Card className="p-6">
-              <div className="text-kaffza-primary text-sm font-bold">
+              <div className="text-primary text-sm font-bold">
                 {isEn ? 'Your cart is empty' : 'السلة فارغة حالياً'}
               </div>
-              <div className="text-kaffza-text/70 mt-1 text-sm">
+              <div className="text-muted-foreground mt-1 text-sm">
                 {isEn
                   ? 'Add products to continue to checkout in just a few steps.'
                   : 'أضف منتجات الآن لإكمال الطلب بخطوات بسيطة.'}
@@ -240,7 +240,7 @@ export default function StoreCart({ params }: { params: { subdomain: string } })
             items.map((it) => (
               <Card key={`${it.productId}:${it.variantId || 'no'}`} className="p-4">
                 <div className="flex gap-4">
-                  <div className="bg-kaffza-bg h-20 w-20 overflow-hidden rounded-xl border border-black/10">
+                  <div className="bg-background h-20 w-20 overflow-hidden rounded-xl border border-border">
                     {it.product?.images?.[0] ? (
                        
                       <img
@@ -249,7 +249,7 @@ export default function StoreCart({ params }: { params: { subdomain: string } })
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="text-kaffza-text/60 flex h-full w-full items-center justify-center text-xs font-bold">
+                      <div className="text-muted-foreground flex h-full w-full items-center justify-center text-xs font-bold">
                         {isEn ? 'No image' : 'بدون صورة'}
                       </div>
                     )}
@@ -264,22 +264,22 @@ export default function StoreCart({ params }: { params: { subdomain: string } })
                             : it.product?.nameAr || it.product?.nameEn}
                         </div>
                         {it.variant ? (
-                          <div className="text-kaffza-text/70 mt-0.5 text-xs">
+                          <div className="text-muted-foreground mt-0.5 text-xs">
                             {isEn
                               ? it.variant.nameEn || it.variant.nameAr
                               : it.variant.nameAr || it.variant.nameEn}
                           </div>
                         ) : null}
-                        <div className="text-kaffza-text/70 mt-2 text-xs">
+                        <div className="text-muted-foreground mt-2 text-xs">
                           {isEn ? 'Unit price: ' : 'سعر الوحدة: '}
-                          <span className="text-kaffza-primary font-bold">
+                          <span className="text-primary font-bold">
                             {formatOMR(it.unitPrice, isEn)}
                           </span>
                         </div>
                       </div>
 
                       <button
-                        className="shrink-0 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
+                        className="shrink-0 rounded-lg border border-border bg-card text-card-foreground px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
                         onClick={() => removeItem(it)}
                         disabled={loading}
                       >
@@ -290,18 +290,18 @@ export default function StoreCart({ params }: { params: { subdomain: string } })
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <button
-                          className="text-kaffza-primary h-9 w-9 rounded-xl border border-black/10 bg-white text-lg font-extrabold disabled:opacity-50"
+                          className="text-primary h-9 w-9 rounded-xl border border-border bg-card text-card-foreground text-lg font-extrabold disabled:opacity-50"
                           onClick={() => updateQty(it, it.quantity - 1)}
                           disabled={loading || it.quantity <= 1}
                           aria-label={isEn ? 'decrease' : 'نقص'}
                         >
                           −
                         </button>
-                        <div className="bg-kaffza-bg text-kaffza-text min-w-[44px] rounded-xl px-3 py-2 text-center text-sm font-extrabold">
+                        <div className="bg-background text-foreground min-w-[44px] rounded-xl px-3 py-2 text-center text-sm font-extrabold">
                           {it.quantity}
                         </div>
                         <button
-                          className="text-kaffza-primary h-9 w-9 rounded-xl border border-black/10 bg-white text-lg font-extrabold disabled:opacity-50"
+                          className="text-primary h-9 w-9 rounded-xl border border-border bg-card text-card-foreground text-lg font-extrabold disabled:opacity-50"
                           onClick={() => updateQty(it, it.quantity + 1)}
                           disabled={loading}
                           aria-label={isEn ? 'increase' : 'زيد'}
@@ -310,7 +310,7 @@ export default function StoreCart({ params }: { params: { subdomain: string } })
                         </button>
                       </div>
 
-                      <div className="text-kaffza-primary text-sm font-extrabold">
+                      <div className="text-primary text-sm font-extrabold">
                         {formatOMR(it.lineTotal, isEn)}
                       </div>
                     </div>
@@ -324,10 +324,10 @@ export default function StoreCart({ params }: { params: { subdomain: string } })
         {/* Summary */}
         <div className="lg:col-span-1">
           <Card className="sticky top-4 p-6">
-            <div className="text-kaffza-primary text-sm font-extrabold">
+            <div className="text-primary text-sm font-extrabold">
               {isEn ? 'Cart summary' : 'ملخص السلة'}
             </div>
-            <div className="border-kaffza-primary/20 bg-kaffza-primary/5 text-kaffza-text/80 mt-2 rounded-xl border p-3 text-xs">
+            <div className="border-kaffza-primary/20 bg-primary/5 text-foreground/80 mt-2 rounded-xl border p-3 text-xs">
               {isEn
                 ? 'Secure checkout • Final shipping cost shown before payment'
                 : 'دفع آمن • التكلفة النهائية للشحن تظهر قبل الدفع'}
@@ -339,7 +339,7 @@ export default function StoreCart({ params }: { params: { subdomain: string } })
                 value={formatOMR(totals.subtotal, isEn)}
               />
               <Row label={isEn ? 'Shipping' : 'الشحن'} value={formatOMR(totals.shipping, isEn)} />
-              <div className="border-t border-black/10 pt-3">
+              <div className="border-t border-border pt-3">
                 <Row
                   label={isEn ? 'Total' : 'الإجمالي'}
                   value={formatOMR(totals.total, isEn)}
@@ -354,7 +354,7 @@ export default function StoreCart({ params }: { params: { subdomain: string } })
                   {isEn ? 'Continue to checkout' : 'متابعة إلى إتمام الشراء'}
                 </Button>
               </Link>
-              <div className="text-kaffza-text/70 mt-2 text-xs">
+              <div className="text-muted-foreground mt-2 text-xs">
                 {isEn
                   ? 'You can still edit quantities on checkout before placing order.'
                   : 'يمكنك تعديل الكميات أيضاً في صفحة الدفع قبل تأكيد الطلب.'}
@@ -370,9 +370,9 @@ export default function StoreCart({ params }: { params: { subdomain: string } })
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-kaffza-text/80">{label}</span>
+      <span className="text-foreground/80">{label}</span>
       <span
-        className={strong ? 'text-kaffza-primary font-extrabold' : 'text-kaffza-text font-bold'}
+        className={strong ? 'text-primary font-extrabold' : 'text-foreground font-bold'}
       >
         {value}
       </span>

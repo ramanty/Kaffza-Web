@@ -175,16 +175,16 @@ export default function MerchantRegisterPage() {
     <main dir="rtl" className="mx-auto max-w-lg px-6 py-12">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-kaffza-text/70 text-xs">منطقة التاجر</div>
-          <div className="text-kaffza-primary text-2xl font-extrabold">تسجيل تاجر جديد</div>
+          <div className="text-muted-foreground text-xs">منطقة التاجر</div>
+          <div className="text-primary text-2xl font-extrabold">تسجيل تاجر جديد</div>
         </div>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/">
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/">
           الرئيسية
         </Link>
       </div>
 
       <Card className="mt-6 p-6">
-        <p className="text-kaffza-text/80 text-sm">
+        <p className="text-foreground/80 text-sm">
           يمكنك التسجيل عبر البريد أو الهاتف. قبل نشر المنتجات يجب ربط الاثنين معاً.
         </p>
 
@@ -204,7 +204,7 @@ export default function MerchantRegisterPage() {
         {step === 'register' ? (
           <div className="mt-5 grid gap-3">
             <div className="grid gap-2">
-              <span className="text-kaffza-text text-sm font-bold">طريقة التسجيل</span>
+              <span className="text-foreground text-sm font-bold">طريقة التسجيل</span>
               <div className="flex gap-2">
                 <TabButton active={method === 'phone'} onClick={() => setMethod('phone')}>
                   برقم الهاتف
@@ -259,20 +259,20 @@ export default function MerchantRegisterPage() {
               />
             </Field>
 
-            <label className="flex items-start gap-2 rounded-xl border border-black/10 bg-white p-3 text-sm">
+            <label className="flex items-start gap-2 rounded-xl border border-border bg-card text-card-foreground p-3 text-sm">
               <input
                 type="checkbox"
                 checked={acceptedPolicies}
                 onChange={(e) => setAcceptedPolicies(e.target.checked)}
                 className="mt-1 h-4 w-4"
               />
-              <span className="text-kaffza-text/85">
+              <span className="text-foreground/85">
                 أوافق على{' '}
-                <Link className="text-kaffza-primary font-bold underline" href="/legal/terms">
+                <Link className="text-primary font-bold underline" href="/legal/terms">
                   الشروط والأحكام
                 </Link>{' '}
                 و{' '}
-                <Link className="text-kaffza-primary font-bold underline" href="/legal/privacy">
+                <Link className="text-primary font-bold underline" href="/legal/privacy">
                   سياسة الخصوصية
                 </Link>
                 .
@@ -280,7 +280,7 @@ export default function MerchantRegisterPage() {
             </label>
 
             {turnstileEnabled ? (
-              <div className="rounded-xl border border-black/10 bg-white p-3">
+              <div className="rounded-xl border border-border bg-card text-card-foreground p-3">
                 <TurnstileChallenge onToken={setTurnstileToken} />
               </div>
             ) : null}
@@ -295,7 +295,7 @@ export default function MerchantRegisterPage() {
 
             <div className="text-sm">
               عندك حساب؟{' '}
-              <Link className="text-kaffza-primary font-bold underline" href="/merchant/login">
+              <Link className="text-primary font-bold underline" href="/merchant/login">
                 تسجيل الدخول
               </Link>
             </div>
@@ -310,7 +310,7 @@ export default function MerchantRegisterPage() {
           </div>
         ) : (
           <div className="mt-5 grid gap-3">
-            <div className="bg-kaffza-bg text-kaffza-text rounded-xl p-3 text-xs">
+            <div className="bg-background text-foreground rounded-xl p-3 text-xs">
               <span className="font-bold">{method === 'email' ? 'البريد:' : 'الهاتف:'}</span>{' '}
               {method === 'email' ? email.trim() : phone.trim()}
             </div>
@@ -334,14 +334,14 @@ export default function MerchantRegisterPage() {
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
               <button
-                className="text-kaffza-primary font-bold underline disabled:opacity-50"
+                className="text-primary font-bold underline disabled:opacity-50"
                 onClick={resendOtp}
                 disabled={loading}
               >
                 إعادة إرسال OTP
               </button>
               <button
-                className="text-kaffza-text/70 text-xs font-bold underline"
+                className="text-muted-foreground text-xs font-bold underline"
                 onClick={() => {
                   setStep('register');
                   setOtp('');
@@ -354,7 +354,7 @@ export default function MerchantRegisterPage() {
         )}
       </Card>
 
-      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
+      <div className="text-foreground mt-6 flex flex-wrap gap-3 text-xs">
         <Link className="underline" href="/legal/terms">
           الشروط
         </Link>
@@ -369,14 +369,14 @@ export default function MerchantRegisterPage() {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );
 }
 
 function Hint({ children }: any) {
-  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
+  return <span className="text-muted-foreground text-xs">{children}</span>;
 }
 
 function TabButton({ active, onClick, children }: any) {

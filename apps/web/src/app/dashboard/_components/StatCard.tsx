@@ -7,24 +7,24 @@ const VARIANT_STYLES: Record<
   { iconBg: string; iconColor: string; valueColor: string }
 > = {
   primary: {
-    iconBg: 'bg-kaffza-primary/10',
-    iconColor: 'text-kaffza-primary',
-    valueColor: 'text-kaffza-primary',
+    iconBg: 'bg-primary/10',
+    iconColor: 'text-primary',
+    valueColor: 'text-primary',
   },
   premium: {
-    iconBg: 'bg-kaffza-premium/10',
-    iconColor: 'text-kaffza-premium',
-    valueColor: 'text-kaffza-premium',
+    iconBg: 'bg-premium/10',
+    iconColor: 'text-premium',
+    valueColor: 'text-premium',
   },
   order: {
     iconBg: 'bg-kaffza-order/10',
     iconColor: 'text-kaffza-order',
-    valueColor: 'text-kaffza-primary',
+    valueColor: 'text-primary',
   },
   warning: {
     iconBg: 'bg-kaffza-warning/10',
     iconColor: 'text-kaffza-warning',
-    valueColor: 'text-kaffza-primary',
+    valueColor: 'text-primary',
   },
 };
 
@@ -48,10 +48,10 @@ export function StatCard({
   const { iconBg, iconColor, valueColor } = VARIANT_STYLES[variant];
 
   return (
-    <div className="rounded-xl border border-black/5 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <div className="rounded-xl border border-border bg-card text-card-foreground p-5 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-kaffza-text/70 truncate text-sm font-medium">{title}</p>
+          <p className="text-muted-foreground truncate text-sm font-medium">{title}</p>
           <div className={`mt-2 text-2xl font-extrabold ${valueColor}`}>
             {loading ? (
               <span className="inline-block h-7 w-28 animate-pulse rounded bg-black/10" />
@@ -60,7 +60,7 @@ export function StatCard({
             )}
           </div>
           {subtitle && !loading && (
-            <p className="text-kaffza-text/60 mt-1 truncate text-xs">{subtitle}</p>
+            <p className="text-muted-foreground mt-1 truncate text-xs">{subtitle}</p>
           )}
         </div>
         <div className={`shrink-0 rounded-xl p-3 ${iconBg}`}>

@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-
+import { ThemeProvider } from '../components/ThemeProvider';
 import { SiteTopBar } from '../components/SiteTopBar';
 
 export const metadata: Metadata = {
@@ -16,11 +16,10 @@ export const metadata: Metadata = {
     apple: '/icon.svg',
   },
 };
-import { ThemeProvider } from '../components/ThemeProvider';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -29,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body className="overflow-x-hidden transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100 text-kaffza-text bg-kaffza-bg">
+      <body className="overflow-x-hidden transition-colors duration-300 bg-background text-foreground antialiased min-h-screen">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange={false}>
           <SiteTopBar />
           {children}

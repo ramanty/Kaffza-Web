@@ -7,15 +7,15 @@ import { PLAN_CATALOG, getPlanNotes, getPlanSubtitle } from '../../../lib/plan-c
 export default function EnPricingPage() {
   return (
     <main dir="ltr" className="mx-auto max-w-6xl px-6 py-12">
-      <div className="bg-kaffza-bg rounded-2xl border border-black/10 px-6 py-7">
+      <div className="bg-background rounded-2xl border border-border px-6 py-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-kaffza-primary text-3xl font-extrabold">Plans & Pricing</h1>
-          <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/en">
+          <h1 className="text-primary text-3xl font-extrabold">Plans & Pricing</h1>
+          <Link className="text-muted-foreground text-sm font-bold underline" href="/en">
             Home
           </Link>
         </div>
 
-        <p className="text-kaffza-text/80 mt-3 max-w-2xl text-sm leading-6">
+        <p className="text-foreground/80 mt-3 max-w-2xl text-sm leading-6">
           Pick the right plan for your stage. Billing is monthly and commission applies only to
           successful orders.
         </p>
@@ -29,30 +29,30 @@ export default function EnPricingPage() {
               'flex h-full flex-col p-6 ' +
               (plan.popular
                 ? 'border-kaffza-premium ring-kaffza-premium/40 ring-1'
-                : 'border-black/10')
+                : 'border-border')
             }
           >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <div className="text-kaffza-primary text-lg font-extrabold">{plan.name}</div>
-                <div className="text-kaffza-text/60 mt-1 text-xs">
+                <div className="text-primary text-lg font-extrabold">{plan.name}</div>
+                <div className="text-muted-foreground mt-1 text-xs">
                   {getPlanSubtitle(plan, true)}
                 </div>
               </div>
               {plan.popular ? (
-                <span className="bg-kaffza-premium text-kaffza-dark-blue rounded-full px-3 py-1 text-xs font-extrabold">
+                <span className="bg-premium text-kaffza-dark-blue rounded-full px-3 py-1 text-xs font-extrabold">
                   Most popular
                 </span>
               ) : null}
             </div>
             <div className="text-kaffza-info mt-4 text-3xl font-extrabold">
-              {plan.priceOmr} OMR <span className="text-kaffza-text/60 text-sm">/month</span>
+              {plan.priceOmr} OMR <span className="text-muted-foreground text-sm">/month</span>
             </div>
-            <div className="text-kaffza-text/80 mt-1 text-sm">Commission: {plan.commission}</div>
-            <ul className="text-kaffza-text/80 mt-4 flex-1 space-y-2 text-sm">
+            <div className="text-foreground/80 mt-1 text-sm">Commission: {plan.commission}</div>
+            <ul className="text-foreground/80 mt-4 flex-1 space-y-2 text-sm">
               {getPlanNotes(plan, true).map((n) => (
                 <li key={n} className="flex items-start gap-2">
-                  <span className="text-kaffza-primary mt-0.5">✓</span>
+                  <span className="text-primary mt-0.5">✓</span>
                   <span>{n}</span>
                 </li>
               ))}

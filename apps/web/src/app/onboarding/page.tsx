@@ -172,7 +172,7 @@ function OnboardingPageInner() {
 
     setLoading(true);
     try {
-      await api.post(
+      const res = await api.post(
         '/stores',
         {
           nameAr: nameAr.trim(),
@@ -184,6 +184,11 @@ function OnboardingPageInner() {
         },
         { headers: { ...authHeader(), 'x-client': 'web' } }
       );
+
+      const tokens = res.data?.data?.tokens;
+      if (tokens?.accessToken) {
+        document.cookie = `kaffza_access=${encodeURIComponent(tokens.accessToken)}; Path=/; SameSite=Lax`;
+      }
 
       router.replace(withLang('/dashboard?welcome=1'));
     } catch (e: any) {
@@ -198,14 +203,14 @@ function OnboardingPageInner() {
 
   return (
     <main dir={isEn ? 'ltr' : 'rtl'} className="mx-auto max-w-4xl px-6 py-10">
-      <Card className="border-black/10 p-6">
-        <div className="text-kaffza-text/70 text-xs">
+      <Card className="border-border p-6">
+        <div className="text-muted-foreground text-xs">
           {isEn ? 'Merchant setup' : 'إعدادات التاجر'}
         </div>
-        <h1 className="text-kaffza-primary mt-1 text-3xl font-extrabold">
+        <h1 className="text-primary mt-1 text-3xl font-extrabold">
           {isEn ? 'Create your store' : 'إنشاء متجرك'}
         </h1>
-        <p className="text-kaffza-text/80 mt-2 text-sm leading-6">
+        <p className="text-foreground/80 mt-2 text-sm leading-6">
           {isEn
             ? 'Complete these 3 guided steps to launch your storefront with a clean setup and ready checkout.'
             : 'أكمل 3 خطوات واضحة لإطلاق متجرك بسرعة مع إعداد منظم وتجربة دفع جاهزة.'}
@@ -228,8 +233,8 @@ function OnboardingPageInner() {
       ) : null}
 
       {step === 1 ? (
-        <Card className="mt-6 border-black/10 p-6">
-          <div className="text-kaffza-primary text-sm font-extrabold">
+        <Card className="mt-6 border-border p-6">
+          <div className="text-primary text-sm font-extrabold">
             {isEn ? 'Step 1 — Store details' : 'الخطوة 1 — معلومات المتجر'}
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -255,7 +260,7 @@ function OnboardingPageInner() {
               }
             >
               <textarea
-                className="focus:border-kaffza-primary min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+                className="focus:border-kaffza-primary min-h-[96px] w-full rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none"
                 value={descriptionAr}
                 onChange={(e) => setDescriptionAr(e.target.value)}
               />
@@ -266,7 +271,7 @@ function OnboardingPageInner() {
               }
             >
               <textarea
-                className="focus:border-kaffza-primary min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+                className="focus:border-kaffza-primary min-h-[96px] w-full rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none"
                 value={descriptionEn}
                 onChange={(e) => setDescriptionEn(e.target.value)}
               />
@@ -282,8 +287,8 @@ function OnboardingPageInner() {
       ) : null}
 
       {step === 2 ? (
-        <Card className="mt-6 border-black/10 p-6">
-          <div className="text-kaffza-primary text-sm font-extrabold">
+        <Card className="mt-6 border-border p-6">
+          <div className="text-primary text-sm font-extrabold">
             {isEn ? 'Step 2 — URL & identity' : 'الخطوة 2 — الرابط والهوية'}
           </div>
           <div className="mt-4 grid gap-3">
@@ -296,13 +301,13 @@ function OnboardingPageInner() {
                 }}
                 placeholder="mystore"
               />
-              <div className="text-kaffza-text/70 mt-1 text-xs">
+              <div className="text-muted-foreground mt-1 text-xs">
                 {isEn ? 'Preview:' : 'المعاينة:'}{' '}
-                <span className="text-kaffza-primary font-bold">
+                <span className="text-primary font-bold">
                   {subdomain || '...'} .kaffza.com
                 </span>
               </div>
-              <div className="text-kaffza-text/60 mt-1 text-xs">
+              <div className="text-muted-foreground mt-1 text-xs">
                 {isEn
                   ? 'Only lowercase letters, numbers, and hyphens (-), no spaces'
                   : 'فقط أحرف إنجليزية صغيرة وأرقام وشرطة (-) بدون مسافات'}
@@ -336,11 +341,11 @@ function OnboardingPageInner() {
 
       {step === 3 ? (
         <div className="mt-6 space-y-4">
-          <Card className="border-black/10 p-6">
-            <div className="text-kaffza-primary text-sm font-extrabold">
+          <Card className="border-border p-6">
+            <div className="text-primary text-sm font-extrabold">
               {isEn ? 'Step 3 — Pick a plan' : 'الخطوة 3 — اختيار الخطة'}
             </div>
-            <div className="text-kaffza-text/70 mt-2 text-xs">
+            <div className="text-muted-foreground mt-2 text-xs">
               {isEn
                 ? 'You can upgrade later anytime from your dashboard.'
                 : 'يمكنك ترقية الخطة لاحقاً في أي وقت من لوحة التحكم.'}
@@ -423,7 +428,7 @@ function Step({ active, done, title, label }: any) {
     <div
       className={
         'rounded-xl border p-4 shadow-sm ' +
-        (active ? 'border-kaffza-primary bg-white' : 'border-black/10 bg-white')
+        (active ? 'border-kaffza-primary bg-card text-card-foreground' : 'border-border bg-card text-card-foreground')
       }
     >
       <div className="flex items-center justify-between">
@@ -433,13 +438,13 @@ function Step({ active, done, title, label }: any) {
             (done
               ? 'bg-green-50 text-green-700'
               : active
-                ? 'bg-kaffza-primary text-white'
-                : 'bg-kaffza-bg text-kaffza-text')
+                ? 'bg-primary text-white'
+                : 'bg-background text-foreground')
           }
         >
           {done ? '✓' : title}
         </div>
-        <div className="text-kaffza-text text-sm font-bold">{label}</div>
+        <div className="text-foreground text-sm font-bold">{label}</div>
       </div>
     </div>
   );
@@ -448,15 +453,15 @@ function Step({ active, done, title, label }: any) {
 function PlanCard({ plan, selected, onSelect, isEn }: any) {
   const border = selected
     ? 'border-kaffza-primary ring-1 ring-kaffza-primary/30'
-    : 'border-black/10';
-  const bg = plan.popular ? 'bg-[#F5A623]/10' : 'bg-white';
+    : 'border-border';
+  const bg = plan.popular ? 'bg-[#F5A623]/10' : 'bg-card text-card-foreground';
   return (
     <button
       onClick={onSelect}
       className={`hover:border-kaffza-primary rounded-2xl border p-5 text-right transition ${border} ${bg}`}
     >
       <div className="flex items-center justify-between">
-        <div className="text-kaffza-primary text-sm font-extrabold">{plan.name}</div>
+        <div className="text-primary text-sm font-extrabold">{plan.name}</div>
         {plan.popular ? (
           <span className="rounded-full bg-[#F5A623] px-3 py-1 text-[11px] font-extrabold text-white">
             {isEn ? 'Most popular' : 'الأكثر شعبية'}
@@ -465,15 +470,15 @@ function PlanCard({ plan, selected, onSelect, isEn }: any) {
       </div>
       <div className="text-kaffza-info mt-2 text-2xl font-extrabold">
         {isEn ? `${plan.price} OMR` : `${plan.price} ر.ع`}
-        <span className="text-kaffza-text/70 text-sm font-bold">/{isEn ? 'month' : 'شهر'}</span>
+        <span className="text-muted-foreground text-sm font-bold">/{isEn ? 'month' : 'شهر'}</span>
       </div>
-      <div className="text-kaffza-text/70 mt-2 text-xs">{isEn ? plan.descEn : plan.descAr}</div>
+      <div className="text-muted-foreground mt-2 text-xs">{isEn ? plan.descEn : plan.descAr}</div>
       {selected ? (
-        <div className="text-kaffza-primary mt-3 text-xs font-bold">
+        <div className="text-primary mt-3 text-xs font-bold">
           {isEn ? 'Selected ✓' : 'مختارة ✓'}
         </div>
       ) : (
-        <div className="text-kaffza-text/60 mt-3 text-xs">
+        <div className="text-muted-foreground mt-3 text-xs">
           {isEn ? 'Click to select' : 'اضغط للاختيار'}
         </div>
       )}
@@ -484,7 +489,7 @@ function PlanCard({ plan, selected, onSelect, isEn }: any) {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );

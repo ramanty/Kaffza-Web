@@ -120,8 +120,8 @@ function OnboardingPageInner() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-kaffza-primary text-2xl font-extrabold">{title}</h1>
-        <p className="text-kaffza-text/70 mt-1 text-sm">
+        <h1 className="text-primary text-2xl font-extrabold">{title}</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
           {isEn
             ? 'Complete the checklist to activate store operations and increase first-order conversion.'
             : 'نفّذ الخطوات التالية لتجهيز متجرك ورفع فرص أول 5 طلبات.'}
@@ -140,11 +140,11 @@ function OnboardingPageInner() {
       ) : null}
 
       {!storeId ? (
-        <Card className="border-black/10 p-6 text-sm">
-          <div className="text-kaffza-primary text-base font-extrabold">
+        <Card className="border-border p-6 text-sm">
+          <div className="text-primary text-base font-extrabold">
             {isEn ? 'Select a store first' : 'اختر متجراً أولاً'}
           </div>
-          <p className="text-kaffza-text/70 mt-1">
+          <p className="text-muted-foreground mt-1">
             {isEn
               ? 'Checklist appears after selecting or creating a merchant store.'
               : 'ستظهر الخطة بعد اختيار متجر التاجر أو إنشاء متجر جديد.'}
@@ -153,21 +153,21 @@ function OnboardingPageInner() {
       ) : null}
 
       {data ? (
-        <Card className="border-black/10 p-5">
+        <Card className="border-border p-5">
           <div className="mb-4 flex items-center justify-between">
-            <div className="text-kaffza-text text-sm font-bold">
+            <div className="text-foreground text-sm font-bold">
               {isEn ? 'Completion rate' : 'نسبة الإنجاز'}
             </div>
-            <div className="text-kaffza-primary text-sm font-extrabold">{data.completionRate}%</div>
+            <div className="text-primary text-sm font-extrabold">{data.completionRate}%</div>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-slate-200">
             <div
-              className="bg-kaffza-primary h-full transition-all"
+              className="bg-primary h-full transition-all"
               style={{ width: `${Math.min(100, Math.max(0, data.completionRate))}%` }}
             />
           </div>
           {data.nextStep ? (
-            <div className="bg-kaffza-bg mt-4 rounded-xl p-3 text-sm">
+            <div className="bg-background mt-4 rounded-xl p-3 text-sm">
               {isEn ? 'Recommended next step:' : 'الخطوة التالية المقترحة:'}{' '}
               <span className="font-extrabold">
                 {isEn ? data.nextStep.labelEn : data.nextStep.labelAr}
@@ -178,11 +178,11 @@ function OnboardingPageInner() {
       ) : null}
 
       {!loading && (!data?.steps || data.steps.length === 0) ? (
-        <Card className="border-black/10 p-6 text-sm">
-          <div className="text-kaffza-primary text-base font-extrabold">
+        <Card className="border-border p-6 text-sm">
+          <div className="text-primary text-base font-extrabold">
             {isEn ? 'Checklist is not ready yet' : 'الخطة غير جاهزة حالياً'}
           </div>
-          <p className="text-kaffza-text/70 mt-1">
+          <p className="text-muted-foreground mt-1">
             {isEn
               ? 'Try refreshing or visit settings and products to continue preparing your store.'
               : 'حاول التحديث أو انتقل للإعدادات والمنتجات للمتابعة.'}
@@ -200,13 +200,13 @@ function OnboardingPageInner() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {(data?.steps || []).map((step) => (
-          <Card key={step.key} className="border-black/10 p-5">
+          <Card key={step.key} className="border-border p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-kaffza-primary text-base font-extrabold">
+                <h2 className="text-primary text-base font-extrabold">
                   {isEn ? step.labelEn : step.labelAr}
                 </h2>
-                <p className="text-kaffza-text/70 mt-1 text-xs">{stepHint(step.route)}</p>
+                <p className="text-muted-foreground mt-1 text-xs">{stepHint(step.route)}</p>
               </div>
               <span
                 className={
@@ -245,8 +245,8 @@ function OnboardingPageInner() {
       </div>
 
       {loading ? (
-        <Card className="border-black/10 p-4 text-sm">
-          <div className="text-kaffza-text/60">
+        <Card className="border-border p-4 text-sm">
+          <div className="text-muted-foreground">
             {isEn ? 'Loading checklist...' : 'جارٍ تحميل الخطة...'}
           </div>
         </Card>

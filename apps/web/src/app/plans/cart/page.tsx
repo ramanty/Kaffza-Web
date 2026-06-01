@@ -56,15 +56,15 @@ export default function PlanCartPage() {
   return (
     <main dir="rtl" className="mx-auto max-w-5xl px-6 py-12">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-kaffza-primary text-3xl font-extrabold">سلة الخطط</h1>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/plans">
+        <h1 className="text-primary text-3xl font-extrabold">سلة الخطط</h1>
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/plans">
           العودة للخطط
         </Link>
       </div>
 
       {rows.length === 0 ? (
         <Card className="mt-8 p-6 text-center">
-          <p className="text-kaffza-text/80 text-sm">السلة فارغة حالياً.</p>
+          <p className="text-foreground/80 text-sm">السلة فارغة حالياً.</p>
           <div className="mt-4">
             <Link href="/plans">
               <Button>استعرض الخطط</Button>
@@ -75,16 +75,16 @@ export default function PlanCartPage() {
         <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
           <div className="grid gap-4">
             {rows.map((row) => (
-              <Card key={row.slug} className="border-black/10 p-5 shadow-sm">
+              <Card key={row.slug} className="border-border p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-kaffza-primary font-extrabold">
+                    <div className="text-primary font-extrabold">
                       {row.plan.name} ({getPlanSubtitle(row.plan)})
                     </div>
-                    <div className="text-kaffza-text/70 mt-2 text-xs">
+                    <div className="text-muted-foreground mt-2 text-xs">
                       {row.quantity} × {row.plan.priceOmr} ر.ع
                     </div>
-                    <div className="text-kaffza-text/75 mt-2 inline-flex rounded-full border border-black/10 px-2 py-1 text-[11px] font-bold">
+                    <div className="text-foreground/75 mt-2 inline-flex rounded-full border border-border px-2 py-1 text-[11px] font-bold">
                       اشتراك شهري
                     </div>
                   </div>
@@ -103,16 +103,16 @@ export default function PlanCartPage() {
             ))}
           </div>
 
-          <Card className="border-black/10 p-5 shadow-sm lg:sticky lg:top-20">
+          <Card className="border-border p-5 shadow-sm lg:sticky lg:top-20">
             <div className="flex items-center justify-between">
-              <span className="text-kaffza-text/70 text-sm">عدد العناصر</span>
-              <span className="text-kaffza-primary font-extrabold">{totalItems}</span>
+              <span className="text-muted-foreground text-sm">عدد العناصر</span>
+              <span className="text-primary font-extrabold">{totalItems}</span>
             </div>
             <div className="mt-3 flex items-center justify-between">
-              <span className="text-kaffza-primary font-extrabold">الإجمالي</span>
+              <span className="text-primary font-extrabold">الإجمالي</span>
               <span className="text-kaffza-info text-2xl font-extrabold">{total} ر.ع</span>
             </div>
-            <p className="text-kaffza-text/70 mt-3 text-xs">
+            <p className="text-muted-foreground mt-3 text-xs">
               {total === 0
                 ? 'هذه خطة مجانية، ويمكن تفعيلها مباشرة بدون دفع.'
                 : 'بعد الدفع يتم تفعيل الخطة مباشرة على حسابك.'}

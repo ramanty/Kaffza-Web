@@ -129,8 +129,8 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-kaffza-primary text-2xl font-extrabold">تفاصيل الطلب</h1>
-          <p className="text-kaffza-text/80 mt-1 text-sm">رقم الطلب ومحتوياته وحالة الشحن.</p>
+          <h1 className="text-primary text-2xl font-extrabold">تفاصيل الطلب</h1>
+          <p className="text-foreground/80 mt-1 text-sm">رقم الطلب ومحتوياته وحالة الشحن.</p>
         </div>
         <div className="flex gap-2">
           <Link href="/account/orders">
@@ -146,7 +146,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
 
       {loading || !order ? (
         <Card className="p-6">
-          <div className="text-kaffza-text/70 text-sm">
+          <div className="text-muted-foreground text-sm">
             {loading ? 'جاري التحميل...' : 'لا توجد بيانات'}
           </div>
         </Card>
@@ -155,11 +155,11 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
           <Card className="p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-kaffza-text/70 text-xs">رقم الطلب</div>
-                <div className="text-kaffza-primary text-xl font-extrabold">
+                <div className="text-muted-foreground text-xs">رقم الطلب</div>
+                <div className="text-primary text-xl font-extrabold">
                   {order.orderNumber}
                 </div>
-                <div className="text-kaffza-text/70 mt-1 text-xs">
+                <div className="text-muted-foreground mt-1 text-xs">
                   {formatDate(order.createdAt)}
                 </div>
               </div>
@@ -188,15 +188,15 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
 
           <div className="grid gap-5 lg:grid-cols-3">
             <Card className="p-6 lg:col-span-2">
-              <div className="text-kaffza-primary text-sm font-extrabold">المنتجات</div>
+              <div className="text-primary text-sm font-extrabold">المنتجات</div>
               <div className="mt-4 space-y-3">
                 {(order.items || []).map((it: any) => (
                   <div
                     key={String(it.id)}
-                    className="flex items-start justify-between gap-3 rounded-xl border border-black/5 p-4"
+                    className="flex items-start justify-between gap-3 rounded-xl border border-border p-4"
                   >
                     <div className="flex gap-3">
-                      <div className="bg-kaffza-bg h-14 w-14 overflow-hidden rounded-xl border border-black/10">
+                      <div className="bg-background h-14 w-14 overflow-hidden rounded-xl border border-border">
                         {it.product?.images?.[0] ? (
                           <img
                             src={it.product?.images?.[0]}
@@ -204,22 +204,22 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="text-kaffza-text/60 flex h-full w-full items-center justify-center text-[10px] font-bold">
+                          <div className="text-muted-foreground flex h-full w-full items-center justify-center text-[10px] font-bold">
                             No Image
                           </div>
                         )}
                       </div>
                       <div>
-                        <div className="text-kaffza-text text-sm font-bold">{it.productName}</div>
-                        <div className="text-kaffza-text/70 mt-1 text-xs">
+                        <div className="text-foreground text-sm font-bold">{it.productName}</div>
+                        <div className="text-muted-foreground mt-1 text-xs">
                           الكمية: {it.quantity}
                         </div>
-                        <div className="text-kaffza-text/70 mt-1 text-xs">
+                        <div className="text-muted-foreground mt-1 text-xs">
                           سعر الوحدة: {formatOMR(Number(it.unitPrice))}
                         </div>
                       </div>
                     </div>
-                    <div className="text-kaffza-primary text-sm font-extrabold">
+                    <div className="text-primary text-sm font-extrabold">
                       {formatOMR(Number(it.totalPrice))}
                     </div>
                   </div>
@@ -229,10 +229,10 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
 
             <div className="space-y-5 lg:col-span-1">
               <Card className="p-6">
-                <div className="text-kaffza-primary text-sm font-extrabold">عنوان الشحن</div>
-                <div className="bg-kaffza-bg text-kaffza-text mt-3 rounded-xl p-4 text-sm">
+                <div className="text-primary text-sm font-extrabold">عنوان الشحن</div>
+                <div className="bg-background text-foreground mt-3 rounded-xl p-4 text-sm">
                   <div className="font-bold">{order.shippingAddress?.fullName}</div>
-                  <div className="text-kaffza-text/70 mt-1 text-xs">
+                  <div className="text-muted-foreground mt-1 text-xs">
                     {order.shippingAddress?.phone}
                   </div>
                   <div className="mt-2">
@@ -243,11 +243,11 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
               </Card>
 
               <Card className="p-6">
-                <div className="text-kaffza-primary text-sm font-extrabold">الملخص المالي</div>
+                <div className="text-primary text-sm font-extrabold">الملخص المالي</div>
                 <div className="mt-4 space-y-2 text-sm">
                   <Row label="Subtotal" value={formatOMR(totals.subtotal)} />
                   <Row label="Shipping" value={formatOMR(totals.shipping)} />
-                  <div className="border-t border-black/10 pt-3">
+                  <div className="border-t border-border pt-3">
                     <Row label="Total" value={formatOMR(totals.total)} strong />
                   </div>
                 </div>
@@ -295,11 +295,11 @@ function Timeline({
         return (
           <div key={s.key} className="flex items-center gap-2">
             <div
-              className={'h-3 w-3 rounded-full ' + (active ? 'bg-kaffza-primary' : 'bg-black/10')}
+              className={'h-3 w-3 rounded-full ' + (active ? 'bg-primary' : 'bg-black/10')}
             />
             <div
               className={
-                'text-xs font-bold ' + (active ? 'text-kaffza-primary' : 'text-kaffza-text/60')
+                'text-xs font-bold ' + (active ? 'text-primary' : 'text-muted-foreground')
               }
             >
               {s.label}
@@ -314,9 +314,9 @@ function Timeline({
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-kaffza-text/70">{label}</span>
+      <span className="text-muted-foreground">{label}</span>
       <span
-        className={strong ? 'text-kaffza-primary font-extrabold' : 'text-kaffza-text font-bold'}
+        className={strong ? 'text-primary font-extrabold' : 'text-foreground font-bold'}
       >
         {value}
       </span>

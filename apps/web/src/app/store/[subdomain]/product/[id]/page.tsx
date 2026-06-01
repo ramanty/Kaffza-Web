@@ -168,7 +168,7 @@ export default function ProductDetailPage({
     return (
       <main dir="rtl" className="mx-auto max-w-5xl px-6 py-16">
         <div className="flex justify-center">
-          <div className="text-kaffza-text/70 text-sm">جاري التحميل...</div>
+          <div className="text-muted-foreground text-sm">جاري التحميل...</div>
         </div>
       </main>
     );
@@ -179,7 +179,7 @@ export default function ProductDetailPage({
       <main dir="rtl" className="mx-auto max-w-5xl px-6 py-16">
         <div className="text-center">
           <div className="text-4xl">🔍</div>
-          <div className="text-kaffza-text mt-3 text-lg font-bold">المنتج غير موجود</div>
+          <div className="text-foreground mt-3 text-lg font-bold">المنتج غير موجود</div>
           <div className="mt-4">
             <Link href={`/store/${subdomain}`}>
               <Button variant="secondary">العودة للمتجر</Button>
@@ -196,12 +196,12 @@ export default function ProductDetailPage({
   return (
     <main dir="rtl" className="mx-auto max-w-5xl px-6 py-10">
       {/* Breadcrumb */}
-      <nav className="text-kaffza-text/70 mb-6 flex items-center gap-2 text-sm">
-        <Link href={`/store/${subdomain}`} className="hover:text-kaffza-primary underline">
+      <nav className="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
+        <Link href={`/store/${subdomain}`} className="hover:text-primary underline">
           {store?.nameAr || store?.nameEn || 'المتجر'}
         </Link>
         <span>›</span>
-        <span className="text-kaffza-text">{product.nameAr || product.nameEn}</span>
+        <span className="text-foreground">{product.nameAr || product.nameEn}</span>
       </nav>
 
       {isMock && (
@@ -215,7 +215,7 @@ export default function ProductDetailPage({
         <div className="flex flex-col gap-4">
           {/* Main image */}
           <div
-            className="bg-kaffza-bg overflow-hidden rounded-2xl border border-black/10"
+            className="bg-background overflow-hidden rounded-2xl border border-border"
             style={{ aspectRatio: '1/1' }}
           >
             {hasImages ? (
@@ -225,7 +225,7 @@ export default function ProductDetailPage({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="text-kaffza-text/30 flex h-full w-full items-center justify-center text-6xl">
+              <div className="text-foreground/30 flex h-full w-full items-center justify-center text-6xl">
                 📦
               </div>
             )}
@@ -255,26 +255,26 @@ export default function ProductDetailPage({
         <div className="flex flex-col gap-5">
           {/* Product title */}
           <div>
-            <h1 className="text-kaffza-primary text-2xl font-extrabold">
+            <h1 className="text-primary text-2xl font-extrabold">
               {product.nameAr || product.nameEn}
             </h1>
             {product.nameEn && product.nameAr && (
-              <div className="text-kaffza-text/60 mt-1 text-sm">{product.nameEn}</div>
+              <div className="text-muted-foreground mt-1 text-sm">{product.nameEn}</div>
             )}
           </div>
 
           {/* Price */}
           <div className="flex items-center gap-3">
-            <span className="text-kaffza-primary text-3xl font-extrabold">
+            <span className="text-primary text-3xl font-extrabold">
               {Number(displayPrice).toFixed(3)} ر.ع
             </span>
             {product.compareAtPrice && product.compareAtPrice > displayPrice && (
-              <span className="text-kaffza-text/50 text-base line-through">
+              <span className="text-foreground/50 text-base line-through">
                 {Number(product.compareAtPrice).toFixed(3)} ر.ع
               </span>
             )}
             {product.compareAtPrice && product.compareAtPrice > displayPrice && (
-              <span className="bg-kaffza-premium rounded-full px-2 py-0.5 text-xs font-bold text-white">
+              <span className="bg-premium rounded-full px-2 py-0.5 text-xs font-bold text-white">
                 خصم{' '}
                 {Math.round(
                   ((product.compareAtPrice - displayPrice) / product.compareAtPrice) * 100
@@ -302,14 +302,14 @@ export default function ProductDetailPage({
           {/* Variants */}
           {hasVariants && (
             <Card className="p-4">
-              <div className="text-kaffza-text mb-3 text-sm font-bold">اختر الخيار</div>
+              <div className="text-foreground mb-3 text-sm font-bold">اختر الخيار</div>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setSelectedVariant(null)}
                   className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${
                     selectedVariant === null
-                      ? 'border-kaffza-primary bg-kaffza-primary text-white'
-                      : 'text-kaffza-text hover:border-kaffza-primary border-slate-200 bg-white'
+                      ? 'border-kaffza-primary bg-primary text-white'
+                      : 'text-foreground hover:border-kaffza-primary border-border bg-card text-card-foreground'
                   }`}
                 >
                   الأساسي
@@ -321,8 +321,8 @@ export default function ProductDetailPage({
                     disabled={v.stock <= 0}
                     className={`rounded-xl border px-4 py-2 text-sm font-semibold transition disabled:opacity-40 ${
                       selectedVariant?.id === v.id
-                        ? 'border-kaffza-primary bg-kaffza-primary text-white'
-                        : 'text-kaffza-text hover:border-kaffza-primary border-slate-200 bg-white'
+                        ? 'border-kaffza-primary bg-primary text-white'
+                        : 'text-foreground hover:border-kaffza-primary border-border bg-card text-card-foreground'
                     }`}
                   >
                     {v.nameAr || v.nameEn}
@@ -370,26 +370,26 @@ export default function ProductDetailPage({
           )}
 
           {/* SKU */}
-          {product.sku && <div className="text-kaffza-text/50 text-xs">رمز SKU: {product.sku}</div>}
+          {product.sku && <div className="text-foreground/50 text-xs">رمز SKU: {product.sku}</div>}
         </div>
       </div>
 
       {/* Description */}
       {(product.descriptionAr || product.descriptionEn) && (
         <Card className="mt-8 p-6">
-          <h2 className="text-kaffza-primary mb-3 text-base font-extrabold">وصف المنتج</h2>
+          <h2 className="text-primary mb-3 text-base font-extrabold">وصف المنتج</h2>
           {product.descriptionAr && (
-            <p className="text-kaffza-text whitespace-pre-wrap text-sm leading-relaxed">
+            <p className="text-foreground whitespace-pre-wrap text-sm leading-relaxed">
               {product.descriptionAr}
             </p>
           )}
           {product.descriptionEn && product.descriptionAr && (
-            <hr className="my-4 border-black/10" />
+            <hr className="my-4 border-border" />
           )}
           {product.descriptionEn && (
             <p
               dir="ltr"
-              className="text-kaffza-text/80 whitespace-pre-wrap text-sm leading-relaxed"
+              className="text-foreground/80 whitespace-pre-wrap text-sm leading-relaxed"
             >
               {product.descriptionEn}
             </p>

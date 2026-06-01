@@ -106,8 +106,8 @@ export default function NewProductPage() {
       {/* Page Header */}
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-kaffza-primary text-2xl font-extrabold">إضافة منتج جديد</h1>
-          <p className="text-kaffza-text/80 mt-1 text-sm">
+          <h1 className="text-primary text-2xl font-extrabold">إضافة منتج جديد</h1>
+          <p className="text-foreground/80 mt-1 text-sm">
             أدخل تفاصيل المنتج الجديد لإضافته إلى متجرك.
           </p>
         </div>
@@ -137,7 +137,7 @@ export default function NewProductPage() {
           <div className="space-y-5 lg:col-span-2">
             {/* Names */}
             <Card>
-              <h2 className="text-kaffza-primary mb-4 text-base font-extrabold">اسم المنتج</h2>
+              <h2 className="text-primary mb-4 text-base font-extrabold">اسم المنتج</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="الاسم بالعربية *" error={errors.nameAr?.message}>
                   <Input {...register('nameAr')} placeholder="مثال: حذاء رياضي" dir="rtl" />
@@ -150,7 +150,7 @@ export default function NewProductPage() {
 
             {/* Descriptions */}
             <Card>
-              <h2 className="text-kaffza-primary mb-4 text-base font-extrabold">الوصف (اختياري)</h2>
+              <h2 className="text-primary mb-4 text-base font-extrabold">الوصف (اختياري)</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="الوصف بالعربية" error={errors.descriptionAr?.message}>
                   <textarea
@@ -158,7 +158,7 @@ export default function NewProductPage() {
                     rows={4}
                     placeholder="وصف تفصيلي للمنتج بالعربية..."
                     dir="rtl"
-                    className="focus:border-kaffza-primary w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+                    className="focus:border-kaffza-primary w-full resize-none rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none"
                   />
                 </Field>
                 <Field label="الوصف بالإنجليزية" error={errors.descriptionEn?.message}>
@@ -167,7 +167,7 @@ export default function NewProductPage() {
                     rows={4}
                     placeholder="Detailed product description in English..."
                     dir="ltr"
-                    className="focus:border-kaffza-primary w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+                    className="focus:border-kaffza-primary w-full resize-none rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none"
                   />
                 </Field>
               </div>
@@ -175,7 +175,7 @@ export default function NewProductPage() {
 
             {/* Pricing & Stock */}
             <Card>
-              <h2 className="text-kaffza-primary mb-4 text-base font-extrabold">السعر والمخزون</h2>
+              <h2 className="text-primary mb-4 text-base font-extrabold">السعر والمخزون</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="السعر (ر.ع) *" error={errors.price?.message}>
                   <Input
@@ -205,11 +205,11 @@ export default function NewProductPage() {
           <div className="space-y-5">
             {/* Category */}
             <Card>
-              <h2 className="text-kaffza-primary mb-4 text-base font-extrabold">التصنيف</h2>
+              <h2 className="text-primary mb-4 text-base font-extrabold">التصنيف</h2>
               <Field label="التصنيف (اختياري)" error={errors.categoryId?.message}>
                 <select
                   {...register('categoryId', { setValueAs: (v) => (v ? Number(v) : undefined) })}
-                  className="focus:border-kaffza-primary w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+                  className="focus:border-kaffza-primary w-full rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none"
                 >
                   <option value="">بدون تصنيف</option>
                   {categories.map((c) => (
@@ -228,11 +228,11 @@ export default function NewProductPage() {
 
             {/* Status */}
             <Card>
-              <h2 className="text-kaffza-primary mb-4 text-base font-extrabold">حالة المنتج</h2>
+              <h2 className="text-primary mb-4 text-base font-extrabold">حالة المنتج</h2>
               <label className="flex cursor-pointer items-center justify-between gap-3">
                 <div>
-                  <div className="text-kaffza-text text-sm font-bold">منتج نشط</div>
-                  <div className="text-kaffza-text/60 text-xs">سيظهر المنتج في المتجر للعملاء</div>
+                  <div className="text-foreground text-sm font-bold">منتج نشط</div>
+                  <div className="text-muted-foreground text-xs">سيظهر المنتج في المتجر للعملاء</div>
                 </div>
                 {/* Toggle Switch */}
                 <div
@@ -242,12 +242,12 @@ export default function NewProductPage() {
                   <div
                     className={
                       'h-6 w-11 cursor-pointer rounded-full transition-colors ' +
-                      (isActiveValue ? 'bg-kaffza-primary' : 'bg-slate-200')
+                      (isActiveValue ? 'bg-primary' : 'bg-slate-200')
                     }
                   />
                   <div
                     className={
-                      'pointer-events-none absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ' +
+                      'pointer-events-none absolute top-0.5 h-5 w-5 rounded-full bg-card text-card-foreground shadow transition-transform ' +
                       (isActiveValue ? 'left-0.5 translate-x-5' : 'left-0.5')
                     }
                   />
@@ -287,7 +287,7 @@ function Field({
 }) {
   return (
     <div className="grid gap-1">
-      <label className="text-kaffza-text text-sm font-bold">{label}</label>
+      <label className="text-foreground text-sm font-bold">{label}</label>
       {children}
       {error ? <p className="text-xs text-red-600">{error}</p> : null}
     </div>

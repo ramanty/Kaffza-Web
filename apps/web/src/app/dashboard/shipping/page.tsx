@@ -184,8 +184,8 @@ export default function DashboardShippingPage() {
     <div className="space-y-6" dir="rtl">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-kaffza-primary text-2xl font-extrabold">الشحن</h1>
-          <p className="text-kaffza-text/80 mt-1 text-sm">إدارة قواعد الشحن والشحنات.</p>
+          <h1 className="text-primary text-2xl font-extrabold">الشحن</h1>
+          <p className="text-foreground/80 mt-1 text-sm">إدارة قواعد الشحن والشحنات.</p>
           {!storeId ? (
             <p className="mt-1 text-xs text-red-700">لا يوجد متجر محدد. اختر متجراً من الأعلى.</p>
           ) : null}
@@ -203,10 +203,10 @@ export default function DashboardShippingPage() {
       <Card className="space-y-4 p-6">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-kaffza-primary text-sm font-extrabold">
+            <div className="text-primary text-sm font-extrabold">
               قواعد الشحن | Shipping Rules
             </div>
-            <p className="text-kaffza-text/70 mt-1 text-xs">
+            <p className="text-muted-foreground mt-1 text-xs">
               قواعد آمنة: الوضع الافتراضي يحافظ على نفس سلوك الشحن الحالي.
             </p>
           </div>
@@ -220,7 +220,7 @@ export default function DashboardShippingPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="استراتيجية التسعير | Cost Strategy">
             <select
-              className="focus:border-kaffza-primary rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+              className="focus:border-kaffza-primary rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none"
               value={settings.strategy}
               onChange={(e) => setSettings((s) => ({ ...s, strategy: e.target.value as any }))}
             >
@@ -258,9 +258,9 @@ export default function DashboardShippingPage() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-xl border border-black/10 p-4">
+          <div className="rounded-xl border border-border p-4">
             <div className="mb-3 flex items-center justify-between">
-              <div className="text-kaffza-primary text-sm font-extrabold">مناطق الشحن | Zones</div>
+              <div className="text-primary text-sm font-extrabold">مناطق الشحن | Zones</div>
               <Button
                 variant="secondary"
                 onClick={() =>
@@ -278,12 +278,12 @@ export default function DashboardShippingPage() {
             </div>
             <div className="space-y-3">
               {settings.zones.length === 0 ? (
-                <div className="text-kaffza-text/70 text-xs">
+                <div className="text-muted-foreground text-xs">
                   لا توجد مناطق مخصصة. سيستخدم السعر الأساسي فقط.
                 </div>
               ) : (
                 settings.zones.map((zone, idx) => (
-                  <div key={idx} className="bg-kaffza-bg grid gap-2 rounded-lg p-3 md:grid-cols-5">
+                  <div key={idx} className="bg-background grid gap-2 rounded-lg p-3 md:grid-cols-5">
                     <Input
                       placeholder="Code"
                       value={zone.code}
@@ -336,9 +336,9 @@ export default function DashboardShippingPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-black/10 p-4">
+          <div className="rounded-xl border border-border p-4">
             <div className="mb-3 flex items-center justify-between">
-              <div className="text-kaffza-primary text-sm font-extrabold">
+              <div className="text-primary text-sm font-extrabold">
                 شرائح الوزن | Weight Tiers
               </div>
               <Button
@@ -355,12 +355,12 @@ export default function DashboardShippingPage() {
             </div>
             <div className="space-y-3">
               {settings.weightTiers.length === 0 ? (
-                <div className="text-kaffza-text/70 text-xs">
+                <div className="text-muted-foreground text-xs">
                   يمكنك إضافة شرائح وزن إذا كانت الاستراتيجية Weight Tier.
                 </div>
               ) : (
                 settings.weightTiers.map((tier, idx) => (
-                  <div key={idx} className="bg-kaffza-bg grid gap-2 rounded-lg p-3 md:grid-cols-4">
+                  <div key={idx} className="bg-background grid gap-2 rounded-lg p-3 md:grid-cols-4">
                     <Input
                       placeholder="Min KG"
                       value={String(tier.minWeightKg)}
@@ -401,39 +401,39 @@ export default function DashboardShippingPage() {
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-kaffza-bg">
+            <thead className="bg-background">
               <tr className="text-right">
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">رقم الطلب</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">اسم العميل</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">الحالة</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">تاريخ الإنشاء</th>
+                <th className="text-primary px-4 py-3 font-extrabold">رقم الطلب</th>
+                <th className="text-primary px-4 py-3 font-extrabold">اسم العميل</th>
+                <th className="text-primary px-4 py-3 font-extrabold">الحالة</th>
+                <th className="text-primary px-4 py-3 font-extrabold">تاريخ الإنشاء</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="text-kaffza-text/70 px-4 py-6">
+                  <td colSpan={4} className="text-muted-foreground px-4 py-6">
                     جاري التحميل...
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-kaffza-text/70 px-4 py-6">
+                  <td colSpan={4} className="text-muted-foreground px-4 py-6">
                     لا يوجد شحنات.
                   </td>
                 </tr>
               ) : (
                 rows.map((s) => (
-                  <tr key={String(s.id)} className="border-t border-black/5">
-                    <td className="text-kaffza-text px-4 py-3 font-bold">
+                  <tr key={String(s.id)} className="border-t border-border">
+                    <td className="text-foreground px-4 py-3 font-bold">
                       {s.order?.orderNumber || s.orderId}
                     </td>
-                    <td className="text-kaffza-text/80 px-4 py-3">
+                    <td className="text-foreground/80 px-4 py-3">
                       {s.order?.customer?.name || '-'}
                     </td>
                     <td className="px-4 py-3">
                       <select
-                        className="focus:border-kaffza-primary rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+                        className="focus:border-kaffza-primary rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none"
                         value={String(s.status)}
                         onChange={(e) => updateStatus(String(s.id), e.target.value)}
                         disabled={loading}
@@ -448,7 +448,7 @@ export default function DashboardShippingPage() {
                         ) : null}
                       </select>
                     </td>
-                    <td className="text-kaffza-text/70 px-4 py-3">{formatDate(s.createdAt)}</td>
+                    <td className="text-muted-foreground px-4 py-3">{formatDate(s.createdAt)}</td>
                   </tr>
                 ))
               )}
@@ -465,7 +465,7 @@ export default function DashboardShippingPage() {
         >
           السابق
         </Button>
-        <div className="text-kaffza-text/70 text-xs">
+        <div className="text-muted-foreground text-xs">
           صفحة {meta?.page || page} • {meta?.total || 0} شحنة
         </div>
         <Button
@@ -511,7 +511,7 @@ function removeTier(setter: any, idx: number) {
 function Field({ label, children }: { label: string; children: any }) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );

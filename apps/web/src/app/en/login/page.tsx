@@ -175,15 +175,15 @@ function EnLoginPageInner() {
   return (
     <main dir="ltr" className="mx-auto max-w-lg px-6 py-12">
       <div className="flex items-center justify-between">
-        <div className="text-kaffza-primary text-2xl font-extrabold">Login</div>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/en">
+        <div className="text-primary text-2xl font-extrabold">Login</div>
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/en">
           Home
         </Link>
       </div>
 
       <Card className="mt-6 p-6">
-        <div className="border-kaffza-primary/20 bg-kaffza-primary/5 text-kaffza-text/80 mb-4 rounded-xl border p-3 text-xs">
-          <span className="text-kaffza-primary font-bold">Secure login:</span> your account is
+        <div className="border-kaffza-primary/20 bg-primary/5 text-foreground/80 mb-4 rounded-xl border p-3 text-xs">
+          <span className="text-primary font-bold">Secure login:</span> your account is
           protected, and you can track orders from your account page after checkout.
         </div>
         <div className="flex gap-2">
@@ -211,7 +211,7 @@ function EnLoginPageInner() {
         {tab === 'password' ? (
           <div className="mt-5 grid gap-3">
             <div className="grid gap-2">
-              <span className="text-kaffza-text text-sm font-bold">Login method</span>
+              <span className="text-foreground text-sm font-bold">Login method</span>
               <div className="flex gap-2">
                 <TabButton
                   active={passwordMethod === 'phone'}
@@ -263,13 +263,13 @@ function EnLoginPageInner() {
 
             <div className="flex items-center justify-between text-sm">
               <Link
-                className="text-kaffza-primary font-bold underline"
+                className="text-primary font-bold underline"
                 href={`/en/register?next=${encodeURIComponent(next)}`}
               >
                 Create account
               </Link>
               <Link
-                className="text-kaffza-text/70 text-xs font-bold underline"
+                className="text-muted-foreground text-xs font-bold underline"
                 href={`/en/forgot-password?next=${encodeURIComponent(next)}`}
               >
                 Forgot password?
@@ -300,7 +300,7 @@ function EnLoginPageInner() {
                 <div className="text-sm">
                   New here?{' '}
                   <Link
-                    className="text-kaffza-primary font-bold underline"
+                    className="text-primary font-bold underline"
                     href={`/en/register?next=${encodeURIComponent(next)}`}
                   >
                     Create account
@@ -309,7 +309,7 @@ function EnLoginPageInner() {
               </>
             ) : (
               <>
-                <div className="bg-kaffza-bg text-kaffza-text rounded-xl p-3 text-xs">
+                <div className="bg-background text-foreground rounded-xl p-3 text-xs">
                   <span className="font-bold">Phone:</span> {otpPhone.trim()}
                 </div>
 
@@ -328,14 +328,14 @@ function EnLoginPageInner() {
 
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                   <button
-                    className="text-kaffza-primary font-bold underline disabled:opacity-50"
+                    className="text-primary font-bold underline disabled:opacity-50"
                     onClick={requestOtp}
                     disabled={loading || !otpPhoneOk}
                   >
                     Resend OTP
                   </button>
                   <button
-                    className="text-kaffza-text/70 text-xs font-bold underline"
+                    className="text-muted-foreground text-xs font-bold underline"
                     onClick={() => {
                       setOtp('');
                       setOtpStep('phone');
@@ -351,7 +351,7 @@ function EnLoginPageInner() {
         )}
       </Card>
 
-      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
+      <div className="text-foreground mt-6 flex flex-wrap gap-3 text-xs">
         <Link className="underline" href="/en/legal/terms">
           Terms
         </Link>
@@ -371,7 +371,7 @@ function TabButton({ active, onClick, children }: any) {
         'flex-1 rounded-xl px-4 py-2 text-sm font-extrabold transition ' +
         (active
           ? 'bg-[#1B3A6B] text-white'
-          : 'bg-kaffza-bg text-kaffza-text border border-black/10 hover:bg-black/5')
+          : 'bg-background text-foreground border border-border hover:bg-black/5')
       }
     >
       {children}
@@ -382,14 +382,14 @@ function TabButton({ active, onClick, children }: any) {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );
 }
 
 function Hint({ children }: any) {
-  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
+  return <span className="text-muted-foreground text-xs">{children}</span>;
 }
 
 export default function EnLoginPage() {

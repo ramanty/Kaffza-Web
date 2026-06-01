@@ -163,16 +163,16 @@ export default function EnMerchantRegisterPage() {
     <main dir="ltr" className="mx-auto max-w-lg px-6 py-12">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-kaffza-text/70 text-xs">Merchant area</div>
-          <div className="text-kaffza-primary text-2xl font-extrabold">Merchant Registration</div>
+          <div className="text-muted-foreground text-xs">Merchant area</div>
+          <div className="text-primary text-2xl font-extrabold">Merchant Registration</div>
         </div>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/en">
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/en">
           Home
         </Link>
       </div>
 
       <Card className="mt-6 p-6">
-        <p className="text-kaffza-text/80 text-sm">
+        <p className="text-foreground/80 text-sm">
           You can register by email or phone. Before publishing products, both must be linked.
         </p>
 
@@ -192,7 +192,7 @@ export default function EnMerchantRegisterPage() {
         {step === 'register' ? (
           <div className="mt-5 grid gap-3">
             <div className="grid gap-2">
-              <span className="text-kaffza-text text-sm font-bold">Registration method</span>
+              <span className="text-foreground text-sm font-bold">Registration method</span>
               <div className="flex gap-2">
                 <TabButton active={method === 'phone'} onClick={() => setMethod('phone')}>
                   Phone
@@ -244,20 +244,20 @@ export default function EnMerchantRegisterPage() {
               />
             </Field>
 
-            <label className="flex items-start gap-2 rounded-xl border border-black/10 bg-white p-3 text-sm">
+            <label className="flex items-start gap-2 rounded-xl border border-border bg-card text-card-foreground p-3 text-sm">
               <input
                 type="checkbox"
                 checked={acceptedPolicies}
                 onChange={(e) => setAcceptedPolicies(e.target.checked)}
                 className="mt-1 h-4 w-4"
               />
-              <span className="text-kaffza-text/85">
+              <span className="text-foreground/85">
                 I agree to the{' '}
-                <Link className="text-kaffza-primary font-bold underline" href="/en/legal/terms">
+                <Link className="text-primary font-bold underline" href="/en/legal/terms">
                   Terms & Conditions
                 </Link>{' '}
                 and{' '}
-                <Link className="text-kaffza-primary font-bold underline" href="/en/legal/privacy">
+                <Link className="text-primary font-bold underline" href="/en/legal/privacy">
                   Privacy Policy
                 </Link>
                 .
@@ -265,7 +265,7 @@ export default function EnMerchantRegisterPage() {
             </label>
 
             {turnstileEnabled ? (
-              <div className="rounded-xl border border-black/10 bg-white p-3">
+              <div className="rounded-xl border border-border bg-card text-card-foreground p-3">
                 <TurnstileChallenge onToken={setTurnstileToken} isEn />
               </div>
             ) : null}
@@ -280,7 +280,7 @@ export default function EnMerchantRegisterPage() {
 
             <div className="text-sm">
               Already have an account?{' '}
-              <Link className="text-kaffza-primary font-bold underline" href="/en/merchant/login">
+              <Link className="text-primary font-bold underline" href="/en/merchant/login">
                 Login
               </Link>
             </div>
@@ -296,7 +296,7 @@ export default function EnMerchantRegisterPage() {
           </div>
         ) : (
           <div className="mt-5 grid gap-3">
-            <div className="bg-kaffza-bg text-kaffza-text rounded-xl p-3 text-xs">
+            <div className="bg-background text-foreground rounded-xl p-3 text-xs">
               <span className="font-bold">{method === 'email' ? 'Email:' : 'Phone:'}</span>{' '}
               {method === 'email' ? email.trim() : phone.trim()}
             </div>
@@ -318,14 +318,14 @@ export default function EnMerchantRegisterPage() {
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
               <button
-                className="text-kaffza-primary font-bold underline disabled:opacity-50"
+                className="text-primary font-bold underline disabled:opacity-50"
                 onClick={resendOtp}
                 disabled={loading}
               >
                 Resend OTP
               </button>
               <button
-                className="text-kaffza-text/70 text-xs font-bold underline"
+                className="text-muted-foreground text-xs font-bold underline"
                 onClick={() => {
                   setStep('register');
                   setOtp('');
@@ -338,7 +338,7 @@ export default function EnMerchantRegisterPage() {
         )}
       </Card>
 
-      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
+      <div className="text-foreground mt-6 flex flex-wrap gap-3 text-xs">
         <Link className="underline" href="/en/legal/terms">
           Terms
         </Link>
@@ -353,7 +353,7 @@ export default function EnMerchantRegisterPage() {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );
@@ -375,5 +375,5 @@ function TabButton({ active, onClick, children }: any) {
 }
 
 function Hint({ children }: any) {
-  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
+  return <span className="text-muted-foreground text-xs">{children}</span>;
 }

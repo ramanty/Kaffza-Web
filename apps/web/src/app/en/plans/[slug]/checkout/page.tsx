@@ -20,7 +20,7 @@ export default function EnPlanCheckoutPage() {
     return (
       <main dir="ltr" className="mx-auto max-w-3xl px-6 py-12">
         <Card className="p-6 text-center">
-          <p className="text-kaffza-text/80 text-sm">Plan not found.</p>
+          <p className="text-foreground/80 text-sm">Plan not found.</p>
           <div className="mt-4">
             <Link href="/en/plans">
               <Button>Back to plans</Button>
@@ -46,8 +46,8 @@ export default function EnPlanCheckoutPage() {
   return (
     <main dir="ltr" className="mx-auto max-w-3xl px-6 py-12">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-kaffza-primary text-3xl font-extrabold">Pay for {plan.name}</h1>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/en/plans/cart">
+        <h1 className="text-primary text-3xl font-extrabold">Pay for {plan.name}</h1>
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/en/plans/cart">
           Back to cart
         </Link>
       </div>
@@ -55,15 +55,15 @@ export default function EnPlanCheckoutPage() {
       <Card className="mt-8 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-kaffza-primary font-extrabold">{plan.name}</div>
-            <div className="text-kaffza-text/70 mt-1 text-sm">
+            <div className="text-primary font-extrabold">{plan.name}</div>
+            <div className="text-muted-foreground mt-1 text-sm">
               {plan.priceOmr === 0 ? 'Free activation' : 'Monthly subscription'}
             </div>
           </div>
           <div className="text-kaffza-info text-2xl font-extrabold">{plan.priceOmr} OMR</div>
         </div>
 
-        <div className="bg-kaffza-bg text-kaffza-text/85 mt-6 rounded-xl border border-black/10 p-4 text-sm">
+        <div className="bg-background text-foreground/85 mt-6 rounded-xl border border-border p-4 text-sm">
           {plan.priceOmr === 0
             ? 'This plan is free. After confirmation, you will be redirected to store setup.'
             : 'Once payment is confirmed, your selected plan will be activated on your account.'}

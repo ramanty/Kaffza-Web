@@ -190,18 +190,18 @@ function RegisterPageInner() {
   return (
     <main dir="rtl" className="mx-auto max-w-lg px-6 py-12">
       <div className="flex items-center justify-between">
-        <div className="text-kaffza-primary text-2xl font-extrabold">إنشاء حساب</div>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/">
+        <div className="text-primary text-2xl font-extrabold">إنشاء حساب</div>
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/">
           الرئيسية
         </Link>
       </div>
 
       <Card className="mt-6 p-6">
-        <div className="border-kaffza-primary/20 bg-kaffza-primary/5 text-kaffza-text/80 mb-4 rounded-xl border p-3 text-xs">
-          <span className="text-kaffza-primary font-bold">تسجيل سريع وآمن:</span> لن نستخدم بياناتك
+        <div className="border-kaffza-primary/20 bg-primary/5 text-foreground/80 mb-4 rounded-xl border p-3 text-xs">
+          <span className="text-primary font-bold">تسجيل سريع وآمن:</span> لن نستخدم بياناتك
           إلا لإدارة حسابك وطلباتك.
         </div>
-        <div className="text-kaffza-text/80 text-sm">
+        <div className="text-foreground/80 text-sm">
           اختر طريقة التسجيل المناسبة. سيتم إرسال OTP حسب الطريقة التي تختارها.
         </div>
 
@@ -221,7 +221,7 @@ function RegisterPageInner() {
         {step === 'register' ? (
           <div className="mt-5 grid gap-3">
             <div className="grid gap-2">
-              <span className="text-kaffza-text text-sm font-bold">طريقة التسجيل</span>
+              <span className="text-foreground text-sm font-bold">طريقة التسجيل</span>
               <div className="flex gap-2">
                 <TabButton active={method === 'phone'} onClick={() => setMethod('phone')}>
                   برقم الهاتف
@@ -269,20 +269,20 @@ function RegisterPageInner() {
               <Hint>8 أحرف/أرقام على الأقل</Hint>
             </Field>
 
-            <label className="flex items-start gap-2 rounded-xl border border-black/10 bg-white p-3 text-sm">
+            <label className="flex items-start gap-2 rounded-xl border border-border bg-card text-card-foreground p-3 text-sm">
               <input
                 type="checkbox"
                 checked={acceptedPolicies}
                 onChange={(e) => setAcceptedPolicies(e.target.checked)}
                 className="mt-1 h-4 w-4"
               />
-              <span className="text-kaffza-text/85">
+              <span className="text-foreground/85">
                 أوافق على{' '}
-                <Link className="text-kaffza-primary font-bold underline" href="/legal/terms">
+                <Link className="text-primary font-bold underline" href="/legal/terms">
                   الشروط والأحكام
                 </Link>{' '}
                 و{' '}
-                <Link className="text-kaffza-primary font-bold underline" href="/legal/privacy">
+                <Link className="text-primary font-bold underline" href="/legal/privacy">
                   سياسة الخصوصية
                 </Link>
                 .
@@ -290,7 +290,7 @@ function RegisterPageInner() {
             </label>
 
             {turnstileEnabled ? (
-              <div className="rounded-xl border border-black/10 bg-white p-3">
+              <div className="rounded-xl border border-border bg-card text-card-foreground p-3">
                 <TurnstileChallenge onToken={setTurnstileToken} />
               </div>
             ) : null}
@@ -306,7 +306,7 @@ function RegisterPageInner() {
             <div className="text-sm">
               عندك حساب؟{' '}
               <Link
-                className="text-kaffza-primary font-bold underline"
+                className="text-primary font-bold underline"
                 href={`/login?next=${encodeURIComponent(next)}`}
               >
                 تسجيل الدخول
@@ -323,7 +323,7 @@ function RegisterPageInner() {
           </div>
         ) : (
           <div className="mt-5 grid gap-3">
-            <div className="bg-kaffza-bg text-kaffza-text rounded-xl p-3 text-xs">
+            <div className="bg-background text-foreground rounded-xl p-3 text-xs">
               <span className="font-bold">{method === 'email' ? 'البريد:' : 'الهاتف:'}</span>{' '}
               {method === 'email' ? email.trim() : phone.trim()}
             </div>
@@ -347,14 +347,14 @@ function RegisterPageInner() {
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
               <button
-                className="text-kaffza-primary font-bold underline disabled:opacity-50"
+                className="text-primary font-bold underline disabled:opacity-50"
                 onClick={resendOtp}
                 disabled={loading}
               >
                 إعادة إرسال OTP
               </button>
               <button
-                className="text-kaffza-text/70 text-xs font-bold underline"
+                className="text-muted-foreground text-xs font-bold underline"
                 onClick={() => {
                   setStep('register');
                   setOtp('');
@@ -367,7 +367,7 @@ function RegisterPageInner() {
         )}
       </Card>
 
-      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
+      <div className="text-foreground mt-6 flex flex-wrap gap-3 text-xs">
         <Link className="underline" href="/legal/terms">
           الشروط
         </Link>
@@ -382,14 +382,14 @@ function RegisterPageInner() {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );
 }
 
 function Hint({ children }: any) {
-  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
+  return <span className="text-muted-foreground text-xs">{children}</span>;
 }
 
 function TabButton({ active, onClick, children }: any) {
@@ -399,7 +399,7 @@ function TabButton({ active, onClick, children }: any) {
       onClick={onClick}
       className={
         'flex-1 rounded-xl px-4 py-2 text-sm font-extrabold transition ' +
-        (active ? 'bg-kaffza-primary text-white' : 'bg-kaffza-bg text-kaffza-text hover:bg-black/5')
+        (active ? 'bg-primary text-white' : 'bg-background text-foreground hover:bg-black/5')
       }
     >
       {children}

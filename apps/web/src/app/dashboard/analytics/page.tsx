@@ -163,8 +163,8 @@ function AnalyticsPageInner() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-kaffza-primary text-2xl font-extrabold">{t.title}</h1>
-          <p className="text-kaffza-text/70 mt-1 text-sm">{t.subtitle}</p>
+          <h1 className="text-primary text-2xl font-extrabold">{t.title}</h1>
+          <p className="text-muted-foreground mt-1 text-sm">{t.subtitle}</p>
         </div>
         <div className="flex gap-2">
           {[7, 30, 90].map((d) => (
@@ -175,8 +175,8 @@ function AnalyticsPageInner() {
               className={
                 'rounded-lg border px-3 py-2 text-sm font-bold ' +
                 (days === d
-                  ? 'border-kaffza-primary bg-kaffza-primary text-white'
-                  : 'text-kaffza-text border-slate-200 bg-white')
+                  ? 'border-kaffza-primary bg-primary text-white'
+                  : 'text-foreground border-border bg-card text-card-foreground')
               }
             >
               {t.periods(d)}
@@ -192,7 +192,7 @@ function AnalyticsPageInner() {
             <button
               type="button"
               onClick={() => load(days)}
-              className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs font-bold text-red-700"
+              className="rounded-lg border border-red-300 bg-card text-card-foreground px-3 py-1 text-xs font-bold text-red-700"
             >
               {isEn ? 'Retry' : 'إعادة المحاولة'}
             </button>
@@ -201,11 +201,11 @@ function AnalyticsPageInner() {
       ) : null}
 
       {!loading && !error && !hasAnyData ? (
-        <Card className="border-black/10 p-5 text-sm">
-          <div className="text-kaffza-primary font-extrabold">
+        <Card className="border-border p-5 text-sm">
+          <div className="text-primary font-extrabold">
             {isEn ? 'No analytics yet' : 'لا توجد تحليلات بعد'}
           </div>
-          <p className="text-kaffza-text/70 mt-1">
+          <p className="text-muted-foreground mt-1">
             {isEn
               ? 'Complete onboarding, add products, and share your store link to start collecting insights.'
               : 'أكمل الإعداد، أضف المنتجات، وشارك رابط المتجر لبدء جمع التحليلات.'}
@@ -237,10 +237,10 @@ function AnalyticsPageInner() {
       </section>
 
       <Card className="p-5">
-        <h2 className="text-kaffza-primary text-sm font-extrabold">
+        <h2 className="text-primary text-sm font-extrabold">
           {isEn ? 'Actionable recommendations' : 'توصيات قابلة للتنفيذ'}
         </h2>
-        <ul className="text-kaffza-text mt-3 list-disc space-y-1 px-4 text-sm">
+        <ul className="text-foreground mt-3 list-disc space-y-1 px-4 text-sm">
           {actionInsights.map((tip) => (
             <li key={tip}>{tip}</li>
           ))}
@@ -248,33 +248,33 @@ function AnalyticsPageInner() {
       </Card>
 
       <Card className="p-5">
-        <h2 className="text-kaffza-primary text-sm font-extrabold">{t.dailySales}</h2>
+        <h2 className="text-primary text-sm font-extrabold">{t.dailySales}</h2>
         <div className="lg:grid-cols-14 mt-4 grid grid-cols-7 gap-2 sm:grid-cols-10">
           {(data?.dailySales || []).map((d) => (
             <div key={d.date} className="flex flex-col items-center gap-2">
               <div className="flex h-24 w-full items-end rounded-md bg-slate-100 px-1">
                 <div
-                  className="bg-kaffza-primary w-full rounded"
+                  className="bg-primary w-full rounded"
                   style={{ height: `${Math.max(4, (d.total / maxDaily) * 100)}%` }}
                   title={`${d.date}: ${d.total.toFixed(3)} OMR`}
                 />
               </div>
-              <span className="text-kaffza-text/70 text-[10px]">{d.date.slice(5)}</span>
+              <span className="text-muted-foreground text-[10px]">{d.date.slice(5)}</span>
             </div>
           ))}
         </div>
         {!loading && (!data?.dailySales || data.dailySales.length === 0) ? (
-          <div className="text-kaffza-text/60 mt-3 text-xs">{t.noData}</div>
+          <div className="text-muted-foreground mt-3 text-xs">{t.noData}</div>
         ) : null}
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
-          <h2 className="text-kaffza-primary text-sm font-extrabold">{t.statusTitle}</h2>
+          <h2 className="text-primary text-sm font-extrabold">{t.statusTitle}</h2>
           <div className="mt-3 space-y-2">
             {(data?.statusDistribution || []).map((s) => (
               <div key={s.status} className="space-y-1">
-                <div className="text-kaffza-text flex items-center justify-between text-xs font-bold">
+                <div className="text-foreground flex items-center justify-between text-xs font-bold">
                   <span>{s.status}</span>
                   <span>
                     {s.count} ({s.percent}%)
@@ -282,7 +282,7 @@ function AnalyticsPageInner() {
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-slate-200">
                   <div
-                    className="bg-kaffza-primary h-full"
+                    className="bg-primary h-full"
                     style={{ width: `${Math.min(100, s.percent)}%` }}
                   />
                 </div>
@@ -292,7 +292,7 @@ function AnalyticsPageInner() {
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-kaffza-primary text-sm font-extrabold">{t.trendTitle}</h2>
+          <h2 className="text-primary text-sm font-extrabold">{t.trendTitle}</h2>
           <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
             <Trend
               label={isEn ? 'Revenue' : 'المبيعات'}
@@ -315,11 +315,11 @@ function AnalyticsPageInner() {
       </div>
 
       <Card className="p-5">
-        <h2 className="text-kaffza-primary text-sm font-extrabold">{t.topProducts}</h2>
+        <h2 className="text-primary text-sm font-extrabold">{t.topProducts}</h2>
         <div className="mt-3 overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-kaffza-text/70 border-b border-black/10 text-right">
+              <tr className="text-muted-foreground border-b border-border text-right">
                 <th className="px-2 py-2">{isEn ? 'Product' : 'المنتج'}</th>
                 <th className="px-2 py-2">{isEn ? 'Qty' : 'الكمية'}</th>
                 <th className="px-2 py-2">{isEn ? 'Revenue' : 'الإيراد'}</th>
@@ -327,7 +327,7 @@ function AnalyticsPageInner() {
             </thead>
             <tbody>
               {(data?.topProducts || []).map((p) => (
-                <tr key={p.name} className="border-b border-black/5">
+                <tr key={p.name} className="border-b border-border">
                   <td className="px-2 py-2 font-semibold">{p.name}</td>
                   <td className="px-2 py-2">{p.quantity}</td>
                   <td className="px-2 py-2">{p.revenue.toFixed(3)} ر.ع</td>
@@ -335,7 +335,7 @@ function AnalyticsPageInner() {
               ))}
               {!loading && (!data?.topProducts || data.topProducts.length === 0) ? (
                 <tr>
-                  <td className="text-kaffza-text/60 px-2 py-4" colSpan={3}>
+                  <td className="text-muted-foreground px-2 py-4" colSpan={3}>
                     {t.noData}
                   </td>
                 </tr>
@@ -346,8 +346,8 @@ function AnalyticsPageInner() {
       </Card>
 
       {loading ? (
-        <Card className="border-black/10 p-4 text-sm">
-          <div className="text-kaffza-text/60">{t.loading}</div>
+        <Card className="border-border p-4 text-sm">
+          <div className="text-muted-foreground">{t.loading}</div>
         </Card>
       ) : null}
     </div>
@@ -356,7 +356,7 @@ function AnalyticsPageInner() {
 
 export default function AnalyticsPage() {
   return (
-    <Suspense fallback={<div className="text-kaffza-text/60 text-sm">...</div>}>
+    <Suspense fallback={<div className="text-muted-foreground text-sm">...</div>}>
       <AnalyticsPageInner />
     </Suspense>
   );
@@ -365,8 +365,8 @@ export default function AnalyticsPage() {
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
     <Card className="p-4">
-      <div className="text-kaffza-text/70 text-xs">{label}</div>
-      <div className="text-kaffza-primary mt-1 text-xl font-extrabold">{value}</div>
+      <div className="text-muted-foreground text-xs">{label}</div>
+      <div className="text-primary mt-1 text-xl font-extrabold">{value}</div>
     </Card>
   );
 }
@@ -374,8 +374,8 @@ function Kpi({ label, value }: { label: string; value: string }) {
 function Trend({ label, value }: { label: string; value: number }) {
   const positive = value >= 0;
   return (
-    <div className="rounded-xl border border-black/10 p-3">
-      <div className="text-kaffza-text/70 text-xs">{label}</div>
+    <div className="rounded-xl border border-border p-3">
+      <div className="text-muted-foreground text-xs">{label}</div>
       <div
         className={
           'mt-1 text-base font-extrabold ' + (positive ? 'text-green-700' : 'text-red-700')

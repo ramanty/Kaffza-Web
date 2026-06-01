@@ -9,12 +9,12 @@ export function ThemeToggle() {
 
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 animate-pulse" />;
+  if (!mounted) return <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-card text-card-foreground/10 animate-pulse" />;
 
   return (
     <button
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+      className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-card text-card-foreground/10 transition-colors"
       aria-label="Toggle Theme"
       title="تبديل الوضع الليلي"
     >

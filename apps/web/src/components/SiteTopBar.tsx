@@ -7,6 +7,8 @@ import { getPlanCartCount } from '../lib/plan-cart';
 import { api } from '../lib/api';
 import { authHeader } from '../lib/auth';
 import { useTheme } from 'next-themes';
+import { Sun, Moon } from 'lucide-react';
+import { Button } from './Button';
 
 function buildLocalizedPath(pathname: string) {
   const protectedOnly = ['/dashboard', '/admin', '/account', '/merchant', '/onboarding'];
@@ -28,17 +30,19 @@ function ThemeToggle() {
 
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 animate-pulse" />;
+  if (!mounted) return <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />;
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-lg"
+      className="rounded-full"
       aria-label="Toggle Theme"
       title="تبديل الوضع الليلي"
     >
-      {theme === 'dark' ? '☀️' : '🌙'}
-    </button>
+      {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+    </Button>
   );
 }
 
@@ -88,50 +92,56 @@ export function SiteTopBar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/10 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-12 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/60 backdrop-blur-md">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <a
           href="https://kaffza.me"
-          className="text-kaffza-primary text-lg font-extrabold"
+          className="text-primary text-xl font-extrabold tracking-tight"
           aria-label="Kaffza Home"
         >
           Kaffza
         </a>
 
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex items-center gap-2 sm:gap-4 text-sm">
           {mounted && count > 0 ? (
             <Link
-              className="text-kaffza-primary relative rounded-full border border-black/10 px-3 py-1 font-bold"
+              className="text-primary relative rounded-full border border-border px-3 py-1 font-bold"
               href={isEn ? '/en/plans/cart' : '/plans/cart'}
               aria-label={isEn ? 'Plan cart' : 'سلة الخطط'}
             >
               {isEn ? 'Cart' : 'السلة'}
-              <span className="bg-kaffza-primary ml-2 rounded-full px-2 py-0.5 text-xs text-white">
+              <span className="bg-primary ml-2 rounded-full px-2 py-0.5 text-xs text-primary-foreground">
                 {count}
               </span>
             </Link>
           ) : null}
-          <Link className="text-kaffza-primary font-bold underline" href={nextLocalePath}>
+          <Link className="text-muted-foreground hover:text-foreground font-medium transition-colors" href={nextLocalePath}>
             {localeLabel}
           </Link>
           <ThemeToggle />
 
           {userState.loaded ? (
             userState.hasStore ? (
-              <Link href={isEn ? '/en/dashboard' : '/dashboard'} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-full transition-colors">
-                {isEn ? 'Dashboard' : 'لوحة التحكم'}
-              </Link>
+              <Button asChild className="rounded-full">
+                <Link href={isEn ? '/en/dashboard' : '/dashboard'}>
+                  {isEn ? 'Dashboard' : 'لوحة التحكم'}
+                </Link>
+              </Button>
             ) : userState.loggedIn ? (
-              <Link href={isEn ? '/en/onboarding' : '/onboarding'} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-full transition-colors">
-                {isEn ? 'Open Your Store' : 'افتح متجرك'}
-              </Link>
+              <Button asChild className="rounded-full">
+                <Link href={isEn ? '/en/onboarding' : '/onboarding'}>
+                  {isEn ? 'Open Your Store' : 'افتح متجرك'}
+                </Link>
+              </Button>
             ) : (
-              <Link href={isEn ? '/en/merchant/login' : '/merchant/login'} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-full transition-colors">
-                {isEn ? 'Start Now' : 'ابدأ الآن'}
-              </Link>
+              <Button asChild className="rounded-full">
+                <Link href={isEn ? '/en/merchant/login' : '/merchant/login'}>
+                  {isEn ? 'Start Now' : 'ابدأ الآن'}
+                </Link>
+              </Button>
             )
           ) : (
-            <div className="w-24 h-8 bg-black/5 animate-pulse rounded-full" />
+            <div className="w-24 h-9 bg-muted animate-pulse rounded-full" />
           )}
         </div>
       </div>

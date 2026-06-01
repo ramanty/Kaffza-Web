@@ -98,7 +98,7 @@ function StatusBadge({ status }: { status: string }) {
     rejected: { cls: 'bg-red-50 text-red-700 border-red-200', label: 'مرفوض' },
   };
   const { cls, label } = map[s] ?? {
-    cls: 'bg-slate-100 text-slate-700 border-slate-200',
+    cls: 'bg-slate-100 text-slate-700 border-border',
     label: status,
   };
   return (

@@ -115,8 +115,8 @@ export default function DashboardDisputesPage() {
     <div className="space-y-6" dir="rtl">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-kaffza-primary">النزاعات</h1>
-          <p className="mt-1 text-sm text-kaffza-text/80">عرض النزاعات والرد عليها وحسمها.</p>
+          <h1 className="text-2xl font-extrabold text-primary">النزاعات</h1>
+          <p className="mt-1 text-sm text-foreground/80">عرض النزاعات والرد عليها وحسمها.</p>
         </div>
         <Button variant="secondary" onClick={load} disabled={loading}>
           تحديث
@@ -127,23 +127,23 @@ export default function DashboardDisputesPage() {
 
       <div className="grid gap-4">
         {loading ? (
-          <Card className="p-6"><div className="text-sm text-kaffza-text/70">جاري التحميل...</div></Card>
+          <Card className="p-6"><div className="text-sm text-muted-foreground">جاري التحميل...</div></Card>
         ) : rows.length === 0 ? (
-          <Card className="p-6"><div className="text-sm text-kaffza-text/70">لا يوجد نزاعات.</div></Card>
+          <Card className="p-6"><div className="text-sm text-muted-foreground">لا يوجد نزاعات.</div></Card>
         ) : (
           rows.map((d) => (
             <Card key={String(d.id)} className="p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <div className="text-xs text-kaffza-text/70">طلب</div>
-                  <div className="text-lg font-extrabold text-kaffza-primary">{d.order?.orderNumber || d.orderId}</div>
-                  <div className="mt-1 text-xs text-kaffza-text/70">العميل: {d.order?.customer?.name || d.raisedBy?.name || '-'}</div>
+                  <div className="text-xs text-muted-foreground">طلب</div>
+                  <div className="text-lg font-extrabold text-primary">{d.order?.orderNumber || d.orderId}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">العميل: {d.order?.customer?.name || d.raisedBy?.name || '-'}</div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <div className="text-xs text-kaffza-text/70">السبب</div>
-                    <div className="text-sm font-bold text-kaffza-text">{shorten(d.reason || '', 60)}</div>
+                    <div className="text-xs text-muted-foreground">السبب</div>
+                    <div className="text-sm font-bold text-foreground">{shorten(d.reason || '', 60)}</div>
                   </div>
 
                   <DisputeBadge status={d.status} />
@@ -160,36 +160,36 @@ export default function DashboardDisputesPage() {
         <SidePanel onClose={closePanel}>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-xs text-kaffza-text/70">تفاصيل النزاع</div>
-              <div className="text-lg font-extrabold text-kaffza-primary">#{selectedId}</div>
+              <div className="text-xs text-muted-foreground">تفاصيل النزاع</div>
+              <div className="text-lg font-extrabold text-primary">#{selectedId}</div>
             </div>
-            <button className="text-sm font-bold text-kaffza-text/70 underline" onClick={closePanel}>
+            <button className="text-sm font-bold text-muted-foreground underline" onClick={closePanel}>
               إغلاق
             </button>
           </div>
 
           {detailLoading || !detail ? (
-            <div className="mt-4 rounded-xl bg-kaffza-bg p-4 text-sm text-kaffza-text/70">جاري التحميل...</div>
+            <div className="mt-4 rounded-xl bg-background p-4 text-sm text-muted-foreground">جاري التحميل...</div>
           ) : (
             <>
-              <div className="mt-4 rounded-xl bg-kaffza-bg p-4">
-                <div className="text-sm font-extrabold text-kaffza-primary">ملخص</div>
-                <div className="mt-2 text-xs text-kaffza-text/70">طلب: {detail.order?.orderNumber}</div>
-                <div className="mt-1 text-xs text-kaffza-text/70">العميل: {detail.order?.customer?.name || '-'}</div>
+              <div className="mt-4 rounded-xl bg-background p-4">
+                <div className="text-sm font-extrabold text-primary">ملخص</div>
+                <div className="mt-2 text-xs text-muted-foreground">طلب: {detail.order?.orderNumber}</div>
+                <div className="mt-1 text-xs text-muted-foreground">العميل: {detail.order?.customer?.name || '-'}</div>
                 <div className="mt-2"><DisputeBadge status={detail.status} /></div>
-                <div className="mt-3 text-sm text-kaffza-text">{detail.reason}</div>
+                <div className="mt-3 text-sm text-foreground">{detail.reason}</div>
               </div>
 
               <div className="mt-4">
-                <div className="text-sm font-extrabold text-kaffza-primary">المحادثة</div>
+                <div className="text-sm font-extrabold text-primary">المحادثة</div>
                 <div className="mt-2 space-y-2">
                   {(detail.messages || []).length === 0 ? (
-                    <div className="rounded-xl bg-kaffza-bg p-3 text-sm text-kaffza-text/70">لا يوجد رسائل بعد.</div>
+                    <div className="rounded-xl bg-background p-3 text-sm text-muted-foreground">لا يوجد رسائل بعد.</div>
                   ) : (
                     detail.messages.map((m: any) => (
-                      <div key={String(m.id)} className="rounded-xl border border-black/10 bg-white p-3">
-                        <div className="text-xs text-kaffza-text/60">{formatDate(m.createdAt)} • {m.senderRole}</div>
-                        <div className="mt-1 text-sm text-kaffza-text">{m.message}</div>
+                      <div key={String(m.id)} className="rounded-xl border border-border bg-card text-card-foreground p-3">
+                        <div className="text-xs text-muted-foreground">{formatDate(m.createdAt)} • {m.senderRole}</div>
+                        <div className="mt-1 text-sm text-foreground">{m.message}</div>
                       </div>
                     ))
                   )}
@@ -197,9 +197,9 @@ export default function DashboardDisputesPage() {
               </div>
 
               <div className="mt-4">
-                <div className="text-sm font-extrabold text-kaffza-primary">رد</div>
+                <div className="text-sm font-extrabold text-primary">رد</div>
                 <textarea
-                  className="mt-2 min-h-[90px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
+                  className="mt-2 min-h-[90px] w-full rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none focus:border-kaffza-primary"
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
                   placeholder="اكتب ردك هنا..."
@@ -237,7 +237,7 @@ function SidePanel({ children, onClose }: any) {
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="absolute left-0 top-0 h-full w-full max-w-xl overflow-y-auto bg-white p-6 shadow-2xl">
+      <div className="absolute left-0 top-0 h-full w-full max-w-xl overflow-y-auto bg-card text-card-foreground p-6 shadow-2xl">
         {children}
       </div>
     </div>

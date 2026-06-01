@@ -134,8 +134,8 @@ function AccountPageInner() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-kaffza-primary">الحساب الشخصي</h1>
-        <p className="mt-1 text-sm text-kaffza-text/80">إدارة بياناتك وتغيير كلمة المرور.</p>
+        <h1 className="text-2xl font-extrabold text-primary">الحساب الشخصي</h1>
+        <p className="mt-1 text-sm text-foreground/80">إدارة بياناتك وتغيير كلمة المرور.</p>
       </div>
 
       {msg ? (
@@ -150,7 +150,7 @@ function AccountPageInner() {
       <div className="grid gap-5 lg:grid-cols-3">
         <Card className="p-6 lg:col-span-2">
           <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-extrabold text-kaffza-primary">معلومات الحساب</div>
+            <div className="text-sm font-extrabold text-primary">معلومات الحساب</div>
             <Button variant="secondary" onClick={load} disabled={loading}>
               تحديث
             </Button>
@@ -185,8 +185,8 @@ function AccountPageInner() {
         </Card>
 
         <Card className="p-6 lg:col-span-1">
-          <div className="text-sm font-extrabold text-kaffza-primary">إجراءات</div>
-          <p className="mt-1 text-xs text-kaffza-text/70">يمكنك تسجيل الخروج من حسابك هنا.</p>
+          <div className="text-sm font-extrabold text-primary">إجراءات</div>
+          <p className="mt-1 text-xs text-muted-foreground">يمكنك تسجيل الخروج من حسابك هنا.</p>
 
           <div className="mt-4">
             <Button variant="secondary" className="w-full" onClick={logout}>
@@ -228,24 +228,24 @@ function AccountPageInner() {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-sm font-bold text-kaffza-text">{label}</span>
+      <span className="text-sm font-bold text-foreground">{label}</span>
       {children}
     </label>
   );
 }
 
 function Hint({ children }: any) {
-  return <div className="text-xs text-kaffza-text/60">{children}</div>;
+  return <div className="text-xs text-muted-foreground">{children}</div>;
 }
 
 function Modal({ title, children, onClose }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+      <div className="relative w-full max-w-md rounded-2xl bg-card text-card-foreground p-6 shadow-xl">
         <div className="flex items-start justify-between gap-2">
-          <div className="text-lg font-extrabold text-kaffza-primary">{title}</div>
-          <button className="text-sm font-bold text-kaffza-text/70" onClick={onClose}>
+          <div className="text-lg font-extrabold text-primary">{title}</div>
+          <button className="text-sm font-bold text-muted-foreground" onClick={onClose}>
             إغلاق
           </button>
         </div>

@@ -54,10 +54,10 @@ function PayCancelInner() {
   return (
     <main dir={isEn ? 'ltr' : 'rtl'} className="mx-auto max-w-2xl px-6 py-12">
       <Card className="p-8">
-        <div className="text-kaffza-primary text-2xl font-extrabold">
+        <div className="text-primary text-2xl font-extrabold">
           {isEn ? 'Payment cancelled' : 'تم إلغاء الدفع'}
         </div>
-        <div className="text-kaffza-text mt-2 text-sm">
+        <div className="text-foreground mt-2 text-sm">
           {isEn ? 'No worries — you can try again.' : 'ما في مشكلة — تقدر تحاول مرة ثانية.'}
         </div>
         {status === 'paid' ? (
@@ -76,11 +76,11 @@ function PayCancelInner() {
         ) : null}
         {error ? <div className="mt-3 text-sm text-red-700">{error}</div> : null}
 
-        <div className="bg-kaffza-bg text-kaffza-text mt-5 rounded-xl p-4 text-sm">
+        <div className="bg-background text-foreground mt-5 rounded-xl p-4 text-sm">
           {orderId ? (
             <div>
               {isEn ? 'Order ID: ' : 'رقم الطلب: '}
-              <span className="text-kaffza-primary font-extrabold">{orderId}</span>
+              <span className="text-primary font-extrabold">{orderId}</span>
             </div>
           ) : (
             <div>{isEn ? 'Order ID was not found.' : 'لم يتم العثور على رقم الطلب.'}</div>

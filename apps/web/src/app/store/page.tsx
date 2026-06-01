@@ -18,7 +18,7 @@ export default function StoreListPage() {
         </div>
       </div>
 
-      <p className="mt-2 text-kaffza-text">اكتب subdomain وانتقل للمتجر.</p>
+      <p className="mt-2 text-foreground">اكتب subdomain وانتقل للمتجر.</p>
       <Card className="mt-6 p-6">
         <div className="grid gap-3">
           <Input value={subdomain} onChange={(e:any) => setSubdomain(e.target.value)} placeholder="demo" />

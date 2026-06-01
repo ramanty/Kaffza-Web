@@ -307,7 +307,7 @@ export default function SettingsPage() {
 
           <Field label="وصف المتجر (عربي)">
             <textarea
-              className="focus:border-kaffza-primary min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+              className="focus:border-kaffza-primary min-h-[96px] w-full rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none"
               value={form.descriptionAr}
               onChange={(e) => setForm((s) => ({ ...s, descriptionAr: e.target.value }))}
               placeholder="اكتب وصفاً مختصراً..."
@@ -316,7 +316,7 @@ export default function SettingsPage() {
 
           <Field label="Store Description (English)">
             <textarea
-              className="focus:border-kaffza-primary min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+              className="focus:border-kaffza-primary min-h-[96px] w-full rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none"
               value={form.descriptionEn}
               onChange={(e) => setForm((s) => ({ ...s, descriptionEn: e.target.value }))}
               placeholder="Write a short description..."
@@ -454,7 +454,7 @@ function Toggle({
   onChange: (next: boolean) => void;
 }) {
   return (
-    <label className="flex items-center justify-between rounded-xl border border-black/10 px-3 py-2 text-sm">
+    <label className="flex items-center justify-between rounded-xl border border-border px-3 py-2 text-sm">
       <span>{label}</span>
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
     </label>

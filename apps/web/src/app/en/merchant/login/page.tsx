@@ -76,10 +76,10 @@ function EnMerchantLoginInner() {
     <main dir="ltr" className="mx-auto max-w-lg px-6 py-12">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-kaffza-text/70 text-xs">Merchant area</div>
-          <div className="text-kaffza-primary text-2xl font-extrabold">Merchant Login</div>
+          <div className="text-muted-foreground text-xs">Merchant area</div>
+          <div className="text-primary text-2xl font-extrabold">Merchant Login</div>
         </div>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/en">
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/en">
           Home
         </Link>
       </div>
@@ -90,7 +90,7 @@ function EnMerchantLoginInner() {
             Registration complete. Please login now.
           </div>
         ) : null}
-        <p className="text-kaffza-text/80 text-sm">
+        <p className="text-foreground/80 text-sm">
           Enter your details to access merchant dashboard.
         </p>
 
@@ -108,7 +108,7 @@ function EnMerchantLoginInner() {
         ) : null}
 
         <div className="grid gap-2">
-          <span className="text-kaffza-text text-sm font-bold">Login method</span>
+          <span className="text-foreground text-sm font-bold">Login method</span>
           <div className="flex gap-2">
             <TabButton active={method === 'phone'} onClick={() => setMethod('phone')}>
               Phone
@@ -157,11 +157,11 @@ function EnMerchantLoginInner() {
           </Button>
 
           <div className="flex items-center justify-between text-sm">
-            <Link className="text-kaffza-primary font-bold underline" href="/en/merchant/register">
+            <Link className="text-primary font-bold underline" href="/en/merchant/register">
               No account yet? Register as merchant
             </Link>
             <Link
-              className="text-kaffza-text/70 text-xs font-bold underline"
+              className="text-muted-foreground text-xs font-bold underline"
               href="/en/forgot-password"
             >
               Forgot password?
@@ -179,7 +179,7 @@ function EnMerchantLoginInner() {
         </div>
       </Card>
 
-      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
+      <div className="text-foreground mt-6 flex flex-wrap gap-3 text-xs">
         <Link className="underline" href="/en/legal/terms">
           Terms
         </Link>
@@ -194,7 +194,7 @@ function EnMerchantLoginInner() {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );
@@ -209,7 +209,7 @@ function TabButton({ active, onClick, children }: any) {
         'flex-1 rounded-xl px-4 py-2 text-sm font-extrabold transition ' +
         (active
           ? 'bg-[#1B3A6B] text-white'
-          : 'bg-kaffza-bg text-kaffza-text border border-black/10 hover:bg-black/5')
+          : 'bg-background text-foreground border border-border hover:bg-black/5')
       }
     >
       {children}
@@ -218,7 +218,7 @@ function TabButton({ active, onClick, children }: any) {
 }
 
 function Hint({ children }: any) {
-  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
+  return <span className="text-muted-foreground text-xs">{children}</span>;
 }
 
 export default function EnMerchantLoginPage() {

@@ -100,10 +100,10 @@ function MerchantLoginPageInner() {
     <main dir="rtl" className="mx-auto max-w-lg px-6 py-12">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-kaffza-text/70 text-xs">منطقة التاجر</div>
-          <div className="text-kaffza-primary text-2xl font-extrabold">تسجيل دخول التاجر</div>
+          <div className="text-muted-foreground text-xs">منطقة التاجر</div>
+          <div className="text-primary text-2xl font-extrabold">تسجيل دخول التاجر</div>
         </div>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/">
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/">
           الرئيسية
         </Link>
       </div>
@@ -114,7 +114,7 @@ function MerchantLoginPageInner() {
             تم التسجيل، سجّل دخول الآن
           </div>
         ) : null}
-        <p className="text-kaffza-text/80 text-sm">أدخل بياناتك للدخول إلى لوحة التحكم.</p>
+        <p className="text-foreground/80 text-sm">أدخل بياناتك للدخول إلى لوحة التحكم.</p>
 
         {msg ? (
           <div
@@ -131,7 +131,7 @@ function MerchantLoginPageInner() {
 
         <div className="mt-5 grid gap-3">
           <div className="grid gap-2">
-            <span className="text-kaffza-text text-sm font-bold">طريقة تسجيل الدخول</span>
+            <span className="text-foreground text-sm font-bold">طريقة تسجيل الدخول</span>
             <div className="flex gap-2">
               <TabButton active={method === 'phone'} onClick={() => setMethod('phone')}>
                 الهاتف
@@ -179,11 +179,11 @@ function MerchantLoginPageInner() {
           </Button>
 
           <div className="flex items-center justify-between text-sm">
-            <Link className="text-kaffza-primary font-bold underline" href="/merchant/register">
+            <Link className="text-primary font-bold underline" href="/merchant/register">
               ليس لديك حساب؟ سجّل كتاجر
             </Link>
             <Link
-              className="text-kaffza-text/70 text-xs font-bold underline"
+              className="text-muted-foreground text-xs font-bold underline"
               href="/forgot-password"
             >
               نسيت كلمة المرور؟
@@ -200,7 +200,7 @@ function MerchantLoginPageInner() {
         </div>
       </Card>
 
-      <div className="text-kaffza-text mt-6 flex flex-wrap gap-3 text-xs">
+      <div className="text-foreground mt-6 flex flex-wrap gap-3 text-xs">
         <Link className="underline" href="/legal/terms">
           الشروط
         </Link>
@@ -215,14 +215,14 @@ function MerchantLoginPageInner() {
 function Field({ label, children }: any) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );
 }
 
 function Hint({ children }: any) {
-  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
+  return <span className="text-muted-foreground text-xs">{children}</span>;
 }
 
 function TabButton({ active, onClick, children }: any) {
@@ -232,7 +232,7 @@ function TabButton({ active, onClick, children }: any) {
       onClick={onClick}
       className={
         'flex-1 rounded-xl px-4 py-2 text-sm font-extrabold transition ' +
-        (active ? 'bg-kaffza-primary text-white' : 'bg-kaffza-bg text-kaffza-text hover:bg-black/5')
+        (active ? 'bg-primary text-white' : 'bg-background text-foreground hover:bg-black/5')
       }
     >
       {children}

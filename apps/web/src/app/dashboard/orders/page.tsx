@@ -148,8 +148,8 @@ export default function OrdersPage() {
       {/* Page Header */}
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-kaffza-primary text-2xl font-extrabold">الطلبات</h1>
-          <p className="text-kaffza-text/80 mt-1 text-sm">
+          <h1 className="text-primary text-2xl font-extrabold">الطلبات</h1>
+          <p className="text-foreground/80 mt-1 text-sm">
             إدارة طلبات المتجر – عرض، تتبع، وتحديث الحالات.
           </p>
           {!storeId && !storesLoading ? (
@@ -180,7 +180,7 @@ export default function OrdersPage() {
       ) : null}
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-black/5 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-border pb-3">
         {FILTER_TABS.map((tab) => {
           const count =
             tab.key === 'all' ? orders.length : orders.filter((o) => o.status === tab.key).length;
@@ -191,8 +191,8 @@ export default function OrdersPage() {
               className={
                 'rounded-lg px-4 py-2 text-sm font-semibold transition-colors ' +
                 (activeFilter === tab.key
-                  ? 'bg-kaffza-primary text-white shadow-sm'
-                  : 'text-kaffza-text/70 hover:bg-kaffza-bg hover:text-kaffza-primary border border-black/5 bg-white')
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-muted-foreground hover:bg-background hover:text-primary border border-border bg-card text-card-foreground')
               }
             >
               {tab.label}
@@ -201,8 +201,8 @@ export default function OrdersPage() {
                   className={
                     'mr-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs ' +
                     (activeFilter === tab.key
-                      ? 'bg-white/20 text-white'
-                      : 'bg-kaffza-bg text-kaffza-text/70')
+                      ? 'bg-card text-card-foreground/20 text-white'
+                      : 'bg-background text-muted-foreground')
                   }
                 >
                   {count}
@@ -217,21 +217,21 @@ export default function OrdersPage() {
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-kaffza-bg">
+            <thead className="bg-background">
               <tr className="text-right">
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">رقم الطلب</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">اسم العميل</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">التاريخ</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">الإجمالي</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">حالة الدفع</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">حالة الطلب</th>
-                <th className="text-kaffza-primary px-4 py-3 font-extrabold">إجراءات</th>
+                <th className="text-primary px-4 py-3 font-extrabold">رقم الطلب</th>
+                <th className="text-primary px-4 py-3 font-extrabold">اسم العميل</th>
+                <th className="text-primary px-4 py-3 font-extrabold">التاريخ</th>
+                <th className="text-primary px-4 py-3 font-extrabold">الإجمالي</th>
+                <th className="text-primary px-4 py-3 font-extrabold">حالة الدفع</th>
+                <th className="text-primary px-4 py-3 font-extrabold">حالة الطلب</th>
+                <th className="text-primary px-4 py-3 font-extrabold">إجراءات</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td className="text-kaffza-text/70 px-4 py-10 text-center" colSpan={7}>
+                  <td className="text-muted-foreground px-4 py-10 text-center" colSpan={7}>
                     <div className="flex flex-col items-center gap-2">
                       <span className="text-2xl">⏳</span>
                       <span>جاري التحميل...</span>
@@ -243,8 +243,8 @@ export default function OrdersPage() {
                   <td className="px-4 py-12 text-center" colSpan={7}>
                     <div className="flex flex-col items-center gap-3">
                       <span className="text-4xl">🧾</span>
-                      <p className="text-kaffza-text font-extrabold">لا توجد طلبات</p>
-                      <p className="text-kaffza-text/60 text-xs">
+                      <p className="text-foreground font-extrabold">لا توجد طلبات</p>
+                      <p className="text-muted-foreground text-xs">
                         {activeFilter === 'all'
                           ? 'لم يتم استلام أي طلبات بعد.'
                           : `لا توجد طلبات بحالة "${FILTER_TABS.find((t) => t.key === activeFilter)?.label ?? activeFilter}".`}
@@ -256,26 +256,26 @@ export default function OrdersPage() {
                 filteredOrders.map((o) => (
                   <tr
                     key={o.id}
-                    className="hover:bg-kaffza-bg/50 border-t border-black/5 transition-colors"
+                    className="hover:bg-background/50 border-t border-border transition-colors"
                   >
                     {/* Order Number */}
                     <td className="px-4 py-3">
-                      <div className="text-kaffza-text font-extrabold">{o.orderNumber}</div>
+                      <div className="text-foreground font-extrabold">{o.orderNumber}</div>
                     </td>
 
                     {/* Customer Name */}
                     <td className="px-4 py-3">
-                      <div className="text-kaffza-text font-semibold">{o.customerName}</div>
+                      <div className="text-foreground font-semibold">{o.customerName}</div>
                     </td>
 
                     {/* Date */}
                     <td className="px-4 py-3">
-                      <div className="text-kaffza-text/70 text-xs">{formatDate(o.createdAt)}</div>
+                      <div className="text-muted-foreground text-xs">{formatDate(o.createdAt)}</div>
                     </td>
 
                     {/* Total */}
                     <td className="px-4 py-3">
-                      <span className="text-kaffza-primary font-bold">
+                      <span className="text-primary font-bold">
                         {Number(o.totalAmount).toFixed(3)} ر.ع
                       </span>
                     </td>
@@ -298,7 +298,7 @@ export default function OrdersPage() {
                         </Link>
                         {storeId ? (
                           <select
-                            className="rounded-lg border border-black/10 bg-white px-3 py-2 text-xs"
+                            className="rounded-lg border border-border bg-card text-card-foreground px-3 py-2 text-xs"
                             value={STATUS_OPTIONS.includes(o.status as any) ? o.status : 'pending'}
                             onChange={(e) => changeStatus(o.id, e.target.value)}
                           >

@@ -330,10 +330,10 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
     <main dir={isEn ? 'ltr' : 'rtl'} className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="text-kaffza-primary text-2xl font-extrabold">
+          <div className="text-primary text-2xl font-extrabold">
             {isEn ? 'Checkout' : 'إتمام الشراء'}
           </div>
-          <div className="text-kaffza-text/80 mt-1 text-sm">
+          <div className="text-foreground/80 mt-1 text-sm">
             {retryOrderId
               ? isEn
                 ? 'Retry payment for your existing order.'
@@ -343,7 +343,7 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
                 : 'أدخل عنوان الشحن ثم أكمل الطلب.'}
           </div>
           {!retryOrderId ? (
-            <div className="text-kaffza-text/70 mt-2 text-xs">
+            <div className="text-muted-foreground mt-2 text-xs">
               {isEn
                 ? 'Step 2 of 2: confirm delivery details, choose payment, and place your order.'
                 : 'الخطوة 2 من 2: أكد بيانات التوصيل، اختر طريقة الدفع، ثم أكد الطلب.'}
@@ -351,7 +351,7 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
           ) : null}
           {msg ? (
             <div
-              className={`mt-3 rounded-xl border p-3 text-sm ${msgKind === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-kaffza-primary/20 bg-kaffza-primary/5 text-kaffza-primary'}`}
+              className={`mt-3 rounded-xl border p-3 text-sm ${msgKind === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-kaffza-primary/20 bg-primary/5 text-primary'}`}
             >
               {msg}
             </div>
@@ -386,11 +386,11 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
 
       <div className="mt-8 grid gap-5 lg:grid-cols-3">
         <Card className="p-6 lg:col-span-2">
-          <div className="text-kaffza-primary text-sm font-extrabold">
+          <div className="text-primary text-sm font-extrabold">
             {isEn ? 'Shipping address' : 'عنوان الشحن'}
           </div>
           {retryOrderId ? (
-            <div className="bg-kaffza-bg text-kaffza-text mt-3 rounded-xl p-4 text-sm">
+            <div className="bg-background text-foreground mt-3 rounded-xl p-4 text-sm">
               {isEn
                 ? 'This order already exists. You can retry if payment method is card.'
                 : 'هذا الطلب تم إنشاؤه مسبقاً. يمكنك إعادة المحاولة إذا كانت طريقة الدفع بطاقة.'}
@@ -457,7 +457,7 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
 
           {!retryOrderId ? (
             <div className="mt-5 space-y-2">
-              <div className="text-kaffza-primary text-sm font-extrabold">
+              <div className="text-primary text-sm font-extrabold">
                 {isEn ? 'Payment method' : 'طريقة الدفع'}
               </div>
               <div className="grid gap-2">
@@ -466,8 +466,8 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
                     key={method}
                     className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 text-sm ${
                       paymentMethod === method
-                        ? 'border-kaffza-primary bg-kaffza-primary/5'
-                        : 'border-black/10 bg-white'
+                        ? 'border-kaffza-primary bg-primary/5'
+                        : 'border-border bg-card text-card-foreground'
                     }`}
                   >
                     <span>{isEn ? METHOD_LABELS[method].en : METHOD_LABELS[method].ar}</span>
@@ -500,7 +500,7 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
                     ? 'Place order'
                     : 'تأكيد الطلب'}
             </Button>
-            <div className="text-kaffza-text/70 mt-2 text-xs">
+            <div className="text-muted-foreground mt-2 text-xs">
               {paymentMethod === 'card'
                 ? isEn
                   ? 'You will be redirected to Thawani to complete payment securely.'
@@ -509,7 +509,7 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
                   ? 'Order will be created immediately after confirmation.'
                   : 'سيتم إنشاء الطلب مباشرة بعد التأكيد.'}
             </div>
-            <div className="border-kaffza-primary/20 bg-kaffza-primary/5 text-kaffza-text/80 mt-3 rounded-xl border p-3 text-xs">
+            <div className="border-kaffza-primary/20 bg-primary/5 text-foreground/80 mt-3 rounded-xl border p-3 text-xs">
               {isEn
                 ? 'Trust cues: encrypted payment handoff • order tracking in My Account'
                 : 'مؤشرات الثقة: تحويل دفع مشفّر • متابعة الطلب من صفحة حسابي'}
@@ -518,10 +518,10 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
         </Card>
 
         <Card className="p-6 lg:col-span-1">
-          <div className="text-kaffza-primary text-sm font-extrabold">
+          <div className="text-primary text-sm font-extrabold">
             {isEn ? 'Order summary' : 'ملخص الطلب'}
           </div>
-          <div className="text-kaffza-text/70 mt-1 text-xs">
+          <div className="text-muted-foreground mt-1 text-xs">
             {store
               ? isEn
                 ? `Store: ${store.nameEn || store.nameAr || store.subdomain}`
@@ -536,26 +536,26 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
 
           <div className="mt-4 space-y-2">
             {loading && items.length === 0 ? (
-              <div className="text-kaffza-text/70 text-sm">
+              <div className="text-muted-foreground text-sm">
                 {isEn ? 'Loading...' : 'جاري التحميل...'}
               </div>
             ) : items.length === 0 ? (
-              <div className="text-kaffza-text/70 text-sm">
+              <div className="text-muted-foreground text-sm">
                 {isEn ? 'No items.' : 'لا يوجد عناصر.'}
               </div>
             ) : (
               items.map((it) => (
                 <div
                   key={it.key}
-                  className="bg-kaffza-bg flex items-start justify-between gap-3 rounded-lg px-3 py-2"
+                  className="bg-background flex items-start justify-between gap-3 rounded-lg px-3 py-2"
                 >
                   <div className="min-w-0">
-                    <div className="text-kaffza-text truncate text-xs font-bold">{it.title}</div>
-                    <div className="text-kaffza-text/70 mt-0.5 text-[11px]">
+                    <div className="text-foreground truncate text-xs font-bold">{it.title}</div>
+                    <div className="text-muted-foreground mt-0.5 text-[11px]">
                       {it.qty} × {formatOMR(it.unitPrice, isEn)}
                     </div>
                   </div>
-                  <div className="text-kaffza-primary shrink-0 text-xs font-extrabold">
+                  <div className="text-primary shrink-0 text-xs font-extrabold">
                     {formatOMR(it.lineTotal, isEn)}
                   </div>
                 </div>
@@ -569,7 +569,7 @@ function StoreCheckoutInner({ params }: { params: { subdomain: string } }) {
               value={formatOMR(totals.subtotal, isEn)}
             />
             <Row label={isEn ? 'Shipping' : 'الشحن'} value={formatOMR(totals.shipping, isEn)} />
-            <div className="border-t border-black/10 pt-3">
+            <div className="border-t border-border pt-3">
               <Row
                 label={isEn ? 'Total' : 'الإجمالي'}
                 value={formatOMR(totals.total, isEn)}
@@ -652,22 +652,22 @@ function readApiError(err: any, fallback: string, isEn: boolean) {
 function Field({ label, children }: { label: string; children: any }) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-foreground text-sm font-bold">{label}</span>
       {children}
     </label>
   );
 }
 
 function Hint({ children }: { children: any }) {
-  return <span className="text-kaffza-text/60 text-xs">{children}</span>;
+  return <span className="text-muted-foreground text-xs">{children}</span>;
 }
 
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-kaffza-text/80">{label}</span>
+      <span className="text-foreground/80">{label}</span>
       <span
-        className={strong ? 'text-kaffza-primary font-extrabold' : 'text-kaffza-text font-bold'}
+        className={strong ? 'text-primary font-extrabold' : 'text-foreground font-bold'}
       >
         {value}
       </span>

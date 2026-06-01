@@ -129,7 +129,7 @@ function Badge({ status }: { status: string }) {
     delivered: 'bg-blue-50 text-blue-700 border-blue-200',
     suspended: 'bg-red-50 text-red-700 border-red-200',
   };
-  const cls = map[s] ?? 'bg-slate-100 text-slate-700 border-slate-200';
+  const cls = map[s] ?? 'bg-slate-100 text-slate-700 border-border';
   const labels: Record<string, string> = {
     active: 'نشط',
     pending: 'قيد المعالجة',

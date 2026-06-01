@@ -8,13 +8,13 @@ export default function PlansPage() {
   return (
     <main dir="rtl" className="mx-auto max-w-6xl px-6 py-12">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-kaffza-primary text-3xl font-extrabold">الخطط والأسعار</h1>
-        <Link className="text-kaffza-text/70 text-sm font-bold underline" href="/">
+        <h1 className="text-primary text-3xl font-extrabold">الخطط والأسعار</h1>
+        <Link className="text-muted-foreground text-sm font-bold underline" href="/">
           الرئيسية
         </Link>
       </div>
 
-      <p className="text-kaffza-text/80 mt-3 text-sm">
+      <p className="text-foreground/80 mt-3 text-sm">
         اختر الخطة المناسبة لمرحلة متجرك، ثم أضفها للسلة لإكمال الدفع.
       </p>
 
@@ -27,11 +27,11 @@ export default function PlansPage() {
             }
           >
             <div className="flex items-center justify-between gap-2">
-              <div className="text-kaffza-primary text-lg font-extrabold">
+              <div className="text-primary text-lg font-extrabold">
                 {plan.name} ({getPlanSubtitle(plan)})
               </div>
               {plan.popular ? (
-                <span className="bg-kaffza-premium text-kaffza-dark-blue rounded-full px-3 py-1 text-xs font-extrabold">
+                <span className="bg-premium text-kaffza-dark-blue rounded-full px-3 py-1 text-xs font-extrabold">
                   الأكثر طلباً
                 </span>
               ) : null}
@@ -39,8 +39,8 @@ export default function PlansPage() {
             <div className="text-kaffza-info mt-3 text-2xl font-extrabold">
               {plan.priceOmr} ر.ع / شهر
             </div>
-            <div className="text-kaffza-text/80 mt-1 text-sm">العمولة: {plan.commission}</div>
-            <ul className="text-kaffza-text/80 mt-4 space-y-2 text-sm">
+            <div className="text-foreground/80 mt-1 text-sm">العمولة: {plan.commission}</div>
+            <ul className="text-foreground/80 mt-4 space-y-2 text-sm">
               {getPlanNotes(plan).map((n) => (
                 <li key={n}>• {n}</li>
               ))}

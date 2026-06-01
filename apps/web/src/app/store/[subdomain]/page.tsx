@@ -164,25 +164,25 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
       {/* Store header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 overflow-hidden rounded-2xl border border-black/10 bg-white">
+          <div className="h-16 w-16 overflow-hidden rounded-2xl border border-border bg-card text-card-foreground">
             {store?.logoUrl ? (
               <img src={store.logoUrl} alt="logo" className="h-full w-full object-cover" />
             ) : (
-              <div className="text-kaffza-text/60 flex h-full w-full items-center justify-center text-xs font-bold">
+              <div className="text-muted-foreground flex h-full w-full items-center justify-center text-xs font-bold">
                 LOGO
               </div>
             )}
           </div>
 
           <div>
-            <div className="text-kaffza-primary text-3xl font-extrabold">
+            <div className="text-primary text-3xl font-extrabold">
               {store ? store.nameAr || store.nameEn || 'المتجر' : 'المتجر'}
             </div>
-            <div className="text-kaffza-text mt-1 text-sm">
-              <span className="text-kaffza-text/70">subdomain:</span>{' '}
-              <span className="text-kaffza-primary font-semibold">{subdomain}</span>
+            <div className="text-foreground mt-1 text-sm">
+              <span className="text-muted-foreground">subdomain:</span>{' '}
+              <span className="text-primary font-semibold">{subdomain}</span>
             </div>
-            {msg ? <div className="text-kaffza-text mt-2 text-sm">{msg}</div> : null}
+            {msg ? <div className="text-foreground mt-2 text-sm">{msg}</div> : null}
           </div>
         </div>
 
@@ -197,7 +197,7 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
       </div>
 
       {/* Links */}
-      <div className="text-kaffza-text mt-4 flex flex-wrap gap-3 text-xs">
+      <div className="text-foreground mt-4 flex flex-wrap gap-3 text-xs">
         <Link className="underline" href="/legal/terms">
           الشروط
         </Link>
@@ -216,14 +216,14 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
       <Card className="mt-6 p-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="text-kaffza-primary text-sm font-extrabold">فلترة المنتجات</div>
-            <div className="text-kaffza-text/70 mt-1 text-xs">اختر تصنيف لعرض منتجاته.</div>
+            <div className="text-primary text-sm font-extrabold">فلترة المنتجات</div>
+            <div className="text-muted-foreground mt-1 text-xs">اختر تصنيف لعرض منتجاته.</div>
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-kaffza-text text-sm font-bold">التصنيف</label>
+            <label className="text-foreground text-sm font-bold">التصنيف</label>
             <select
-              className="focus:border-kaffza-primary rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+              className="focus:border-kaffza-primary rounded-xl border border-border bg-card text-card-foreground px-3 py-2 text-sm outline-none"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               disabled={loading}
@@ -243,17 +243,17 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
       <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {loading && products.length === 0 ? (
           <Card className="p-6 sm:col-span-2 lg:col-span-3">
-            <div className="text-kaffza-text/70 text-sm">جاري التحميل...</div>
+            <div className="text-muted-foreground text-sm">جاري التحميل...</div>
           </Card>
         ) : products.length === 0 ? (
           <Card className="p-6 sm:col-span-2 lg:col-span-3">
-            <div className="text-kaffza-text/70 text-sm">لا يوجد منتجات حالياً.</div>
+            <div className="text-muted-foreground text-sm">لا يوجد منتجات حالياً.</div>
           </Card>
         ) : (
           products.map((p) => (
             <Card key={p.id} className="overflow-hidden p-0">
               <Link href={`/store/${subdomain}/product/${p.id}`} className="block">
-                <div className="bg-kaffza-bg relative h-44 w-full">
+                <div className="bg-background relative h-44 w-full">
                   {p.images?.[0] ? (
                     <img
                       src={p.images[0]}
@@ -261,7 +261,7 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="text-kaffza-text/60 flex h-full w-full items-center justify-center text-xs font-bold">
+                    <div className="text-muted-foreground flex h-full w-full items-center justify-center text-xs font-bold">
                       No Image
                     </div>
                   )}
@@ -270,15 +270,15 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
 
               <div className="p-5">
                 <Link href={`/store/${subdomain}/product/${p.id}`}>
-                  <div className="text-kaffza-info hover:text-kaffza-primary text-lg font-extrabold transition-colors">
+                  <div className="text-kaffza-info hover:text-primary text-lg font-extrabold transition-colors">
                     {p.nameAr || p.nameEn}
                   </div>
                 </Link>
                 <div className="mt-2 flex items-center justify-between">
-                  <div className="text-kaffza-primary text-sm font-bold">
+                  <div className="text-primary text-sm font-bold">
                     {Number(p.price).toFixed(3)} ر.ع
                   </div>
-                  <div className="text-kaffza-text/70 text-xs">المخزون: {p.stock}</div>
+                  <div className="text-muted-foreground text-xs">المخزون: {p.stock}</div>
                 </div>
 
                 <div className="mt-4">

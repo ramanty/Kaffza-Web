@@ -83,8 +83,8 @@ function AccountOrdersPageInner() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-kaffza-primary text-2xl font-extrabold">سجل الطلبات</h1>
-          <p className="text-kaffza-text/80 mt-1 text-sm">
+          <h1 className="text-primary text-2xl font-extrabold">سجل الطلبات</h1>
+          <p className="text-foreground/80 mt-1 text-sm">
             تابع كل طلب من التأكيد حتى التسليم من مكان واحد.
           </p>
         </div>
@@ -97,8 +97,8 @@ function AccountOrdersPageInner() {
 
       {empty ? (
         <Card className="p-6">
-          <div className="text-kaffza-primary text-sm font-bold">لا توجد طلبات حتى الآن</div>
-          <div className="text-kaffza-text/70 mt-1 text-sm">
+          <div className="text-primary text-sm font-bold">لا توجد طلبات حتى الآن</div>
+          <div className="text-muted-foreground mt-1 text-sm">
             ابدأ التسوق الآن، وستظهر طلباتك هنا مع كل تحديث للحالة.
           </div>
           <div className="mt-4">
@@ -126,11 +126,11 @@ function AccountOrdersPageInner() {
               <Card key={String(o.id)} className="p-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <div className="text-kaffza-text/70 text-sm">رقم الطلب</div>
-                    <div className="text-kaffza-primary text-lg font-extrabold">
+                    <div className="text-muted-foreground text-sm">رقم الطلب</div>
+                    <div className="text-primary text-lg font-extrabold">
                       {o.orderNumber}
                     </div>
-                    <div className="text-kaffza-text/70 mt-1 text-xs">
+                    <div className="text-muted-foreground mt-1 text-xs">
                       {formatDate(o.createdAt)} • متجر:{' '}
                       {o.store?.nameAr || o.store?.nameEn || o.store?.subdomain}
                     </div>
@@ -138,8 +138,8 @@ function AccountOrdersPageInner() {
 
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="text-kaffza-text/70 text-xs">الإجمالي</div>
-                      <div className="text-kaffza-primary text-sm font-extrabold">
+                      <div className="text-muted-foreground text-xs">الإجمالي</div>
+                      <div className="text-primary text-sm font-extrabold">
                         {formatOMR(Number(o.totalAmount))}
                       </div>
                     </div>
@@ -167,7 +167,7 @@ function AccountOrdersPageInner() {
           <Button variant="secondary">السابق</Button>
         </Link>
 
-        <div className="text-kaffza-text/70 text-xs">
+        <div className="text-muted-foreground text-xs">
           صفحة {meta.page} • {meta.total} طلب
         </div>
 
