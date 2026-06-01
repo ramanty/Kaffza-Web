@@ -18,6 +18,7 @@ type Store = {
   customDomain?: string;
   logoUrl?: string;
   bannerUrl?: string;
+  plan?: any;
 };
 
 type PaymentSettings = {
@@ -31,8 +32,6 @@ type PaymentSettings = {
   codMaxOrderAmount: number | null;
   codMaxWeightKg: number | null;
 };
-
-const THAWANI_KEYS_KEY = 'kaffza_thawani_keys';
 
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
   cardEnabled: true,
@@ -65,18 +64,10 @@ export default function SettingsPage() {
     bannerUrl: '',
   });
 
-  const [paymentForm, setPaymentForm] = useState({
-    thawaniSecretKey: '',
-    thawaniPublishableKey: '',
-  });
-  const [paymentSaving, setPaymentSaving] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState<string | null>(null);
-
   const [paymentRules, setPaymentRules] = useState<PaymentSettings>(DEFAULT_PAYMENT_SETTINGS);
   const [paymentRulesSaving, setPaymentRulesSaving] = useState(false);
   const [paymentRulesSuccess, setPaymentRulesSuccess] = useState<string | null>(null);
   const [paymentRulesError, setPaymentRulesError] = useState<string | null>(null);
-  const [paymentLocalError, setPaymentLocalError] = useState<string | null>(null);
 
   async function load() {
     if (!storeId) return;
@@ -101,6 +92,7 @@ export default function SettingsPage() {
         customDomain: data?.customDomain,
         logoUrl: data?.logoUrl,
         bannerUrl: data?.bannerUrl,
+        plan: data?.plan,
       };
 
       setStore(st);
@@ -128,18 +120,6 @@ export default function SettingsPage() {
       return;
     }
     load();
-    try {
-      const saved = localStorage.getItem(`${THAWANI_KEYS_KEY}:${storeId}`);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setPaymentForm({
-          thawaniSecretKey: parsed.thawaniSecretKey || '',
-          thawaniPublishableKey: parsed.thawaniPublishableKey || '',
-        });
-      }
-    } catch {
-      // ignore parse errors
-    }
   }, [storeId]);
 
   const canSave = useMemo(
@@ -228,34 +208,11 @@ export default function SettingsPage() {
     }
   }
 
-  function savePaymentSettings() {
-    if (!storeId) return;
-    if (!paymentForm.thawaniSecretKey.trim() || !paymentForm.thawaniPublishableKey.trim()) {
-      setPaymentLocalError('يرجى إدخال المفتاحين قبل الحفظ.');
-      return;
-    }
-    setPaymentLocalError(null);
-    setPaymentSaving(true);
-    setPaymentSuccess(null);
-    try {
-      localStorage.setItem(
-        `${THAWANI_KEYS_KEY}:${storeId}`,
-        JSON.stringify({
-          thawaniSecretKey: paymentForm.thawaniSecretKey.trim(),
-          thawaniPublishableKey: paymentForm.thawaniPublishableKey.trim(),
-        })
-      );
-      setPaymentSuccess('تم حفظ مفاتيح الدفع بنجاح');
-    } finally {
-      setPaymentSaving(false);
-    }
-  }
-
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-kaffza-primary text-2xl font-extrabold">الإعدادات</h1>
-        <p className="text-kaffza-text/80 mt-1 text-sm">
+        <h1 className="text-gray-900 text-2xl font-extrabold">الإعدادات</h1>
+        <p className="text-gray-900 mt-1 text-sm">
           تحديث بيانات المتجر (اسم، وصف، دومين، شعار...)
         </p>
         {!storeId && !storesLoading ? (
@@ -269,8 +226,8 @@ export default function SettingsPage() {
       <Card className="p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="text-kaffza-primary text-sm font-extrabold">بيانات المتجر</div>
-            <div className="text-kaffza-text/70 mt-1 text-xs">
+            <div className="text-gray-900 text-sm font-extrabold">بيانات المتجر</div>
+            <div className="text-gray-900 mt-1 text-xs">
               subdomain للعرض فقط (غير قابل للتعديل عبر هذا الـ endpoint).
             </div>
           </div>
@@ -303,13 +260,26 @@ export default function SettingsPage() {
             <Input value={store?.subdomain || ''} disabled />
           </Field>
 
-          <Field label="Custom Domain (اختياري)">
-            <Input
-              value={form.customDomain}
-              onChange={(e: any) => setForm((s) => ({ ...s, customDomain: e.target.value }))}
-              placeholder="example.com"
-            />
-          </Field>
+          {store?.plan?.name === 'Free' || !store?.plan ? (
+            <div className="col-span-full md:col-span-1 rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <div className="text-sm font-bold text-blue-900">الدومين الخاص (Custom Domain)</div>
+              <div className="mt-1 text-xs text-blue-800">
+                هل تريد ربط متجرك بدومين خاص؟ (مثال: mystore.com). اشترك في باقة 'النمو' أو 'المحترف' لتفعيل هذه الميزة.
+              </div>
+              <a href="/dashboard/plans" className="mt-3 inline-block rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">
+                الترقية الآن
+              </a>
+            </div>
+          ) : (
+            <Field label="Custom Domain (اختياري)">
+              <Input
+                value={form.customDomain}
+                onChange={(e: any) => setForm((s) => ({ ...s, customDomain: e.target.value }))}
+                placeholder="example.com"
+              />
+              <div className="mt-1 text-xs text-gray-500">أضف CNAME Record يشير إلى shops.kaffza.me في إعدادات الـ DNS الخاصة بك.</div>
+            </Field>
+          )}
 
           <Field label="وصف المتجر (عربي)">
             <textarea
@@ -350,10 +320,10 @@ export default function SettingsPage() {
       <Card className="p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="text-kaffza-primary text-sm font-extrabold">
+            <div className="text-gray-900 text-sm font-extrabold">
               طرق الدفع | Payment Methods
             </div>
-            <div className="text-kaffza-text/70 mt-1 text-xs">
+            <div className="text-gray-900 mt-1 text-xs">
               تفعيل/تعطيل طرق الدفع ووضع قيود الطلب بأمان.
             </div>
           </div>
@@ -446,53 +416,6 @@ export default function SettingsPage() {
           </Field>
         </div>
       </Card>
-
-      <Card className="p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="text-kaffza-primary text-sm font-extrabold">
-              إعدادات بوابة الدفع (ثواني)
-            </div>
-            <div className="text-kaffza-text/70 mt-1 text-xs">
-              أدخل مفاتيح API الخاصة بحسابك في Thawani لاستقبال المدفوعات مباشرةً.
-            </div>
-          </div>
-          <Button onClick={savePaymentSettings} disabled={!storeId || paymentSaving}>
-            {paymentSaving ? 'جارٍ الحفظ...' : 'حفظ المفاتيح محلياً'}
-          </Button>
-        </div>
-
-        {paymentSuccess ? <Alert kind="success" text={paymentSuccess} /> : null}
-        {paymentLocalError ? <Alert kind="error" text={paymentLocalError} /> : null}
-
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <Field label="Secret Key (المفتاح السري)">
-            <Input
-              type="password"
-              value={paymentForm.thawaniSecretKey}
-              onChange={(e: any) =>
-                setPaymentForm((s) => ({ ...s, thawaniSecretKey: e.target.value }))
-              }
-              placeholder="sk_..."
-            />
-          </Field>
-
-          <Field label="Publishable Key (المفتاح العلني)">
-            <Input
-              value={paymentForm.thawaniPublishableKey}
-              onChange={(e: any) =>
-                setPaymentForm((s) => ({ ...s, thawaniPublishableKey: e.target.value }))
-              }
-              placeholder="pk_..."
-            />
-          </Field>
-        </div>
-
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
-          🔒 يتم حفظ المفاتيح محلياً في المتصفح مؤقتاً. سيتم ربطها بالخادم في التحديث القادم لاكتمال
-          بنية SaaS متعددة المستأجرين.
-        </div>
-      </Card>
     </div>
   );
 }
@@ -517,7 +440,7 @@ function Toggle({
 function Field({ label, children }: { label: string; children: any }) {
   return (
     <label className="grid gap-1">
-      <span className="text-kaffza-text text-sm font-bold">{label}</span>
+      <span className="text-gray-900 text-sm font-bold">{label}</span>
       {children}
     </label>
   );
