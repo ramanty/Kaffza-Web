@@ -56,7 +56,7 @@ export default function DashboardSidebar() {
   }, [pathname]);
 
   return (
-    <aside className="h-screen w-[280px] shrink-0 bg-[#1A2B4A]">
+    <aside className="h-full w-64 shrink-0 overflow-y-auto bg-[#1A2B4A]">
       <div className="flex h-full flex-col p-5">
         {/* Logo header */}
         <div className="mb-4 flex flex-col items-center border-b border-white/10 pb-4 pt-2">

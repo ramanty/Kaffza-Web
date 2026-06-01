@@ -4,7 +4,7 @@ import { StoreProvider } from './store-context';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <div dir="rtl">
+    <div dir="rtl" className="flex h-screen overflow-hidden w-full">
       <StoreProvider>
         <DashboardShell>{children}</DashboardShell>
       </StoreProvider>

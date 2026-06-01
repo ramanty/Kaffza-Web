@@ -93,8 +93,8 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="bg-kaffza-bg text-kaffza-text min-h-screen">
-      <div className="hidden md:flex md:flex-row-reverse">
+    <div className="bg-kaffza-bg text-kaffza-text flex h-full w-full flex-col">
+      <div className="hidden h-full md:flex md:flex-row-reverse">
         <DashboardSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <Header
@@ -109,7 +109,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
             onReloadStores={() => reloadStores()}
             isEn={isEn}
           />
-          <main className="min-w-0 flex-1 p-4 md:p-8">
+          <main className="min-w-0 flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8">
             <div className="mx-auto max-w-6xl">{children}</div>
           </main>
         </div>
