@@ -11,6 +11,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { SanitizePipe } from './common/pipes/sanitize.pipe';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
@@ -66,7 +67,6 @@ async function bootstrap() {
   );
 
   // Register GlobalExceptionFilter
-  const { GlobalExceptionFilter } = require('./common/filters/global-exception.filter');
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   // Swagger API Documentation — hidden in production (C-05)
