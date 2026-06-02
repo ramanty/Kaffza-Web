@@ -57,13 +57,17 @@ async function bootstrap() {
 
   // Validation
   app.useGlobalPipes(
-    new SanitizePipe(), // C-07: Sanitize inputs before validation
+    new SanitizePipe(),
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
     })
   );
+
+  // Register GlobalExceptionFilter
+  const { GlobalExceptionFilter } = require('./common/filters/global-exception.filter');
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   // Swagger API Documentation — hidden in production (C-05)
   if (!isProduction) {

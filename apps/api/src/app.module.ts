@@ -26,6 +26,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { HealthModule } from './modules/health/health.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
+import { QueueModule } from './modules/queue/queue.module';
 
 // Config & Database
 import { DatabaseModule } from './database/database.module';
@@ -33,6 +34,7 @@ import { ConfigModule } from './config/config.module';
 
 @Module({
   imports: [
+    QueueModule,
     ConfigModule,
 
     ThrottlerModule.forRoot([

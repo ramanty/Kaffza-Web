@@ -100,8 +100,16 @@ export async function middleware(req: NextRequest) {
 
   if (!isKaffzaMain) {
     let slug = currentHost;
-    if (currentHost.endsWith('.kaffza.me')) slug = currentHost.replace('.kaffza.me', '');
-    else if (currentHost.endsWith('.localhost')) slug = currentHost.replace('.localhost', '');
+    if (currentHost.endsWith('.kaffza.me')) {
+      slug = currentHost.replace('.kaffza.me', '');
+    } else if (currentHost.endsWith('.localhost')) {
+      slug = currentHost.replace('.localhost', '');
+    }
+
+    // Skip API or static paths safely at the edge
+    if (pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.includes('.')) {
+      return NextResponse.next();
+    }
 
     const localeMatch = pathname.match(/^\/(en|ar)(\/|$)/);
     const locale = localeMatch ? localeMatch[1] : 'ar';
