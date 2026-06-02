@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { ShieldCheck, Zap, Globe2 } from "lucide-react";
 
 const Hero3D = dynamic(() => import("@/components/landing/Hero3D"), { ssr: false });
+import { SiteFooter } from "@/components/SiteFooter";
 
 const fadeUpParams = {
   initial: { opacity: 0, y: 40 },
@@ -127,6 +128,27 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Extra CTA Section */}
+      <section className="relative z-10 w-full bg-gradient-to-b from-transparent to-blue-900/20 border-t border-blue-500/10 py-32">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <motion.div {...fadeUpParams}>
+            <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
+              جاهز لإحداث <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">قفزة</span> في مبيعاتك؟
+            </h2>
+            <p className="text-xl text-slate-300 mb-10">
+              انضم إلى آلاف التجار الذين اختاروا قفزة لتنمية أعمالهم بأمان وسهولة.
+            </p>
+            <Link
+              href="/merchant/login"
+              className="inline-block bg-white text-slate-900 font-black py-4 px-12 rounded-full text-lg shadow-[0_0_40px_rgba(255,255,255,0.3)] transition-transform hover:scale-105"
+            >
+              افتح متجرك الآن
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      <SiteFooter lang="ar" />
     </div>
   );
 }

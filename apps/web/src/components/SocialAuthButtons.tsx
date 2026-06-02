@@ -132,13 +132,19 @@ export function SocialAuthButtons({
   }
 
   return (
-    <div className="mt-4 grid gap-2">
+    <div className="mt-4 grid gap-3">
       <button
         type="button"
         onClick={loginWithGoogle}
         disabled={loading !== null}
-        className="rounded-xl border border-border bg-card text-card-foreground px-4 py-2 text-sm font-bold text-[#1B3A6B] hover:bg-slate-50 disabled:opacity-60"
+        className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-extrabold text-slate-900 transition hover:bg-slate-50 disabled:opacity-60 shadow-sm"
       >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+        </svg>
         {loading === 'google'
           ? locale === 'ar'
             ? 'جارٍ فتح Google...'
@@ -149,8 +155,11 @@ export function SocialAuthButtons({
         type="button"
         onClick={loginWithApple}
         disabled={loading !== null}
-        className="rounded-xl border border-border bg-black px-4 py-2 text-sm font-bold text-white hover:bg-black/90 disabled:opacity-60"
+        className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-extrabold text-slate-900 transition hover:bg-slate-50 disabled:opacity-60 shadow-sm"
       >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M16.365 1.43c0 2.03-1.495 3.87-3.23 4.12-.325.045-.635.045-.94 0-1.04-.575-1.89-2.31-1.89-3.92C10.305 0 11.83 0 13.565 0c.26 0 .52.02.775.05.99.285 2.025 1.25 2.025 1.38zM20.25 16.32c-1.32 2.76-3.825 6.06-6.665 6.06-1.575 0-2.375-1.065-4.475-1.065-2.09 0-3.08 1.055-4.485 1.055-2.735 0-5.18-3.18-6.635-6.06C-3.415 13.065.74 6.78 4.675 6.78c1.375 0 2.535 1.055 4.3 1.055 1.77 0 3.265-1.045 4.415-1.045 3.015 0 4.35 1.875 4.35 1.95-3.065 1.83-2.505 5.51.51 6.58z"/>
+        </svg>
         {loading === 'apple'
           ? locale === 'ar'
             ? 'جارٍ فتح Apple...'
