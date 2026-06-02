@@ -33,10 +33,6 @@ type WalletData = {
   totalWithdrawn: number;
 };
 
-function formatCurrency(v: number) {
-  const n = Number.isFinite(v) ? v : 0;
-  return `${formatCurrency(n)}`;
-}
 
 function withLang(path: string, isEn: boolean) {
   return isEn ? `${path}?lang=en` : path;

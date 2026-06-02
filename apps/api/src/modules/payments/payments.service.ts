@@ -10,7 +10,11 @@ import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { IntegrationsService } from '../integrations/integrations.service';
 
+
+const idempotencyStore = new Map<string, number>();
+
 @Injectable()
+
 export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
@@ -28,8 +32,18 @@ export class PaymentsService {
     return this.createThawaniSession(user, BigInt(order.storeId as any), orderId, isMobile);
   }
 
+
   async createThawaniSession(user: any, storeId: bigint, orderId: bigint, isMobile = false) {
+    const now = Date.now();
+    const idempKey = orderId.toString();
+    const lastRequest = idempotencyStore.get(idempKey);
+    if (lastRequest && now - lastRequest < 5000) {
+      throw new BadRequestException('الرجاء الانتظار قليلاً قبل المحاولة مرة أخرى (Idempotency)');
+    }
+    idempotencyStore.set(idempKey, now);
+
     if (!user?.sub) throw new ForbiddenException('غير مصرح');
+
     if (user.role !== 'customer' && user.role !== 'admin') {
       throw new ForbiddenException('فقط العميل');
     }

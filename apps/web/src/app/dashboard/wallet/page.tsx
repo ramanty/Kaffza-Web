@@ -262,10 +262,6 @@ function Alert({ kind, text }: { kind: 'error' | 'success'; text: string }) {
   return <div className={`rounded-xl border p-4 text-sm ${cls}`}>{text}</div>;
 }
 
-function formatCurrency(v: number) {
-  const n = Number.isFinite(v) ? v : 0;
-  return `${formatCurrency(n)}`;
-}
 
 function formatDate(iso: string) {
   try {

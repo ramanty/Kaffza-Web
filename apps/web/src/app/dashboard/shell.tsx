@@ -87,7 +87,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
   }, [router]);
 
   const logout = () => {
-    try { fetch((process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1') + '/auth/logout', { method: 'POST', headers: authHeader() }); } catch(e){}
+    try { fetch((process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1') + '/auth/logout', { method: 'POST', headers: authHeader() }); } catch(e){console.error(e);}
     router.replace('/');
   };
 
