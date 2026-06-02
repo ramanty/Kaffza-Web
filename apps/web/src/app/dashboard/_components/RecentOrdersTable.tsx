@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { OrderStatus } from '@kaffza/types';
+import { formatCurrency } from '@/lib/utils';
 
 export interface OrderRow {
   id: string | number;
@@ -236,7 +237,7 @@ export function RecentOrdersTable({
                     {formatDate(order.createdAt, isEn)}
                   </td>
                   <td className="text-primary px-5 py-3 font-bold">
-                    {Number(order.totalAmount).toFixed(3)} ر.ع
+                    {formatCurrency(Number(order.totalAmount))}
                   </td>
                   <td className="px-5 py-3">
                     <StatusBadge status={order.status} isEn={isEn} />

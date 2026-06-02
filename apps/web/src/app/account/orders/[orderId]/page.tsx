@@ -8,6 +8,7 @@ import { api } from '../../../../lib/api';
 import { authHeader, getAccessTokenFromCookies } from '../../../../lib/auth';
 import { Card } from '../../../../components/Card';
 import { Button } from '../../../../components/Button';
+import { formatCurrency } from '@/lib/utils';
 
 export default function OrderDetailsPage({ params }: { params: { orderId: string } }) {
   const router = useRouter();
@@ -335,5 +336,5 @@ function formatDate(iso: string) {
 
 function formatOMR(v: number) {
   const n = Number.isFinite(v) ? v : 0;
-  return `${n.toFixed(3)} ر.ع`;
+  return `${formatCurrency(n)}`;
 }

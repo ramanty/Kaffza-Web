@@ -1,4 +1,5 @@
 const DAYS_AR = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+import { formatCurrency } from '@/lib/utils';
 const DAYS_EN = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
 const MOCK_SALES = [
@@ -41,7 +42,7 @@ export function SalesChart({ isEn = false }: { isEn?: boolean }) {
             <div key={day} className="group relative flex flex-1 flex-col items-center gap-1">
               {/* Tooltip */}
               <div className="bg-primary pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded px-2 py-1 text-[10px] font-bold text-white opacity-0 transition-opacity group-hover:opacity-100">
-                {amount.toFixed(3)} ر.ع
+                {formatCurrency(amount)}
               </div>
               <div
                 className="bg-primary/20 group-hover:bg-primary w-full rounded-t-lg transition-all duration-300"

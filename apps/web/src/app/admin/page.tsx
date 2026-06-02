@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { api } from '../../lib/api';
 import { authHeader } from '../../lib/auth';
 import { Card } from '../../components/Card';
+import { formatCurrency } from '@/lib/utils';
 
 /* ── Mock data (shown when API is not available) ─────────────────────────── */
 const MOCK_STATS = {
@@ -69,7 +70,7 @@ interface RecentRow {
 /* ── Helpers ──────────────────────────────────────────────────────────────── */
 function formatOMR(v: number) {
   const n = Number.isFinite(v) ? v : 0;
-  return `${n.toFixed(3)} ر.ع`;
+  return `${formatCurrency(n)}`;
 }
 
 function formatDate(d: string) {

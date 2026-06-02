@@ -6,6 +6,7 @@ import { api } from '../../../../../lib/api';
 import { authHeader } from '../../../../../lib/auth';
 import { Card } from '../../../../../components/Card';
 import { Button } from '../../../../../components/Button';
+import { formatCurrency } from '@/lib/utils';
 
 type Variant = {
   id: string;
@@ -266,11 +267,11 @@ export default function ProductDetailPage({
           {/* Price */}
           <div className="flex items-center gap-3">
             <span className="text-primary text-3xl font-extrabold">
-              {Number(displayPrice).toFixed(3)} ر.ع
+              {formatCurrency(Number(displayPrice))}
             </span>
             {product.compareAtPrice && product.compareAtPrice > displayPrice && (
               <span className="text-foreground/50 text-base line-through">
-                {Number(product.compareAtPrice).toFixed(3)} ر.ع
+                {formatCurrency(Number(product.compareAtPrice))}
               </span>
             )}
             {product.compareAtPrice && product.compareAtPrice > displayPrice && (

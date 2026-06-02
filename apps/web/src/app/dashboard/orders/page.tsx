@@ -286,7 +286,7 @@ export default function OrdersPage() {
                     {/* Total */}
                     <td className="px-4 py-3">
                       <span className="text-primary font-bold">
-                        {Number(o.totalAmount).toFixed(3)} ر.ع
+                        {formatCurrency(Number(o.totalAmount))}
                       </span>
                     </td>
 

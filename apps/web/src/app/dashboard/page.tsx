@@ -35,7 +35,7 @@ type WalletData = {
 
 function formatCurrency(v: number) {
   const n = Number.isFinite(v) ? v : 0;
-  return `${n.toFixed(3)} ر.ع`;
+  return `${formatCurrency(n)}`;
 }
 
 function withLang(path: string, isEn: boolean) {

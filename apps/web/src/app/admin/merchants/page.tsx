@@ -6,6 +6,7 @@ import { api } from '../../../lib/api';
 import { authHeader } from '../../../lib/auth';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
+import { formatCurrency } from '@/lib/utils';
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 interface MerchantRow {
@@ -263,7 +264,7 @@ export default function AdminMerchants() {
                         </span>
                       </td>
                       <td className="px-5 py-3 font-semibold text-slate-800">
-                        {Number(row.totalSales).toFixed(3)} ر.ع
+                        {formatCurrency(Number(row.totalSales))}
                       </td>
                       <td className="px-5 py-3 text-slate-500">{formatDate(row.createdAt)}</td>
                       <td className="px-5 py-3">

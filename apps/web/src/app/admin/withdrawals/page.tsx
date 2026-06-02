@@ -6,6 +6,7 @@ import { api } from '../../../lib/api';
 import { authHeader } from '../../../lib/auth';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
+import { formatCurrency } from '@/lib/utils';
 
 export default function AdminWithdrawalsPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -74,7 +75,7 @@ export default function AdminWithdrawalsPage() {
               ) : rows.map((w) => (
                 <tr key={String(w.id)} className="border-t border-border">
                   <td className="px-4 py-3 text-foreground/80">{w.wallet?.store?.subdomain || '-'}</td>
-                  <td className="px-4 py-3 font-bold text-foreground">{Number(w.amount || 0).toFixed(3)} ر.ع</td>
+                  <td className="px-4 py-3 font-bold text-foreground">{formatCurrency(Number(w.amount || 0))}</td>
                   <td className="px-4 py-3">{String(w.status || '-')}</td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(w.createdAt)}</td>
                   <td className="px-4 py-3">

@@ -7,6 +7,7 @@ import { api } from '../../../../lib/api';
 import { authHeader, getAccessTokenFromCookies } from '../../../../lib/auth';
 import { Card } from '../../../../components/Card';
 import { Button } from '../../../../components/Button';
+import { formatCurrency } from '@/lib/utils';
 
 type Store = { id: string; nameAr?: string; nameEn?: string; logoUrl?: string; subdomain: string };
 
@@ -382,5 +383,5 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
 
 function formatOMR(v: number, isEn = false) {
   const n = Number.isFinite(v) ? v : 0;
-  return isEn ? `OMR ${n.toFixed(3)}` : `${n.toFixed(3)} ر.ع`;
+  return isEn ? `OMR ${n.toFixed(3)}` : `${formatCurrency(n)}`;
 }

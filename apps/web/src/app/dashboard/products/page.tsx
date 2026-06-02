@@ -7,6 +7,7 @@ import { authHeader } from '../../../lib/auth';
 import { Button } from '../../../components/Button';
 import { Card } from '../../../components/Card';
 import { useStore } from '../store-context';
+import { formatCurrency } from '@/lib/utils';
 
 type Category = { id: string; nameAr?: string; nameEn?: string };
 
@@ -185,7 +186,7 @@ export default function ProductsPage() {
                     {/* Price */}
                     <td className="px-4 py-3">
                       <span className="text-primary font-bold">
-                        {Number(p.price).toFixed(3)} ر.ع
+                        {formatCurrency(Number(p.price))}
                       </span>
                     </td>
 

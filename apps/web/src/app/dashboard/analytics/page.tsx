@@ -6,6 +6,7 @@ import { api } from '../../../lib/api';
 import { authHeader } from '../../../lib/auth';
 import { Card } from '../../../components/Card';
 import { useStore } from '../store-context';
+import { formatCurrency } from '@/lib/utils';
 
 type AnalyticsData = {
   rangeDays: number;
@@ -214,9 +215,9 @@ function AnalyticsPageInner() {
       ) : null}
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label={t.kpi.revenue} value={`${Number(data?.kpis.revenue || 0).toFixed(3)} ر.ع`} />
+        <Kpi label={t.kpi.revenue} value={`${formatCurrency(Number(data?.kpis.revenue || 0))}`} />
         <Kpi label={t.kpi.orders} value={String(data?.kpis.ordersCount || 0)} />
-        <Kpi label={t.kpi.aov} value={`${Number(data?.kpis.avgOrderValue || 0).toFixed(3)} ر.ع`} />
+        <Kpi label={t.kpi.aov} value={`${formatCurrency(Number(data?.kpis.avgOrderValue || 0))}`} />
         <Kpi
           label={t.kpi.repeatRate}
           value={`${Number(data?.kpis.repeatCustomerRate || 0).toFixed(1)}%`}
@@ -330,7 +331,7 @@ function AnalyticsPageInner() {
                 <tr key={p.name} className="border-b border-border">
                   <td className="px-2 py-2 font-semibold">{p.name}</td>
                   <td className="px-2 py-2">{p.quantity}</td>
-                  <td className="px-2 py-2">{p.revenue.toFixed(3)} ر.ع</td>
+                  <td className="px-2 py-2">{formatCurrency(p.revenue)}</td>
                 </tr>
               ))}
               {!loading && (!data?.topProducts || data.topProducts.length === 0) ? (

@@ -6,6 +6,7 @@ import { api } from '../../../lib/api';
 import { authHeader } from '../../../lib/auth';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
+import { formatCurrency } from '@/lib/utils';
 
 type Store = {
   id: string;
@@ -276,7 +277,7 @@ export default function StoreFront({ params }: { params: { subdomain: string } }
                 </Link>
                 <div className="mt-2 flex items-center justify-between">
                   <div className="text-primary text-sm font-bold">
-                    {Number(p.price).toFixed(3)} ر.ع
+                    {formatCurrency(Number(p.price))}
                   </div>
                   <div className="text-muted-foreground text-xs">المخزون: {p.stock}</div>
                 </div>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { Card } from '../../../components/Card';
+import { formatCurrency } from '@/lib/utils';
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 interface PayoutRow {
@@ -72,7 +73,7 @@ const MOCK_PAYOUTS: PayoutRow[] = [
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 function formatOMR(v: number) {
-  return `${Number(v).toFixed(3)} ر.ع`;
+  return `${formatCurrency(Number(v))}`;
 }
 
 function formatDate(iso: string) {

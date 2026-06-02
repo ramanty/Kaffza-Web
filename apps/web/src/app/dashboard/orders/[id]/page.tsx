@@ -8,6 +8,7 @@ import { authHeader } from '../../../../lib/auth';
 import { Button } from '../../../../components/Button';
 import { Card } from '../../../../components/Card';
 import { useStore } from '../../store-context';
+import { formatCurrency } from '@/lib/utils';
 
 type OrderItem = {
   id: number;
@@ -307,7 +308,7 @@ export default function OrderDetailPage() {
                           <div className="text-foreground font-semibold">{item.productName}</div>
                         </td>
                         <td className="text-foreground/80 px-5 py-4">
-                          {item.unitPrice.toFixed(3)} ر.ع
+                          {formatCurrency(item.unitPrice)}
                         </td>
                         <td className="px-5 py-4">
                           <span className="bg-background text-foreground inline-flex items-center justify-center rounded-lg px-3 py-1 text-xs font-bold">
@@ -315,7 +316,7 @@ export default function OrderDetailPage() {
                           </span>
                         </td>
                         <td className="text-primary px-5 py-4 font-bold">
-                          {item.totalPrice.toFixed(3)} ر.ع
+                          {formatCurrency(item.totalPrice)}
                         </td>
                       </tr>
                     ))
@@ -335,20 +336,20 @@ export default function OrderDetailPage() {
             </h2>
 
             <div className="space-y-3">
-              <SummaryRow label="المنتجات" value={`${order.subtotal.toFixed(3)} ر.ع`} />
+              <SummaryRow label="المنتجات" value={`${formatCurrency(order.subtotal)}`} />
               <SummaryRow
                 label="الشحن"
-                value={order.shippingCost > 0 ? `${order.shippingCost.toFixed(3)} ر.ع` : 'مجاني'}
+                value={order.shippingCost > 0 ? `${formatCurrency(order.shippingCost)}` : 'مجاني'}
                 highlight={order.shippingCost === 0}
               />
               {taxAmount > 0 ? (
-                <SummaryRow label="الضريبة" value={`${taxAmount.toFixed(3)} ر.ع`} />
+                <SummaryRow label="الضريبة" value={`${formatCurrency(taxAmount)}`} />
               ) : null}
               <div className="border-t border-border pt-3">
                 <div className="flex items-center justify-between">
                   <span className="text-foreground font-extrabold">الإجمالي الكلي</span>
                   <span className="text-primary text-lg font-extrabold">
-                    {order.totalAmount.toFixed(3)} ر.ع
+                    {formatCurrency(order.totalAmount)}
                   </span>
                 </div>
               </div>
@@ -371,10 +372,10 @@ export default function OrderDetailPage() {
             <div className="mt-4 rounded-xl border border-[#1B3A6B]/10 bg-[#1B3A6B]/5 p-4">
               <p className="text-primary/70 text-xs font-bold">صافي أرباحك</p>
               <p className="text-primary mt-1 text-xl font-extrabold">
-                {order.merchantAmount.toFixed(3)} ر.ع
+                {formatCurrency(order.merchantAmount)}
               </p>
               <p className="text-foreground/50 mt-1 text-xs">
-                بعد خصم عمولة قفزة ({order.commissionAmount.toFixed(3)} ر.ع)
+                بعد خصم عمولة قفزة ({formatCurrency(order.commissionAmount)})
               </p>
             </div>
           </Card>

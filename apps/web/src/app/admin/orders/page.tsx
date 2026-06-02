@@ -6,6 +6,7 @@ import { api } from '../../../lib/api';
 import { authHeader } from '../../../lib/auth';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
+import { formatCurrency } from '@/lib/utils';
 
 const STATUS = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled', 'refunded'];
 
@@ -127,5 +128,5 @@ function Badge({ status }: { status: string }) {
 
 function formatOMR(v: number) {
   const n = Number.isFinite(v) ? v : 0;
-  return `${n.toFixed(3)} ر.ع`;
+  return `${formatCurrency(n)}`;
 }
