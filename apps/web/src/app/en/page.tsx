@@ -8,10 +8,9 @@ const Hero3D = dynamic(() => import("@/components/landing/Hero3D"), { ssr: false
 export default function Home() {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center">
-      {/* Glowing Gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/30 rounded-full blur-[120px] -z-20 pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/30 rounded-full blur-[120px] -z-20 pointer-events-none" />
-
+      {/* Premium SaaS Background: Grid + Top Glow */}
+      <div className="absolute inset-0 z-[-1] pointer-events-none bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+      <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-primary opacity-20 blur-[100px] pointer-events-none"></div>
       {/* Hero Section */}
       <section className="relative w-full max-w-7xl mx-auto px-6 pt-32 pb-20 md:pt-48 flex flex-col md:flex-row items-center">
         <Hero3D />

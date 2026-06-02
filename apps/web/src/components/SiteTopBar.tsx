@@ -92,7 +92,7 @@ export function SiteTopBar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/60 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/60 backdrop-blur-md">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <a
           href="https://kaffza.me"
