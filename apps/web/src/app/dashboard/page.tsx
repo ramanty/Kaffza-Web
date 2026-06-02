@@ -1,5 +1,5 @@
-import { formatCurrency } from '@/lib/utils';
 'use client';
+import { formatCurrency } from '@/lib/utils';
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
