@@ -27,6 +27,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { HealthModule } from './modules/health/health.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { QueueModule } from './modules/queue/queue.module';
+import { BackupModule } from './modules/backup/backup.module';
 
 // Config & Database
 import { DatabaseModule } from './database/database.module';
@@ -68,6 +69,7 @@ import { ConfigModule } from './config/config.module';
     UploadsModule,
     HealthModule,
     IntegrationsModule,
+    BackupModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

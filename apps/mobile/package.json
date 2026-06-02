@@ -23,6 +23,7 @@
     "axios": "^1.7.0",
     "expo": "~52.0.0",
     "expo-font": "~13.0.0",
+    "expo-haptics": "^56.0.3",
     "expo-localization": "~16.0.0",
     "expo-router": "~4.0.0",
     "expo-secure-store": "~14.0.1",

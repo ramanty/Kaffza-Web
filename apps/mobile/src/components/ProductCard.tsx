@@ -20,6 +20,8 @@ interface ProductCardProps {
 
 const PLACEHOLDER_IMAGE = 'https://placehold.co/200x200/1B3A6B/FFFFFF/png?text=قفزة';
 
+import * as Haptics from 'expo-haptics';
+
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const imageUri = product.images?.[0] ?? PLACEHOLDER_IMAGE;
 
@@ -43,7 +45,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         <View style={styles.footer}>
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => onAddToCart(product)}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              onAddToCart(product);
+            }}
             activeOpacity={0.8}
             accessibilityLabel={`أضف ${product.nameAr} للسلة`}
             accessibilityRole="button"
