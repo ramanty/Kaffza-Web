@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/lib/utils';
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -123,8 +124,8 @@ export default function WalletPage() {
       {success ? <Alert kind="success" text={success} /> : null}
 
       <section className="grid gap-4 md:grid-cols-2">
-        <StatCard title="الرصيد المتاح" value={formatOMR(available)} loading={loading} />
-        <StatCard title="إجمالي الأرباح" value={formatOMR(earned)} loading={loading} />
+        <StatCard title="الرصيد المتاح" value={formatCurrency(available)} loading={loading} />
+        <StatCard title="إجمالي الأرباح" value={formatCurrency(earned)} loading={loading} />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
@@ -214,7 +215,7 @@ export default function WalletPage() {
                         <span className={pillClass(t.type)}>{mapTxType(t.type)}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={amountClass(t.amount)}>{formatOMR(t.amount)}</span>
+                        <span className={amountClass(t.amount)}>{formatCurrency(t.amount)}</span>
                       </td>
                       <td className="text-foreground px-4 py-3 text-sm">{t.description}</td>
                     </tr>
@@ -261,7 +262,7 @@ function Alert({ kind, text }: { kind: 'error' | 'success'; text: string }) {
   return <div className={`rounded-xl border p-4 text-sm ${cls}`}>{text}</div>;
 }
 
-function formatOMR(v: number) {
+function formatCurrency(v: number) {
   const n = Number.isFinite(v) ? v : 0;
   return `${n.toFixed(3)} ر.ع`;
 }

@@ -17,3 +17,5 @@ production/.env
 .ssl-manager/
 
 apps/mobile/.expo/
+.pnpm-store
+node_modules

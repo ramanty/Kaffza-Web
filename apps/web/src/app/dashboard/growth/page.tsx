@@ -1,5 +1,6 @@
 'use client';
-
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
@@ -176,12 +177,12 @@ function GrowthPageInner() {
     if (!storeId) return;
     setSaving(true);
     setError(null);
-    setSuccess(null);
+    toast.success(null);
     try {
       await api.patch(`/stores/${storeId}/automation`, form, {
         headers: { ...authHeader(), 'x-client': 'web' },
       });
-      setSuccess(t.saveSuccess);
+      toast.success(t.saveSuccess);
     } catch (e: any) {
       setError(e?.response?.data?.message || e?.message || t.saveError);
     } finally {

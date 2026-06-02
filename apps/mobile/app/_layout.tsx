@@ -16,6 +16,8 @@ import {
 import * as SplashScreen from 'expo-splash-screen';
 import * as Updates from 'expo-updates';
 import { Colors } from '../src/constants/colors';
+import { isAuthenticated } from '../src/lib/auth';
+import { useRouter, useSegments } from 'expo-router';
 
 // Keep splash visible while fonts load
 SplashScreen.preventAutoHideAsync();
@@ -42,11 +44,22 @@ export default function RootLayout() {
     }
   }, []);
 
+  const router = useRouter();
+  const segments = useSegments();
+
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
+      isAuthenticated().then(auth => {
+        const inAuthGroup = segments[0] === '(auth)';
+        if (!auth && !inAuthGroup) {
+          router.replace('/(auth)/login');
+        } else if (auth && inAuthGroup) {
+          router.replace('/');
+        }
+      });
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, segments]);
 
   if (!fontsLoaded) {
     return null;

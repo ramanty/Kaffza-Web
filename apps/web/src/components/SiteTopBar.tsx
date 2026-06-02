@@ -120,28 +120,26 @@ export function SiteTopBar() {
           </Link>
           <ThemeToggle />
 
-          {userState.loaded ? (
-            userState.hasStore ? (
-              <Button asChild className="rounded-full">
-                <Link href={isEn ? '/en/dashboard' : '/dashboard'}>
-                  {isEn ? 'Dashboard' : 'لوحة التحكم'}
-                </Link>
-              </Button>
-            ) : userState.loggedIn ? (
-              <Button asChild className="rounded-full">
-                <Link href={isEn ? '/en/onboarding' : '/onboarding'}>
-                  {isEn ? 'Open Your Store' : 'افتح متجرك'}
-                </Link>
-              </Button>
-            ) : (
-              <Button asChild className="rounded-full">
-                <Link href={isEn ? '/en/merchant/login' : '/merchant/login'}>
-                  {isEn ? 'Start Now' : 'ابدأ الآن'}
-                </Link>
-              </Button>
-            )
-          ) : (
+          {!mounted || !userState.loaded ? (
             <div className="w-24 h-9 bg-muted animate-pulse rounded-full" />
+          ) : userState.hasStore ? (
+            <Button asChild className="rounded-full">
+              <Link href={isEn ? '/en/dashboard' : '/dashboard'}>
+                {isEn ? 'Dashboard' : 'لوحة التحكم'}
+              </Link>
+            </Button>
+          ) : userState.loggedIn ? (
+            <Button asChild className="rounded-full">
+              <Link href={isEn ? '/en/onboarding' : '/onboarding'}>
+                {isEn ? 'Open Your Store' : 'افتح متجرك'}
+              </Link>
+            </Button>
+          ) : (
+            <Button asChild className="rounded-full">
+              <Link href={isEn ? '/en/merchant/login' : '/merchant/login'}>
+                {isEn ? 'Start Now' : 'ابدأ الآن'}
+              </Link>
+            </Button>
           )}
         </div>
       </div>

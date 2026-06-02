@@ -12,12 +12,13 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { IProduct } from '@kaffza/types';
 import { ProductCard } from '../src/components/ProductCard';
 import { Colors } from '../src/constants/colors';
 import { MOCK_PRODUCTS, fetchProducts } from '../src/lib/api';
+import { useCartStore } from '../src/stores/cart';
 
 const NUM_COLUMNS = 2;
 
@@ -25,7 +26,8 @@ export default function HomeScreen() {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cartCount, setCartCount] = useState(0);
+  const { addItem, totalItems } = useCartStore();
+  const cartCount = totalItems();
 
   const loadProducts = useCallback(async () => {
     setLoading(true);
@@ -47,13 +49,13 @@ export default function HomeScreen() {
   }, [loadProducts]);
 
   const handleAddToCart = useCallback((product: IProduct) => {
-    setCartCount((prev) => prev + 1);
+    addItem(product);
     Alert.alert(
       'تمت الإضافة! 🛒',
       `تمت إضافة "${product.nameAr}" إلى السلة`,
       [{ text: 'حسناً' }],
     );
-  }, []);
+  }, [addItem]);
 
   const renderProduct = useCallback(
     ({ item }: { item: IProduct }) => (
@@ -72,9 +74,7 @@ export default function HomeScreen() {
           headerRight: () => (
             <TouchableOpacity
               style={styles.cartButton}
-              onPress={() =>
-                Alert.alert('قريباً', 'شاشة السلة قيد التطوير في المرحلة القادمة')
-              }
+              onPress={() => router.push('/(store)/cart')}
               accessibilityLabel={`السلة — ${cartCount} عنصر`}
               accessibilityRole="button"
             >

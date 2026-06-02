@@ -5,15 +5,36 @@ import { SiteTopBar } from '../components/SiteTopBar';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Kaffza | Oman E-Commerce Platform',
-    template: '%s | Kaffza',
+    default: "قفزة | Kaffza",
+    template: "%s | قفزة"
   },
-  description:
-    'Kaffza is an Omani e-commerce platform for merchants to launch and manage online stores.',
+  description: "منصة قفزة تمنحك كل ما تحتاجه لإطلاق متجرك الإلكتروني في عُمان خلال 10 دقائق مع دفع ثواني وحماية Escrow.",
   icons: {
     icon: '/icon.svg',
     shortcut: '/icon.svg',
     apple: '/icon.svg',
+  },
+  openGraph: {
+    title: "قفزة | أطلق متجرك الإلكتروني الآن",
+    description: "منصة تجارة إلكترونية متكاملة مهيأة للسوق العُماني. جاهزية أسرع، تجربة دفع موثوقة، وأدوات تشغيل يومية للتاجر.",
+    url: "https://kaffza.me",
+    siteName: "Kaffza",
+    images: [
+      {
+        url: "https://kaffza.me/icon.svg",
+        width: 800,
+        height: 600,
+        alt: "Kaffza Platform Preview",
+      },
+    ],
+    locale: "ar_OM",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "قفزة | Kaffza",
+    description: "أطلق متجرك الإلكتروني في عُمان خلال 10 دقائق.",
+    images: ["https://kaffza.me/icon.svg"],
   },
 };
 

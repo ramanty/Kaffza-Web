@@ -1,5 +1,6 @@
 'use client';
-
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../../lib/api';
 import { authHeader } from '../../../lib/auth';
@@ -74,7 +75,7 @@ export default function SettingsPage() {
     if (!storeId) return;
     setLoading(true);
     setError(null);
-    setSuccess(null);
+    toast.success(null);
     try {
       const [storeRes, paymentRes] = await Promise.all([
         api.get(`/stores/${storeId}`, { headers: { ...authHeader(), 'x-client': 'web' } }),
@@ -131,7 +132,7 @@ export default function SettingsPage() {
   async function save() {
     if (!storeId) return;
     setError(null);
-    setSuccess(null);
+    toast.success(null);
     try {
       setSaving(true);
       const payload: any = {
@@ -147,7 +148,7 @@ export default function SettingsPage() {
       await api.patch(`/stores/${storeId}`, payload, {
         headers: { ...authHeader(), 'x-client': 'web' },
       });
-      setSuccess('تم حفظ الإعدادات بنجاح');
+      toast.success('تم حفظ الإعدادات بنجاح');
       await load();
     } catch (e: any) {
       setError(e?.response?.data?.message || e?.message || 'فشل حفظ الإعدادات');
@@ -160,12 +161,12 @@ export default function SettingsPage() {
     if (!storeId || !form.customDomain) return;
     setVerifyingDomain(true);
     setError(null);
-    setSuccess(null);
+    toast.success(null);
     try {
       const res = await api.post(`/stores/${storeId}/verify-domain`, { customDomain: form.customDomain }, {
         headers: { ...authHeader(), 'x-client': 'web' },
       });
-      setSuccess(res.data.message || 'تم التحقق من الدومين وحفظه بنجاح');
+      toast.success(res.data.message || 'تم التحقق من الدومين وحفظه بنجاح');
       await load();
     } catch (e: any) {
       setError(e?.response?.data?.message || 'فشل التحقق من الدومين');
@@ -255,7 +256,7 @@ export default function SettingsPage() {
               تحديث
             </Button>
             <Button onClick={save} disabled={!canSave || saving || loading}>
-              {saving ? 'جارٍ الحفظ...' : 'حفظ'}
+              {saving ? <><Loader2 className="inline h-4 w-4 animate-spin ml-2" /> جارٍ الحفظ...</> : "حفظ الإعدادات"}
             </Button>
           </div>
         </div>

@@ -64,7 +64,7 @@ export interface IUpdateProduct extends Partial<ICreateProduct> {
 export interface ICreateCategory {
   nameAr: string;
   nameEn: string;
-  parentId?: string;
+  parentId?: string | null;
   sortOrder?: number;
 }
 

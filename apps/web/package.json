@@ -2,7 +2,7 @@
   "name": "@kaffza/web",
   "version": "0.1.0",
   "private": true,
-  "description": "Kaffza Web App \u2014 Next.js (Storefront + Merchant Dashboard + Admin)",
+  "description": "Kaffza Web App — Next.js (Storefront + Merchant Dashboard + Admin)",
   "scripts": {
     "dev": "next dev --port 3000",
     "build": "next build",
@@ -14,33 +14,34 @@
     "@hookform/resolvers": "^3.9.0",
     "@kaffza/types": "workspace:*",
     "@kaffza/validators": "workspace:*",
+    "@react-three/drei": "^9.106.0",
+    "@react-three/fiber": "^8.16.8",
     "@tailwindcss/postcss": "^4.0.0",
     "axios": "^1.7.0",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.0",
+    "framer-motion": "^11.16.1",
     "libphonenumber-js": "^1.12.41",
     "lucide-react": "^0.468.0",
     "next": "^15.1.0",
     "next-intl": "^3.25.0",
+    "next-themes": "^0.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.0",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^4.0.0",
-    "zod": "^3.23.0",
-    "zustand": "^5.0.0",
-    "next-themes": "^0.3.0",
-    "class-variance-authority": "^0.7.1",
-    "framer-motion": "^11.2.10",
     "three": "^0.165.0",
-    "@react-three/fiber": "^8.16.8",
-    "@react-three/drei": "^9.106.0"
+    "zod": "^3.23.0",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@kaffza/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.6.0",
-    "@types/three": "^0.165.0"
+    "@types/three": "^0.165.0",
+    "typescript": "^5.6.0"
   }
 }

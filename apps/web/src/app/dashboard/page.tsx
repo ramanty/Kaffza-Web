@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/lib/utils';
 'use client';
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
@@ -32,7 +33,7 @@ type WalletData = {
   totalWithdrawn: number;
 };
 
-function formatOMR(v: number) {
+function formatCurrency(v: number) {
   const n = Number.isFinite(v) ? v : 0;
   return `${n.toFixed(3)} ر.ع`;
 }
@@ -54,9 +55,14 @@ function DashboardPageInner() {
   const [pendingOrdersCount, setPendingOrdersCount] = useState<number>(0);
   const [recentOrders, setRecentOrders] = useState<OrderRow[]>([]);
   const [ordersFromApi, setOrdersFromApi] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const storeLabel = useMemo(() => {
-    const s = stores.find((x) => x.id === storeId) || stores[0];
+    const s = stores?.find((x) => x.id === storeId) || stores?.[0];
     if (!s) return '';
     return isEn
       ? s.nameEn || s.nameAr || s.subdomain || s.id
@@ -157,8 +163,8 @@ function DashboardPageInner() {
       actions.push({
         title: isEn ? 'Review withdrawal readiness' : 'راجع جاهزية السحب',
         hint: isEn
-          ? `${formatOMR(walletBalance)} is ready in your wallet.`
-          : `${formatOMR(walletBalance)} متاح حالياً في محفظتك.`,
+          ? `${formatCurrency(walletBalance)} is ready in your wallet.`
+          : `${formatCurrency(walletBalance)} متاح حالياً في محفظتك.`,
         href: '/dashboard/wallet',
       });
     }
@@ -173,6 +179,10 @@ function DashboardPageInner() {
     }
     return actions.slice(0, 3);
   }, [error, isEn, ordersCount, pendingOrdersCount, walletBalance]);
+
+  if (!isMounted || storesLoading) {
+    return <div className="flex h-64 items-center justify-center"><div className="animate-pulse text-muted-foreground">{isEn ? 'Loading...' : 'جاري التحميل...'}</div></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -319,7 +329,7 @@ function DashboardPageInner() {
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title={isEn ? 'Total Sales' : 'إجمالي المبيعات'}
-          value={formatOMR(totalSales)}
+          value={formatCurrency(totalSales)}
           loading={loading}
           icon={<TrendingUp className="h-5 w-5" />}
           variant="primary"
@@ -335,7 +345,7 @@ function DashboardPageInner() {
         />
         <StatCard
           title={isEn ? 'Available for Withdrawal' : 'الرصيد المتاح للسحب'}
-          value={formatOMR(walletBalance)}
+          value={formatCurrency(walletBalance)}
           loading={loading}
           icon={<Wallet className="h-5 w-5" />}
           variant="premium"
@@ -367,17 +377,17 @@ function DashboardPageInner() {
           <div className="mt-4 space-y-3">
             <InfoRow
               label={isEn ? 'Pending Balance (Escrow)' : 'الرصيد المعلق (Escrow)'}
-              value={formatOMR(Number(wallet?.pendingBalance ?? 0))}
+              value={formatCurrency(Number(wallet?.pendingBalance ?? 0))}
               loading={loading}
             />
             <InfoRow
               label={isEn ? 'Total Withdrawn' : 'إجمالي المسحوبات'}
-              value={formatOMR(Number(wallet?.totalWithdrawn ?? 0))}
+              value={formatCurrency(Number(wallet?.totalWithdrawn ?? 0))}
               loading={loading}
             />
             <InfoRow
               label={isEn ? 'Total Earnings' : 'إجمالي الأرباح'}
-              value={formatOMR(totalSales)}
+              value={formatCurrency(totalSales)}
               loading={loading}
               highlight
             />

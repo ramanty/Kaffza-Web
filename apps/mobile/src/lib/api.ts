@@ -13,6 +13,26 @@ export const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+import { getAccessToken } from './auth';
+
+apiClient.interceptors.request.use(async (config) => {
+  const token = await getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export async function requestOtp(phone: string) {
+  const res = await apiClient.post('/auth/otp/request', { phone });
+  return res.data;
+}
+
+export async function verifyOtp(phone: string, code: string) {
+  const res = await apiClient.post('/auth/otp/verify', { phone, code });
+  return res.data;
+}
+
 // ── Mock data (fallback when API is unavailable) ────────────────────────────
 
 export const MOCK_PRODUCTS: IProduct[] = [
@@ -108,4 +128,9 @@ export async function fetchProducts(storeId?: number): Promise<IProduct[]> {
   const params = storeId ? { storeId } : {};
   const response = await apiClient.get<IProduct[]>('/products', { params });
   return response.data;
+}
+
+export async function createOrder(storeSubdomain: string, payload: { items: { productId: number; quantity: number }[]; customerName: string; customerPhone: string; shippingAddress: string }) {
+  const res = await apiClient.post(`/stores/by-subdomain/${storeSubdomain}/orders`, payload);
+  return res.data; // { orderId, checkoutUrl }
 }

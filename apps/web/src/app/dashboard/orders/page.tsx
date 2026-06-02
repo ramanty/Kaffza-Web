@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/lib/utils';
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -85,6 +86,11 @@ export default function OrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeFilter, setActiveFilter] = useState<StatusFilter>('all');
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   async function load() {
     if (!storeId) return;
@@ -141,6 +147,10 @@ export default function OrdersPage() {
     } catch (e: any) {
       setError(e?.response?.data?.message || e?.message || 'فشل تغيير حالة الطلب');
     }
+  }
+
+  if (!isMounted || storesLoading) {
+    return <div className="flex h-64 items-center justify-center"><div className="animate-pulse text-muted-foreground">جاري التحميل...</div></div>;
   }
 
   return (
