@@ -208,8 +208,9 @@ export default function SettingsPage() {
     setPaymentRulesSuccess(null);
     setError(null);
     try {
+      const { id, storeId: _s, createdAt, updatedAt, ...basePayload } = paymentRules as any;
       const payload = {
-        ...paymentRules,
+        ...basePayload,
         minOrderAmount: toNullableNumber(paymentRules.minOrderAmount),
         maxOrderAmount: toNullableNumber(paymentRules.maxOrderAmount),
         codMinOrderAmount: toNullableNumber(paymentRules.codMinOrderAmount),

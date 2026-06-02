@@ -179,7 +179,8 @@ function GrowthPageInner() {
     setError(null);
     toast.success(null);
     try {
-      await api.patch(`/stores/${storeId}/automation`, form, {
+      const { id, storeId: _s, createdAt, updatedAt, ...cleanPayload } = form as any;
+      await api.patch(`/stores/${storeId}/automation`, cleanPayload, {
         headers: { ...authHeader(), 'x-client': 'web' },
       });
       toast.success(t.saveSuccess);
