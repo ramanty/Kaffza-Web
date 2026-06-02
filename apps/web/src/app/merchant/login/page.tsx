@@ -172,6 +172,7 @@ function MerchantLoginPageInner() {
           </Field>
 
           <Button
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-[0_4px_15px_rgba(37,99,235,0.3)]"
             onClick={login}
             disabled={loading || !(method === 'phone' ? phoneOk : emailOk) || !passOk}
           >
@@ -232,7 +233,7 @@ function TabButton({ active, onClick, children }: any) {
       onClick={onClick}
       className={
         'flex-1 rounded-xl px-4 py-2 text-sm font-extrabold transition ' +
-        (active ? 'bg-primary text-white' : 'bg-background text-foreground hover:bg-black/5')
+        (active ? 'bg-white text-slate-950' : 'bg-background text-slate-400 hover:text-slate-200')
       }
     >
       {children}
