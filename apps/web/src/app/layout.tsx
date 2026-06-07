@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     siteName: "Kaffza",
     images: [
       {
-        url: "https://kaffza.me/icon.svg",
+        url: "https://kaffza.me/og-image.png",
         width: 800,
         height: 600,
         alt: "Kaffza Platform Preview",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "قفزة | Kaffza",
     description: "أطلق متجرك الإلكتروني في عُمان خلال 10 دقائق.",
-    images: ["https://kaffza.me/icon.svg"],
+    images: ["https://kaffza.me/og-image.png"],
   },
 };
 

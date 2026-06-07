@@ -197,11 +197,17 @@ export function SiteTopBar() {
             <Link href={isEn ? '/en/features' : '/features'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
               {isEn ? 'Features' : 'المميزات'}
             </Link>
+            <Link href={isEn ? '/en/solutions' : '/solutions'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
+              {isEn ? 'Solutions' : 'الحلول'}
+            </Link>
             <Link href={isEn ? '/en/pricing' : '/pricing'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
               {isEn ? 'Pricing' : 'الأسعار'}
             </Link>
+            <Link href={isEn ? '/en/about' : '/about'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
+              {isEn ? 'About Us' : 'من نحن'}
+            </Link>
             <Link href={isEn ? '/en/contact' : '/contact'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
-              {isEn ? 'Contact Us' : 'اتصل بنا'}
+              {isEn ? 'Contact Us' : 'تواصل معنا'}
             </Link>
           </nav>
 

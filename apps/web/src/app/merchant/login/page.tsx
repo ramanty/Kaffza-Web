@@ -12,6 +12,7 @@ import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { SocialAuthButtons } from '../../../components/SocialAuthButtons';
+import { PhoneInput } from '../../../components/PhoneInput';
 import { isValidE164Phone } from '../../../lib/phone';
 import { extractApiErrorMessage } from '../../../lib/api-error';
 
@@ -97,7 +98,15 @@ function MerchantLoginPageInner() {
   };
 
   return (
-    <main dir="rtl" className="mx-auto max-w-lg px-6 py-12">
+    <div className="min-h-screen bg-[#05050f] text-white relative flex flex-col justify-center selection:bg-blue-500/30">
+      {/* Nebula Dark Tech Background */}
+      <div 
+        className="fixed inset-0 z-0 pointer-events-none opacity-20 bg-center bg-cover bg-no-repeat mix-blend-screen"
+        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=2000&auto=format&fit=crop')" }}
+      />
+      <div className="fixed inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,#1a1a2e_0%,transparent_80%)]" />
+
+      <main dir="rtl" className="relative z-10 mx-auto w-full max-w-lg px-6 py-12">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-muted-foreground text-xs">منطقة التاجر</div>
@@ -144,12 +153,10 @@ function MerchantLoginPageInner() {
 
           {method === 'phone' ? (
             <Field label="رقم الهاتف">
-              <Input
+              <PhoneInput
                 value={phone}
-                onChange={(e: any) => setPhone(e.target.value)}
-                placeholder="+96891234567"
+                onChange={(val: string) => setPhone(val)}
               />
-              <Hint>صيغة دولية: +968XXXXXXXX أو +1XXXXXXXXXX</Hint>
             </Field>
           ) : (
             <Field label="البريد الإلكتروني">
@@ -209,7 +216,8 @@ function MerchantLoginPageInner() {
           الخصوصية
         </Link>
       </div>
-    </main>
+      </main>
+    </div>
   );
 }
 
@@ -233,7 +241,7 @@ function TabButton({ active, onClick, children }: any) {
       onClick={onClick}
       className={
         'flex-1 rounded-xl px-4 py-2 text-sm font-extrabold transition ' +
-        (active ? 'bg-white text-slate-950' : 'bg-background text-slate-400 hover:text-slate-200')
+        (active ? 'bg-green-600 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white')
       }
     >
       {children}

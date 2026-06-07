@@ -97,6 +97,14 @@ export function SiteFooter({ lang = 'ar' }: { lang?: 'ar' | 'en' }) {
                 <a href="mailto:hello@kaffza.com" className="hover:text-blue-400 transition-colors">hello@kaffza.com</a>
               </li>
             </ul>
+            <div className="mt-8">
+              <Link 
+                href={isAr ? '/support/new' : '/en/support/new'}
+                className="inline-flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.2)] hover:shadow-[0_0_25px_rgba(37,99,235,0.4)]"
+              >
+                {isAr ? 'فتح تذكرة دعم فني' : 'Open Support Ticket'}
+              </Link>
+            </div>
           </div>
 
         </div>
