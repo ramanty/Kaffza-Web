@@ -11,35 +11,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup SSH key
-        run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > /tmp/deploy_key
-          chmod 600 /tmp/deploy_key
-          echo "Key: $(head -1 /tmp/deploy_key)"
-          echo "Size: $(wc -c < /tmp/deploy_key) bytes"
-
-      - name: Test SSH connection
-        run: |
-          set -e
-          echo "Testing connection to ${{ secrets.SSH_HOST }}..."
-          ssh -o StrictHostKeyChecking=accept-new \
-            -i /tmp/deploy_key \
-            -o ConnectTimeout=10 \
-            -o BatchMode=yes \
-            moha@${{ secrets.SSH_HOST }} 'hostname'
-          echo "SSH OK"
-
-      - name: Deploy via SSH
-        run: |
-          set -e
-          ssh -o StrictHostKeyChecking=accept-new \
-            -i /tmp/deploy_key \
-            -o ConnectTimeout=30 \
-            moha@${{ secrets.SSH_HOST }} '
+      - name: Setup SSH key and connect
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: moha
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
             set -e
             sudo -n -u mohacardiffuk -H bash -c "cd /home/mohacardiffuk/Kaffza-Web && git pull origin main"
             sudo -n docker compose \
               --env-file /home/mohacardiffuk/Kaffza-Web/production/.env \
               -f /home/mohacardiffuk/Kaffza-Web/production/docker-compose.yml \
               up -d --build web api
-          '
