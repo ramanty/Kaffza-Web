@@ -15,16 +15,26 @@ jobs:
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > /tmp/deploy_key
           chmod 600 /tmp/deploy_key
-          echo "Key file size: $(wc -c < /tmp/deploy_key) bytes"
-          echo "First line: $(head -1 /tmp/deploy_key)"
-          ssh-keygen -l -f /tmp/deploy_key 2>&1 || echo "Key invalid"
+          echo "Key: $(head -1 /tmp/deploy_key)"
+          echo "Size: $(wc -c < /tmp/deploy_key) bytes"
+
+      - name: Test SSH connection
+        run: |
+          set -e
+          echo "Testing connection to ${{ secrets.SSH_HOST }}..."
+          ssh -o StrictHostKeyChecking=accept-new \
+            -i /tmp/deploy_key \
+            -o ConnectTimeout=10 \
+            -o BatchMode=yes \
+            moha@${{ secrets.SSH_HOST }} 'hostname'
+          echo "SSH OK"
 
       - name: Deploy via SSH
         run: |
           set -e
           ssh -o StrictHostKeyChecking=accept-new \
             -i /tmp/deploy_key \
-            -v \
+            -o ConnectTimeout=30 \
             moha@${{ secrets.SSH_HOST }} '
             set -e
             sudo -n -u mohacardiffuk -H bash -c "cd /home/mohacardiffuk/Kaffza-Web && git pull origin main"
