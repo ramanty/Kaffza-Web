@@ -11,15 +11,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup SSH Agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
 
       - name: Deploy via SSH
         run: |
           set -e
-          ssh -o StrictHostKeyChecking=accept-new moha@${{ secrets.SSH_HOST }} '
+          ssh -o StrictHostKeyChecking=accept-new \
+            -i /tmp/deploy_key \
+            moha@${{ secrets.SSH_HOST }} '
             set -e
             sudo -n -u mohacardiffuk -H bash -c "cd /home/mohacardiffuk/Kaffza-Web && git pull origin main"
             sudo -n docker compose \
