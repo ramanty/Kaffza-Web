@@ -20,8 +20,8 @@
     "build:web": "turbo run build --filter=@kaffza/web",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "db:migrate": "turbo run db:migrate --filter=@kaffza/api",
-    "db:seed": "turbo run db:seed --filter=@kaffza/api",
+    "db:migrate": "pnpm --filter @kaffza/api db:migrate",
+    "db:seed": "pnpm --filter @kaffza/api db:seed",
     "clean": "turbo run clean && rm -rf node_modules",
     "ci": "pnpm build && pnpm --filter @kaffza/api test -- --runInBand",
     "prepare": "husky"

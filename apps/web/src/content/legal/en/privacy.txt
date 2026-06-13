@@ -47,7 +47,7 @@ D. Automatically Collected Data
 We do not sell your personal data. We may share data only in the following cases:
 • Thawani Pay: to process payments securely (PCI-DSS aligned)
 • Jeena shipping: to deliver orders and provide shipment tracking
-• Amazon Web Services (AWS): to host data on servers in the Bahrain region
+• Google Cloud Platform (GCP): to host data on servers in the Doha region (me-central1)
 • Legal/regulatory authorities: only upon a valid official legal request
 • The relevant merchant: order details necessary to fulfill the purchase
 

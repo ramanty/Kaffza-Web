@@ -95,7 +95,7 @@ export function SiteTopBar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/60 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-border glass-nav">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-4">
           <Link
@@ -143,13 +143,13 @@ export function SiteTopBar() {
           {!mounted || !userState.loaded ? (
             <div className="w-24 h-10 bg-muted animate-pulse rounded-full" />
           ) : userState.hasStore ? (
-            <Button asChild className="rounded-full px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-[0_0_20px_rgba(37,99,235,0.3)] border-0">
+            <Button asChild className="rounded-full px-6 bg-omani-amber hover:bg-celestial-gold text-midnight-void font-bold text-white font-bold shadow-[0_0_20px_rgba(37,99,235,0.3)] border-0">
               <Link href={isEn ? '/en/dashboard' : '/dashboard'}>
                 {isEn ? 'Dashboard' : 'لوحة التحكم'}
               </Link>
             </Button>
           ) : userState.loggedIn ? (
-            <Button asChild className="rounded-full px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-[0_0_20px_rgba(37,99,235,0.3)] border-0">
+            <Button asChild className="rounded-full px-6 bg-omani-amber hover:bg-celestial-gold text-midnight-void font-bold text-white font-bold shadow-[0_0_20px_rgba(37,99,235,0.3)] border-0">
               <Link href={isEn ? '/en/onboarding' : '/onboarding'}>
                 {isEn ? 'Open Your Store' : 'افتح متجرك'}
               </Link>
@@ -161,7 +161,7 @@ export function SiteTopBar() {
                   {isEn ? 'Log in' : 'دخول'}
                 </Link>
               </Button>
-              <Button asChild className="rounded-full px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-[0_0_20px_rgba(37,99,235,0.3)] border-0">
+              <Button asChild className="rounded-full px-6 bg-omani-amber hover:bg-celestial-gold text-midnight-void font-bold text-white font-bold shadow-[0_0_20px_rgba(37,99,235,0.3)] border-0">
                 <Link href={isEn ? '/en/merchant/register' : '/merchant/register'}>
                   {isEn ? 'Start Now' : 'ابدأ الآن'}
                 </Link>
@@ -197,14 +197,14 @@ export function SiteTopBar() {
             <Link href={isEn ? '/en/features' : '/features'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
               {isEn ? 'Features' : 'المميزات'}
             </Link>
-            <Link href={isEn ? '/en/solutions' : '/solutions'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
-              {isEn ? 'Solutions' : 'الحلول'}
+            <Link href={isEn ? '/en/help' : '/help'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
+              {isEn ? 'Help Center' : 'الحلول'}
             </Link>
             <Link href={isEn ? '/en/pricing' : '/pricing'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
               {isEn ? 'Pricing' : 'الأسعار'}
             </Link>
-            <Link href={isEn ? '/en/about' : '/about'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
-              {isEn ? 'About Us' : 'من نحن'}
+            <Link href={isEn ? '/en/trust' : '/trust'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
+              {isEn ? 'Trust & Safety' : 'من نحن'}
             </Link>
             <Link href={isEn ? '/en/contact' : '/contact'} onClick={() => setIsMenuOpen(false)} className="border-b border-border pb-2">
               {isEn ? 'Contact Us' : 'تواصل معنا'}
@@ -219,13 +219,13 @@ export function SiteTopBar() {
             {!mounted || !userState.loaded ? (
               <div className="w-full h-12 bg-muted animate-pulse rounded-xl" />
             ) : userState.hasStore ? (
-              <Button asChild className="w-full py-6 text-lg rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold border-0">
+              <Button asChild className="w-full py-6 text-lg rounded-xl bg-omani-amber hover:bg-celestial-gold text-midnight-void font-bold text-white font-bold border-0">
                 <Link href={isEn ? '/en/dashboard' : '/dashboard'} onClick={() => setIsMenuOpen(false)}>
                   {isEn ? 'Dashboard' : 'لوحة التحكم'}
                 </Link>
               </Button>
             ) : userState.loggedIn ? (
-              <Button asChild className="w-full py-6 text-lg rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold border-0">
+              <Button asChild className="w-full py-6 text-lg rounded-xl bg-omani-amber hover:bg-celestial-gold text-midnight-void font-bold text-white font-bold border-0">
                 <Link href={isEn ? '/en/onboarding' : '/onboarding'} onClick={() => setIsMenuOpen(false)}>
                   {isEn ? 'Open Your Store' : 'افتح متجرك'}
                 </Link>
@@ -237,7 +237,7 @@ export function SiteTopBar() {
                     {isEn ? 'Log in' : 'تسجيل الدخول'}
                   </Link>
                 </Button>
-                <Button asChild className="w-full py-6 text-lg rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold border-0 shadow-[0_0_20px_rgba(37,99,235,0.3)]">
+                <Button asChild className="w-full py-6 text-lg rounded-xl bg-omani-amber hover:bg-celestial-gold text-midnight-void font-bold text-white font-bold border-0 shadow-[0_0_20px_rgba(37,99,235,0.3)]">
                   <Link href={isEn ? '/en/merchant/register' : '/merchant/register'} onClick={() => setIsMenuOpen(false)}>
                     {isEn ? 'Start Now' : 'ابدأ الآن'}
                   </Link>

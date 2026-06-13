@@ -1,64 +1,31 @@
-import Link from 'next/link';
+import Link from "next/link";
+import { PLAN_CATALOG } from "../../../lib/plan-catalog";
 
-import { Card } from '../../../components/Card';
-import { PlanCardActions } from '../../../components/PlanCardActions';
-import { PLAN_CATALOG, getPlanNotes, getPlanSubtitle } from '../../../lib/plan-catalog';
-
-export default function EnPricingPage() {
+export default function EnPricing() {
   return (
-    <main dir="ltr" className="mx-auto max-w-6xl px-6 py-12">
-      <div className="bg-background rounded-2xl border border-border px-6 py-7">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-primary text-3xl font-extrabold">Plans & Pricing</h1>
-          <Link className="text-muted-foreground text-sm font-bold underline" href="/en">
-            Home
-          </Link>
-        </div>
-
-        <p className="text-foreground/80 mt-3 max-w-2xl text-sm leading-6">
-          Pick the right plan for your stage. Billing is monthly and commission applies only to
-          successful orders.
-        </p>
+    <main className="max-w-7xl mx-auto px-6 py-16">
+      <div className="text-center mb-12">
+        <h1 className="section-title">Plans &amp; Pricing</h1>
+        <p className="text-twilight mt-2">Choose the right plan. Commission only on successful orders.</p>
       </div>
-
-      <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-        {PLAN_CATALOG.map((plan) => (
-          <Card
-            key={plan.slug}
-            className={
-              'flex h-full flex-col p-6 ' +
-              (plan.popular
-                ? 'border-kaffza-premium ring-kaffza-premium/40 ring-1'
-                : 'border-border')
-            }
-          >
-            <div className="flex items-start justify-between gap-2">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+        {PLAN_CATALOG.map((plan, i) => (
+          <div key={i} className={"glass-card p-7 flex flex-col " + (plan.popular ? "ring-1 ring-omani-amber/60" : "")}>
+            <div className="flex justify-between">
               <div>
-                <div className="text-primary text-lg font-extrabold">{plan.name}</div>
-                <div className="text-muted-foreground mt-1 text-xs">
-                  {getPlanSubtitle(plan, true)}
-                </div>
+                <div className="font-bold text-xl">{plan.name} <span className="text-twilight">({plan.subtitleEn})</span></div>
+                <div className="text-xs text-twilight">Commission {plan.commission}</div>
               </div>
-              {plan.popular ? (
-                <span className="bg-premium text-kaffza-dark-blue rounded-full px-3 py-1 text-xs font-extrabold">
-                  Most popular
-                </span>
-              ) : null}
+              {plan.popular && <span className="text-[10px] px-3 py-1 bg-omani-amber text-midnight-void rounded-full font-bold">Most popular</span>}
             </div>
-            <div className="text-kaffza-info mt-4 text-3xl font-extrabold">
-              {plan.priceOmr} OMR <span className="text-muted-foreground text-sm">/month</span>
-            </div>
-            <div className="text-foreground/80 mt-1 text-sm">Commission: {plan.commission}</div>
-            <ul className="text-foreground/80 mt-4 flex-1 space-y-2 text-sm">
-              {getPlanNotes(plan, true).map((n) => (
-                <li key={n} className="flex items-start gap-2">
-                  <span className="text-primary mt-0.5">✓</span>
-                  <span>{n}</span>
-                </li>
-              ))}
+            <div className="mt-6 text-5xl font-bold">{plan.priceOmr} <span className="text-base text-twilight">OMR / month</span></div>
+            <ul className="mt-6 space-y-2 text-sm flex-1">
+              {plan.notesEn.map((n, ni) => <li key={ni}>✓ {n}</li>)}
             </ul>
-            <PlanCardActions slug={plan.slug} isEn />
-          </Card>
+            <Link href="/en/merchant/register" className={plan.popular ? "btn-primary mt-6 text-center" : "btn-secondary mt-6 text-center"}>
+              {plan.priceOmr === 0 ? "Start Free" : "Subscribe Now"}
+            </Link>
+          </div>
         ))}
       </div>
     </main>

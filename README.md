@@ -184,7 +184,7 @@ These hooks are installed automatically when you run `pnpm install` (via the `pr
 
 | Plan              | Monthly Price | Commission |
 | :---------------- | :------------ | :--------- |
-| Free (مجانية)     | 0 OMR         | 3%         |
+| | Free (مجانية)     | 0 OMR         | 5%         |
 | Starter (البداية) | 5 OMR         | 2%         |
 | Growth (النمو)    | 8 ر.ع         | 1%         |
 | Pro (المحترف)     | 35 ر.ع        | 0.5%       |
