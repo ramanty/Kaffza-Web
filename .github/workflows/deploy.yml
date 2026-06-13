@@ -11,20 +11,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: moha
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy via SSH
+        run: |
+          set -e
+          ssh -o StrictHostKeyChecking=accept-new moha@${{ secrets.SSH_HOST }} '
             set -e
-
-            # Pull latest code
-            sudo -n -u mohacardiffuk -H bash -c 'cd /home/mohacardiffuk/Kaffza-Web && git pull origin main'
-
-            # Rebuild and deploy web + api
+            sudo -n -u mohacardiffuk -H bash -c "cd /home/mohacardiffuk/Kaffza-Web && git pull origin main"
             sudo -n docker compose \
               --env-file /home/mohacardiffuk/Kaffza-Web/production/.env \
               -f /home/mohacardiffuk/Kaffza-Web/production/docker-compose.yml \
               up -d --build web api
+          '
