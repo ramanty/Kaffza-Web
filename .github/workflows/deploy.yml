@@ -15,10 +15,16 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          username: moha
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd /home/mohacardiffuk/Kaffza-Web
-            git pull origin main
-            sudo docker compose --env-file production/.env -f production/docker-compose.yml up -d --build web api
+
+            # Pull latest code
+            sudo -n -u mohacardiffuk -H bash -c 'cd /home/mohacardiffuk/Kaffza-Web && git pull origin main'
+
+            # Rebuild and deploy web + api
+            sudo -n docker compose \
+              --env-file /home/mohacardiffuk/Kaffza-Web/production/.env \
+              -f /home/mohacardiffuk/Kaffza-Web/production/docker-compose.yml \
+              up -d --build web api
