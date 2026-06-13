@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { api } from '../lib/api';
 import { extractApiErrorMessage } from '../lib/api-error';
 
@@ -36,61 +36,120 @@ export function SocialAuthButtons({
   onError: (message: string) => void;
 }) {
   const [loading, setLoading] = useState<'google' | 'apple' | null>(null);
+  const gsiLoadedRef = useRef(false);
+  const cancelledRef = useRef(false);
 
-  const googleLabel = locale === 'ar' ? 'المتابعة عبر Google' : 'Continue with Google';
-  const appleLabel = locale === 'ar' ? 'المتابعة عبر Apple' : 'Continue with Apple';
+  // Load GSI script once on mount
+  useEffect(() => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId || typeof window === 'undefined') return;
 
-  async function loginWithGoogle() {
+    cancelledRef.current = false;
+
+    (async () => {
+      try {
+        await ensureScript('https://accounts.google.com/gsi/client');
+        if (!cancelledRef.current && window.google?.accounts?.id) {
+          gsiLoadedRef.current = true;
+        }
+      } catch {
+        console.error('Failed to load Google Sign-In SDK');
+      }
+    })();
+
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, []);
+
+  const googleLabel = locale === 'ar' ? '\u0627\u0644\u0645\u062a\u0627\u0628\u0639\u0629 \u0639\u0628\u0631 Google' : 'Continue with Google';
+  const appleLabel = locale === 'ar' ? '\u0627\u0644\u0645\u062a\u0627\u0628\u0639\u0629 \u0639\u0628\u0631 Apple' : 'Continue with Apple';
+
+  const loginWithGoogle = useCallback(async () => {
+    if (cancelledRef.current) return;
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) {
-      onError(locale === 'ar' ? 'Google OAuth غير مضبوط حالياً' : 'Google OAuth is not configured');
+      onError(locale === 'ar' ? 'Google OAuth \u063a\u064a\u0631 \u0645\u0636\u0628\u0648\u0637 \u062d\u0627\u0644\u064a\u064b\u0627' : 'Google OAuth is not configured');
       return;
     }
 
     setLoading('google');
     try {
-      await ensureScript('https://accounts.google.com/gsi/client');
-      if (!window.google?.accounts?.id) {
-        throw new Error(locale === 'ar' ? 'تعذر تحميل Google SDK' : 'Could not load Google SDK');
+      // Ensure GSI script is loaded
+      if (!gsiLoadedRef.current) {
+        await ensureScript('https://accounts.google.com/gsi/client');
+        if (!cancelledRef.current && window.google?.accounts?.id) {
+          gsiLoadedRef.current = true;
+        }
       }
 
-      await new Promise<void>((resolve, reject) => {
+      if (!window.google?.accounts?.id) {
+        throw new Error(locale === 'ar' ? '\u062a\u0639\u0630\u0631 \u062a\u062d\u0645\u064a\u0644 Google SDK' : 'Could not load Google SDK');
+      }
+
+      // Get credential via Google Identity Services
+      const idToken = await new Promise<string>((resolve, reject) => {
+        // Initialize once per prompt - Google allows this pattern
         window.google.accounts.id.initialize({
           client_id: clientId,
-          callback: async (response: any) => {
-            try {
-              const idToken = response?.credential;
-              if (!idToken) throw new Error('Missing Google credential');
-              const res = await api.post(
-                '/auth/oauth/google',
-                { provider: 'google', idToken },
-                { headers: { 'x-client': 'web' } }
-              );
-              const token = res?.data?.data?.tokens?.accessToken;
-              if (!token) throw new Error('No access token received');
-              onAuthSuccess(token);
-              resolve();
-            } catch (e: any) {
-              reject(e);
+          callback: (response: any) => {
+            const credential = response?.credential;
+            if (credential) {
+              resolve(credential);
+            } else {
+              reject(new Error(locale === 'ar' ? '\u0644\u0645 \u064a\u062a\u0645 \u0627\u0633\u062a\u0644\u0627\u0645 \u0631\u0645\u0632 Google' : 'Missing Google credential'));
             }
           },
         });
-        window.google.accounts.id.prompt();
-      });
-    } catch (e: any) {
-      onError(
-        extractApiErrorMessage(e, locale === 'ar' ? 'فشل تسجيل Google' : 'Google sign-in failed')
-      );
-    } finally {
-      setLoading(null);
-    }
-  }
 
-  async function loginWithApple() {
-    const clientId = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID;
-    const redirectUri = process.env.NEXT_PUBLIC_APPLE_REDIRECT_URI || window.location.origin;
-    if (!clientId) {
-      onError(locale === 'ar' ? 'Apple OAuth غير مضبوط حالياً' : 'Apple OAuth is not configured');
+        // Trigger the One Tap / Google sign-in flow
+        window.google.accounts.id.prompt((notification: any) => {
+          // Google couldn't show the prompt at all
+          if (notification.isNotDisplayed()) {
+            reject(new Error(
+              locale === 'ar'
+                ? '\u062a\u0639\u0630\u0631 \u0641\u062a\u062d \u0646\u0627\u0641\u0630\u0629 \u062a\u0633\u062c\u064a\u0644 Google. \u062a\u0623\u0643\u062f \u0645\u0646 \u0623\u0646 \u0627\u0644\u0645\u062a\u0635\u0641\u062d \u0644\u0627 \u064a\u062d\u062c\u0628 \u0627\u0644\u0646\u0648\u0627\u0641\u0630 \u0627\u0644\u0645\u0646\u0628\u062b\u0642\u0629'
+                : 'Google sign-in could not be displayed. Check popup blocker.'
+            ));
+          }
+        });
+      });
+
+      if (cancelledRef.current) return;
+
+      // Send credential to backend
+      const res = await api.post(
+        '/auth/oauth/google',
+        { provider: 'google', idToken },
+        { headers: { 'x-client': 'web' } }
+      );
+      const accessToken = res?.data?.data?.tokens?.accessToken;
+      if (!accessToken) throw new Error('\u0644\u0645 \u064a\u062a\u0645 \u0627\u0633\u062a\u0644\u0627\u0645 access token');
+      if (!cancelledRef.current) {
+        onAuthSuccess(accessToken);
+      }
+    } catch (e: any) {
+      if (!cancelledRef.current) {
+        onError(
+          extractApiErrorMessage(
+            e,
+            locale === 'ar' ? '\u0641\u0634\u0644 \u062a\u0633\u062c\u064a\u0644 Google' : 'Google sign-in failed'
+          )
+        );
+      }
+    } finally {
+      if (!cancelledRef.current) {
+        setLoading(null);
+      }
+    }
+  }, [locale, onAuthSuccess, onError]);
+
+  const loginWithApple = useCallback(async () => {
+    if (cancelledRef.current) return;
+    const appleClientId = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID;
+    const redirectUri = process.env.NEXT_PUBLIC_APPLE_REDIRECT_URI || (typeof window !== 'undefined' ? window.location.origin : '');
+    if (!appleClientId) {
+      onError(locale === 'ar' ? 'Apple OAuth \u063a\u064a\u0631 \u0645\u0636\u0628\u0648\u0637 \u062d\u0627\u0644\u064a\u064b\u0627' : 'Apple OAuth is not configured');
       return;
     }
 
@@ -100,11 +159,11 @@ export function SocialAuthButtons({
         'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js'
       );
       if (!window.AppleID?.auth) {
-        throw new Error(locale === 'ar' ? 'تعذر تحميل Apple SDK' : 'Could not load Apple SDK');
+        throw new Error(locale === 'ar' ? '\u062a\u0639\u0630\u0631 \u062a\u062d\u0645\u064a\u0644 Apple SDK' : 'Could not load Apple SDK');
       }
 
       window.AppleID.auth.init({
-        clientId,
+        clientId: appleClientId,
         scope: 'name email',
         redirectURI: redirectUri,
         usePopup: true,
@@ -119,17 +178,26 @@ export function SocialAuthButtons({
         { provider: 'apple', idToken },
         { headers: { 'x-client': 'web' } }
       );
-      const token = res?.data?.data?.tokens?.accessToken;
-      if (!token) throw new Error('No access token received');
-      onAuthSuccess(token);
+      const accessToken = res?.data?.data?.tokens?.accessToken;
+      if (!accessToken) throw new Error('No access token received');
+      if (!cancelledRef.current) {
+        onAuthSuccess(accessToken);
+      }
     } catch (e: any) {
-      onError(
-        extractApiErrorMessage(e, locale === 'ar' ? 'فشل تسجيل Apple' : 'Apple sign-in failed')
-      );
+      if (!cancelledRef.current) {
+        onError(
+          extractApiErrorMessage(
+            e,
+            locale === 'ar' ? '\u0641\u0634\u0644 \u062a\u0633\u062c\u064a\u0644 Apple' : 'Apple sign-in failed'
+          )
+        );
+      }
     } finally {
-      setLoading(null);
+      if (!cancelledRef.current) {
+        setLoading(null);
+      }
     }
-  }
+  }, [locale, onAuthSuccess, onError]);
 
   return (
     <div className="mt-4 grid gap-3">
@@ -147,7 +215,7 @@ export function SocialAuthButtons({
         </svg>
         {loading === 'google'
           ? locale === 'ar'
-            ? 'جارٍ فتح Google...'
+            ? '\u062c\u0627\u0631\u064d \u0641\u062a\u062d Google...'
             : 'Opening Google...'
           : googleLabel}
       </button>
@@ -162,7 +230,7 @@ export function SocialAuthButtons({
         </svg>
         {loading === 'apple'
           ? locale === 'ar'
-            ? 'جارٍ فتح Apple...'
+            ? '\u062c\u0627\u0631\u064d \u0641\u062a\u062d Apple...'
             : 'Opening Apple...'
           : appleLabel}
       </button>
