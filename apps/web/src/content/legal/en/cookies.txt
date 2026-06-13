@@ -1,0 +1,18 @@
+Cookies Policy
+Kaffza Platform | Kaffza
+
+Kaffza uses essential cookies to operate the platform securely and reliably.
+
+1) Essential cookies
+• Session/auth cookies (HttpOnly) for secure sign-in and token refresh.
+• Preference cookies (language, direction, and theme).
+
+2) What we do not use
+• No advertising tracking cookies across third-party websites.
+• No sale of browsing data to third parties.
+
+3) Managing cookies
+You can disable cookies from your browser settings, but essential platform features may stop working correctly.
+
+4) Contact
+For privacy and cookies requests: support@kaffza.com
