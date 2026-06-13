@@ -11,11 +11,31 @@ declare global {
   }
 }
 
-async function ensureScript(src: string) {
+// Track scripts that are being loaded to avoid duplicate loads + wait correctly
+const scriptPromises = new Map<string, Promise<void>>();
+
+async function ensureScript(src: string): Promise<void> {
   if (typeof window === 'undefined') return;
-  const existing = document.querySelector(`script[src="${src}"]`);
-  if (existing) return;
-  await new Promise<void>((resolve, reject) => {
+
+  // Return existing promise if script is already being loaded
+  const existing = scriptPromises.get(src);
+  if (existing) return existing;
+
+  // Check if already fully loaded (script tag exists + google object ready)
+  const alreadyLoaded = document.querySelector(`script[src="${src}"]`);
+  // For GSI script, also check if google.accounts.id is available
+  if (src.includes('google.com/gsi/client') && window.google?.accounts?.id) {
+    return; // Already fully loaded and initialized
+  }
+  if (src.includes('appleid.cdn-apple.com') && window.AppleID?.auth) {
+    return;
+  }
+  if (alreadyLoaded && !src.includes('google.com')) {
+    return; // Non-Google scripts that are in the DOM are considered loaded
+  }
+
+  // Create a new promise
+  const promise = new Promise<void>((resolve, reject) => {
     const s = document.createElement('script');
     s.src = src;
     s.async = true;
@@ -24,6 +44,9 @@ async function ensureScript(src: string) {
     s.onerror = () => reject(new Error(`Failed to load script ${src}`));
     document.head.appendChild(s);
   });
+
+  scriptPromises.set(src, promise);
+  return promise;
 }
 
 export function SocialAuthButtons({
@@ -36,60 +59,40 @@ export function SocialAuthButtons({
   onError: (message: string) => void;
 }) {
   const [loading, setLoading] = useState<'google' | 'apple' | null>(null);
-  const gsiLoadedRef = useRef(false);
   const cancelledRef = useRef(false);
 
-  // Load GSI script once on mount
+  // Clean up on unmount
   useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId || typeof window === 'undefined') return;
-
     cancelledRef.current = false;
-
-    (async () => {
-      try {
-        await ensureScript('https://accounts.google.com/gsi/client');
-        if (!cancelledRef.current && window.google?.accounts?.id) {
-          gsiLoadedRef.current = true;
-        }
-      } catch {
-        console.error('Failed to load Google Sign-In SDK');
-      }
-    })();
-
     return () => {
       cancelledRef.current = true;
     };
   }, []);
 
-  const googleLabel = locale === 'ar' ? '\u0627\u0644\u0645\u062a\u0627\u0628\u0639\u0629 \u0639\u0628\u0631 Google' : 'Continue with Google';
-  const appleLabel = locale === 'ar' ? '\u0627\u0644\u0645\u062a\u0627\u0628\u0639\u0629 \u0639\u0628\u0631 Apple' : 'Continue with Apple';
+  const googleLabel = locale === 'ar' ? 'المتابعة عبر Google' : 'Continue with Google';
+  const appleLabel = locale === 'ar' ? 'المتابعة عبر Apple' : 'Continue with Apple';
 
   const loginWithGoogle = useCallback(async () => {
     if (cancelledRef.current) return;
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) {
-      onError(locale === 'ar' ? 'Google OAuth \u063a\u064a\u0631 \u0645\u0636\u0628\u0648\u0637 \u062d\u0627\u0644\u064a\u064b\u0627' : 'Google OAuth is not configured');
+      onError(locale === 'ar' ? 'Google OAuth غير مضبوط حالياً' : 'Google OAuth is not configured');
       return;
     }
 
     setLoading('google');
     try {
-      // Ensure GSI script is loaded
-      if (!gsiLoadedRef.current) {
-        await ensureScript('https://accounts.google.com/gsi/client');
-        if (!cancelledRef.current && window.google?.accounts?.id) {
-          gsiLoadedRef.current = true;
-        }
-      }
+      // Load GSI script (waits for it to finish loading)
+      await ensureScript('https://accounts.google.com/gsi/client');
+      if (cancelledRef.current) return;
 
+      // Verify SDK is available
       if (!window.google?.accounts?.id) {
-        throw new Error(locale === 'ar' ? '\u062a\u0639\u0630\u0631 \u062a\u062d\u0645\u064a\u0644 Google SDK' : 'Could not load Google SDK');
+        throw new Error(locale === 'ar' ? 'تعذر تحميل Google SDK' : 'Could not load Google SDK');
       }
 
       // Get credential via Google Identity Services
       const idToken = await new Promise<string>((resolve, reject) => {
-        // Initialize once per prompt - Google allows this pattern
         window.google.accounts.id.initialize({
           client_id: clientId,
           callback: (response: any) => {
@@ -97,18 +100,17 @@ export function SocialAuthButtons({
             if (credential) {
               resolve(credential);
             } else {
-              reject(new Error(locale === 'ar' ? '\u0644\u0645 \u064a\u062a\u0645 \u0627\u0633\u062a\u0644\u0627\u0645 \u0631\u0645\u0632 Google' : 'Missing Google credential'));
+              reject(new Error(locale === 'ar' ? 'لم يتم استلام رمز Google' : 'Missing Google credential'));
             }
           },
         });
 
         // Trigger the One Tap / Google sign-in flow
         window.google.accounts.id.prompt((notification: any) => {
-          // Google couldn't show the prompt at all
           if (notification.isNotDisplayed()) {
             reject(new Error(
               locale === 'ar'
-                ? '\u062a\u0639\u0630\u0631 \u0641\u062a\u062d \u0646\u0627\u0641\u0630\u0629 \u062a\u0633\u062c\u064a\u0644 Google. \u062a\u0623\u0643\u062f \u0645\u0646 \u0623\u0646 \u0627\u0644\u0645\u062a\u0635\u0641\u062d \u0644\u0627 \u064a\u062d\u062c\u0628 \u0627\u0644\u0646\u0648\u0627\u0641\u0630 \u0627\u0644\u0645\u0646\u0628\u062b\u0642\u0629'
+                ? 'تعذر فتح نافذة تسجيل Google. تأكد من أن المتصفح لا يحجب النوافذ المنبثقة'
                 : 'Google sign-in could not be displayed. Check popup blocker.'
             ));
           }
@@ -124,7 +126,7 @@ export function SocialAuthButtons({
         { headers: { 'x-client': 'web' } }
       );
       const accessToken = res?.data?.data?.tokens?.accessToken;
-      if (!accessToken) throw new Error('\u0644\u0645 \u064a\u062a\u0645 \u0627\u0633\u062a\u0644\u0627\u0645 access token');
+      if (!accessToken) throw new Error('لم يتم استلام access token');
       if (!cancelledRef.current) {
         onAuthSuccess(accessToken);
       }
@@ -133,7 +135,7 @@ export function SocialAuthButtons({
         onError(
           extractApiErrorMessage(
             e,
-            locale === 'ar' ? '\u0641\u0634\u0644 \u062a\u0633\u062c\u064a\u0644 Google' : 'Google sign-in failed'
+            locale === 'ar' ? 'فشل تسجيل Google' : 'Google sign-in failed'
           )
         );
       }
@@ -149,7 +151,7 @@ export function SocialAuthButtons({
     const appleClientId = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID;
     const redirectUri = process.env.NEXT_PUBLIC_APPLE_REDIRECT_URI || (typeof window !== 'undefined' ? window.location.origin : '');
     if (!appleClientId) {
-      onError(locale === 'ar' ? 'Apple OAuth \u063a\u064a\u0631 \u0645\u0636\u0628\u0648\u0637 \u062d\u0627\u0644\u064a\u064b\u0627' : 'Apple OAuth is not configured');
+      onError(locale === 'ar' ? 'Apple OAuth غير مضبوط حالياً' : 'Apple OAuth is not configured');
       return;
     }
 
@@ -159,7 +161,7 @@ export function SocialAuthButtons({
         'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js'
       );
       if (!window.AppleID?.auth) {
-        throw new Error(locale === 'ar' ? '\u062a\u0639\u0630\u0631 \u062a\u062d\u0645\u064a\u0644 Apple SDK' : 'Could not load Apple SDK');
+        throw new Error(locale === 'ar' ? 'تعذر تحميل Apple SDK' : 'Could not load Apple SDK');
       }
 
       window.AppleID.auth.init({
@@ -188,7 +190,7 @@ export function SocialAuthButtons({
         onError(
           extractApiErrorMessage(
             e,
-            locale === 'ar' ? '\u0641\u0634\u0644 \u062a\u0633\u062c\u064a\u0644 Apple' : 'Apple sign-in failed'
+            locale === 'ar' ? 'فشل تسجيل Apple' : 'Apple sign-in failed'
           )
         );
       }
@@ -215,7 +217,7 @@ export function SocialAuthButtons({
         </svg>
         {loading === 'google'
           ? locale === 'ar'
-            ? '\u062c\u0627\u0631\u064d \u0641\u062a\u062d Google...'
+            ? 'جارٍ فتح Google...'
             : 'Opening Google...'
           : googleLabel}
       </button>
@@ -230,7 +232,7 @@ export function SocialAuthButtons({
         </svg>
         {loading === 'apple'
           ? locale === 'ar'
-            ? '\u062c\u0627\u0631\u064d \u0641\u062a\u062d Apple...'
+            ? 'جارٍ فتح Apple...'
             : 'Opening Apple...'
           : appleLabel}
       </button>
