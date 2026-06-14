@@ -13,7 +13,7 @@ const SUBDOMAIN_RE = /^[a-z0-9-]+$/;
 
 const PLANS = [
   {
-    id: 4,
+    id: 1,
     key: 'free',
     name: 'Free',
     price: 0,
@@ -21,7 +21,7 @@ const PLANS = [
     descEn: 'Free plan for a fast start',
   },
   {
-    id: 1,
+    id: 2,
     key: 'starter',
     name: 'Starter',
     price: 5,
@@ -29,7 +29,7 @@ const PLANS = [
     descEn: 'A solid start for small stores',
   },
   {
-    id: 2,
+    id: 3,
     key: 'growth',
     name: 'Growth',
     price: 8,
@@ -38,7 +38,7 @@ const PLANS = [
     popular: true,
   },
   {
-    id: 3,
+    id: 4,
     key: 'pro',
     name: 'Pro',
     price: 35,
@@ -304,7 +304,7 @@ function OnboardingPageInner() {
               <div className="text-muted-foreground mt-1 text-xs">
                 {isEn ? 'Preview:' : 'المعاينة:'}{' '}
                 <span className="text-primary font-bold">
-                  {subdomain || '...'} .kaffza.com
+                  {subdomain || '...'} .kaffza.me
                 </span>
               </div>
               <div className="text-muted-foreground mt-1 text-xs">
