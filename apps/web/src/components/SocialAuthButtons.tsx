@@ -91,30 +91,47 @@ export function SocialAuthButtons({
         throw new Error(locale === 'ar' ? 'تعذر تحميل Google SDK' : 'Could not load Google SDK');
       }
 
-      // Get credential via Google Identity Services
-      const idToken = await new Promise<string>((resolve, reject) => {
+      // Initialize Google GSI once — calling initialize() multiple times breaks the flow
+      if (!window.__gsiInitialized) {
         window.google.accounts.id.initialize({
           client_id: clientId,
           callback: (response: any) => {
-            const credential = response?.credential;
-            if (credential) {
-              resolve(credential);
-            } else {
-              reject(new Error(locale === 'ar' ? 'لم يتم استلام رمز Google' : 'Missing Google credential'));
+            // Store credential for the waiting promise
+            if (window.__gsiResolve && response?.credential) {
+              window.__gsiResolve(response.credential);
+              window.__gsiResolve = null;
             }
           },
         });
+        window.__gsiInitialized = true;
+      }
 
-        // Trigger the One Tap / Google sign-in flow
+      const idToken = await new Promise<string>((resolve, reject) => {
+        // Store resolve so the callback can use it
+        window.__gsiResolve = resolve;
+
+        // Timeout: if Google popup hangs, fail gracefully
+        const timeout = setTimeout(() => {
+          window.__gsiResolve = null;
+          reject(new Error(
+            locale === 'ar'
+              ? 'تجاوزت مهلة تسجيل Google. حاول مرة أخرى'
+              : 'Google sign-in timed out. Please try again.'
+          ));
+        }, 60000);
+
+        // Clean up resolve ref on timeout
+        (window as any).__gsiTimeout = timeout;
+
+        // Trigger the sign-in flow (One Tap or popup)
         window.google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed()) {
-            reject(new Error(
-              locale === 'ar'
-                ? 'تعذر فتح نافذة تسجيل Google. تأكد من أن المتصفح لا يحجب النوافذ المنبثقة'
-                : 'Google sign-in could not be displayed. Check popup blocker.'
-            ));
+          // isSkippedMoment / isDismissedMoment → user canceled → OK, just wait
+          if (notification.isNotDisplayed?.()) {
+            console.log('[Google] One Tap not displayed; popup fallback active');
           }
         });
+      }).finally(() => {
+        clearTimeout((window as any).__gsiTimeout);
       });
 
       if (cancelledRef.current) return;
