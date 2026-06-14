@@ -8,6 +8,9 @@ declare global {
   interface Window {
     google?: any;
     AppleID?: any;
+    __gsiInitialized?: boolean;
+    __gsiResolve?: ((credential: string) => void) | null;
+    __gsiTimeout?: ReturnType<typeof setTimeout>;
   }
 }
 
