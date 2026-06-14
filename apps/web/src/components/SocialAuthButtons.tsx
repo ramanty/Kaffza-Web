@@ -124,7 +124,7 @@ export function SocialAuthButtons({
         }, 60000);
 
         // Clean up resolve ref on timeout
-        (window as any).__gsiTimeout = timeout;
+        window.__gsiTimeout = timeout;
 
         // Trigger the sign-in flow (One Tap or popup)
         window.google.accounts.id.prompt((notification: any) => {
@@ -134,7 +134,7 @@ export function SocialAuthButtons({
           }
         });
       }).finally(() => {
-        clearTimeout((window as any).__gsiTimeout);
+        clearTimeout(window.__gsiTimeout);
       });
 
       if (cancelledRef.current) return;
