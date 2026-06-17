@@ -2,7 +2,7 @@
 // Kaffza (قفزة) — Customer Home Screen
 // ============================================
 
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -48,20 +48,19 @@ export default function HomeScreen() {
     loadProducts();
   }, [loadProducts]);
 
-  const handleAddToCart = useCallback((product: IProduct) => {
-    addItem(product);
-    Alert.alert(
-      'تمت الإضافة! 🛒',
-      `تمت إضافة "${product.nameAr}" إلى السلة`,
-      [{ text: 'حسناً' }],
-    );
-  }, [addItem]);
+  const handleAddToCart = useCallback(
+    (product: IProduct) => {
+      addItem(product);
+      Alert.alert('تمت الإضافة! 🛒', `تمت إضافة "${product.nameAr}" إلى السلة`, [
+        { text: 'حسناً' },
+      ]);
+    },
+    [addItem]
+  );
 
   const renderProduct = useCallback(
-    ({ item }: { item: IProduct }) => (
-      <ProductCard product={item} onAddToCart={handleAddToCart} />
-    ),
-    [handleAddToCart],
+    ({ item }: { item: IProduct }) => <ProductCard product={item} onAddToCart={handleAddToCart} />,
+    [handleAddToCart]
   );
 
   const keyExtractor = useCallback((item: IProduct) => String(item.id), []);

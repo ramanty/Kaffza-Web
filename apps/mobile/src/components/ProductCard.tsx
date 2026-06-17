@@ -2,14 +2,7 @@
 // Kaffza (قفزة) — ProductCard Component
 // ============================================
 
-import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import type { IProduct } from '@kaffza/types';
 import { Colors } from '../constants/colors';
 
@@ -56,8 +49,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             <Text style={styles.addButtonText}>+</Text>
           </TouchableOpacity>
           <Text style={styles.price}>
-            {product.price.toFixed(3)}{' '}
-            <Text style={styles.currency}>ر.ع</Text>
+            {product.price.toFixed(3)} <Text style={styles.currency}>ر.ع</Text>
           </Text>
         </View>
       </View>

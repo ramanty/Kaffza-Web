@@ -35,6 +35,12 @@
       "prettier --write"
     ]
   },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.2.14",
+      "@types/react-dom": "19.2.3"
+    }
+  },
   "devDependencies": {
     "@next/eslint-plugin-next": "^16.2.2",
     "@typescript-eslint/eslint-plugin": "^8.29.0",

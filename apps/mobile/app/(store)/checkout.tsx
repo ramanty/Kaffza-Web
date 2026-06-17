@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
@@ -99,9 +99,28 @@ export default function CheckoutScreen() {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  loadingText: { marginTop: 16, fontSize: 16, fontFamily: 'Tajawal_400Regular', color: Colors.text.secondary },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontFamily: 'Tajawal_400Regular',
+    color: Colors.text.secondary,
+  },
   errorIcon: { fontSize: 48, marginBottom: 12 },
-  errorText: { fontSize: 16, fontFamily: 'Tajawal_400Regular', color: '#EF4444', textAlign: 'center' },
+  errorText: {
+    fontSize: 16,
+    fontFamily: 'Tajawal_400Regular',
+    color: '#EF4444',
+    textAlign: 'center',
+  },
   webview: { flex: 1 },
-  webviewLoading: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
+  webviewLoading: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
 });

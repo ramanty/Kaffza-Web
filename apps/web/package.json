@@ -14,8 +14,6 @@
     "@hookform/resolvers": "^3.9.0",
     "@kaffza/types": "workspace:*",
     "@kaffza/validators": "workspace:*",
-    "@react-three/drei": "^9.106.0",
-    "@react-three/fiber": "^8.16.8",
     "@tailwindcss/postcss": "^4.0.0",
     "axios": "^1.7.0",
     "class-variance-authority": "^0.7.1",
